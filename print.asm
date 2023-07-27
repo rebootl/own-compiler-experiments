@@ -44,32 +44,47 @@ _start:
   ;add esp, 4          ; pop char
 
 
-  mov eax, 4949         ; number to print
+  mov eax, 123        ; number to print
 
 print_int:              ; print integer as decimal
                         ; eax is input
                         ; ecx is digit count
                         ; edx is remainder
 
-  mov    ecx, 10        ;  digit count to produce
+  push   eax            ; save eax
+  mov    ecx, 1
+  cmp    eax, 0         ; check if digit count is zero
+  je     print_int_loop2
+  pop    eax            ; restore eax
+
+  mov    ecx, 10        ; digit count to produce
+                        ; 10 digits in a 32 bit integer
+                        ; max 4'294'967'295
 print_int_loop:
+
   call   dividebyten
-  add    edx, 0x30      ; convert remainder to ascii
-  push   edx            ; push ascii digit
+  ;add    edx, 0x30      ; convert remainder to ascii
+  push   edx            ; push digit
 
   dec    ecx             ; decrement digit count
   jne    print_int_loop  ; loop until digit count is zero
 
   mov    ecx, 10         ; digit count to print
-print_int_loop2:
+print_remove_leading_zeroes:
   pop    eax
                         ; check if digit is zero
                         ; if so, don't print
-  mov    ebx, eax
-  sub    ebx, 0x30      ; convert ascii to digit
-  cmp    ebx, 0
-  je    print_int_decjump
+  ;mov    ebx, eax
+  ;sub    ebx, 0x30      ; convert ascii to digit
+  dec    ecx
+  cmp    eax, 0
+  je    print_remove_leading_zeroes
+  inc    ecx
+  push   eax            ; push digit back on stack
 
+print_int_loop2:
+  pop    eax
+  add    eax, 0x30      ; convert remainder to ascii
                         ; call routine
   push   ecx            ; save digit count
   push   eax            ; push ascii digit
@@ -77,7 +92,6 @@ print_int_loop2:
   add    esp, 4         ; clear stack
   pop    ecx            ; restore digit count
 
-print_int_decjump:
   dec    ecx
   jne    print_int_loop2
 
