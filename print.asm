@@ -10,8 +10,7 @@ exit:
 printchar:
   push ebp            ; save base pointer
   mov ebp, esp        ; set base pointer
-                      ; this clears the stack
-                      ; and creates a new stack frame
+  push ebx            ; save ebx
 
   mov ecx, ebp        ; set ecx to base pointer
   add ecx, 8          ; 8 bytes from base pointer
@@ -23,6 +22,7 @@ printchar:
   mov edx, 1          ; length
   int 0x80
 
+  pop ebx             ; restore ebx
   mov esp, ebp
   pop ebp
   ret
@@ -35,22 +35,17 @@ dividebyten:      ; divide eax by 10
   div    ebx          ; EDX:EAX / EBX = EAX remainder EDX
   ret
 
-_start:
+print_int:            ; print unsigned 32 bit integer
+                      ; as decimal, removes leading zeroes
+                      ; 1st argument is value to print
+  ; prologue
+  push ebp            ; save base pointer
+  mov ebp, esp        ; set base pointer
 
-  ;mov eax, 1       ; char to print
-  ;add eax, 0x30    ; convert to ascii
-  ;push eax           ; push char
-  ;call printchar      ; call printchar
-  ;add esp, 4          ; pop char
+  mov eax, [ebp+8]     ; read 1sr argument
 
-
-  mov eax, 123        ; number to print
-
-print_int:              ; print integer as decimal
-                        ; eax is input
-                        ; ecx is digit count
-                        ; edx is remainder
-
+  ; hack to prevent segmentation fault when value is zero
+  ; -> why is there a segmentation fault?
   push   eax            ; save eax
   mov    ecx, 1
   cmp    eax, 0         ; check if digit count is zero
@@ -61,27 +56,24 @@ print_int:              ; print integer as decimal
                         ; 10 digits in a 32 bit integer
                         ; max 4'294'967'295
 print_int_loop:
-
-  call   dividebyten
-  ;add    edx, 0x30      ; convert remainder to ascii
+  call   dividebyten    ; divide binary by 10, digit is
+                        ; remainder in edx rest in eax
+                        ; (reversed order)
   push   edx            ; push digit
 
   dec    ecx             ; decrement digit count
   jne    print_int_loop  ; loop until digit count is zero
 
   mov    ecx, 10         ; digit count to print
-print_remove_leading_zeroes:
+print_int_remove_leading_zeroes:
   pop    eax
                         ; check if digit is zero
                         ; if so, don't print
-  ;mov    ebx, eax
-  ;sub    ebx, 0x30      ; convert ascii to digit
   dec    ecx
   cmp    eax, 0
-  je    print_remove_leading_zeroes
+  je    print_int_remove_leading_zeroes
   inc    ecx
   push   eax            ; push digit back on stack
-
 print_int_loop2:
   pop    eax
   add    eax, 0x30      ; convert remainder to ascii
@@ -94,6 +86,30 @@ print_int_loop2:
 
   dec    ecx
   jne    print_int_loop2
+
+  ; epilogue
+  mov esp, ebp
+  pop ebp
+  ret
+
+_start:
+
+  ;mov eax, 1       ; char to print
+  ;add eax, 0x30    ; convert to ascii
+  ;push eax           ; push char
+  ;call printchar      ; call printchar
+  ;add esp, 4          ; pop char
+
+  mov eax, 012304      ; number to print
+
+  push edx
+  push ecx
+  push eax
+  call print_int
+  pop eax
+  pop ecx
+  pop edx
+
 
   ;exit
   mov eax, 0

@@ -6,10 +6,9 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-./compiler.py > "$1.asm"
+#./compiler.py > "$1.asm"
 
 nasm -f elf32 "$1.asm" -o "$1.o"
 ld -m elf_i386 -o "$1" "$1.o"
 ./"$1"
-
-echo -e "\nExit code: $?"
+#echo $?

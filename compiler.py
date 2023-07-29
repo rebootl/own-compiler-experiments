@@ -2,82 +2,14 @@
 #
 import sys
 
+from assembly import HEAD, EXIT, PRINTCHAR, PRINT, START, \
+  DEFAULT_EXIT, PRINT
+
 PROGRAM = '''inc(inc(4))
-print(5)
-exit(10)'''
-
-# x86 assembly chunks
-
-HEAD = '''global _start
-
-section .text
-'''
-
-START = '''
-_start:
-'''
-
-EXIT = '''
-exit:
-  mov ebx, eax
-  mov eax, 1
-  int 0x80
-'''
-
-PRINT = '''
-print:  ; print eax as decimal
-        ; eax is input
-
-  mov ecx, 10 ; digit count to generate
-              ; 32-bit max = 4,294,967,295
-              ; -> max 10 digits
-print_loop1:
-    ; we divide by 10 to get the digits
-    ; convert the remainder to ascii
-    ; and push it to the stack
-  call   print_divideby10
-  add    eax, 0x30
-  push   eax
-  mov    eax, edx
-  dec    ecx
-  jne    print_loop1
-
-  mov    ecx, 10          ; digit count to print
-print_loop2:
-  pop    eax
-  call   printchar
-  dec    ecx
-  jne    print_loop2
-  ret
-print_divideby10:     ; divide eax by 10
-                      ; eax is input, eax is output
-                  ; edx is output remainder
-  mov    ebx, 10
-  xor    edx, edx
-  div    ebx
-  ret
-'''
-
-PRINTCHAR = '''
-printchar:
-  push ebp            ; save base pointer
-  mov ebp, esp        ; set base pointer
-
-  mov ecx, ebp   ;
-  add ecx, 8;
-  ;push 65
-  ;push ebp + 8
-
-  mov eax, 4          ; write
-  mov ebx, 1          ; stdout
-  ;mov ecx, esp
-  mov edx, 1          ; length
-  int 0x80
-
-  mov esp, ebp
-  pop ebp
-  ret
-'''
+print(01065)
+println()
+print(inc(01065))
+exit(0)'''
 
 KEYWORDS = {
   'exit': '''  jmp exit
@@ -90,9 +22,25 @@ KEYWORDS = {
 ''',
   'not': '''  not eax
 ''',
-  'printchar': '''  call printchar
+  'printchar': '''
+  push eax
+  call printchar
 ''',
-  'print': '''  jmp print
+  'println': '''
+  push 10
+  call printchar
+  push 13
+  call printchar
+  add esp, 8
+''',
+  'print': '''
+  push edx
+  push ecx
+  push eax
+  call print_int
+  pop eax
+  pop ecx
+  pop edx
 ''',
   'LIT': '''  mov eax, {}
 '''
@@ -126,6 +74,6 @@ def parse(code):
 parse(PROGRAM)
 
 ASM = HEAD + EXIT + PRINTCHAR + PRINT + \
-  START + ASM
+  START + ASM + DEFAULT_EXIT
 
 print(ASM)

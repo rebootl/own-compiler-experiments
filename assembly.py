@@ -1,12 +1,26 @@
-global _start
+# x86 assembly chunks
+
+HEAD = '''global _start
 
 section .text
+'''
 
+START = '''
+_start:
+'''
+
+EXIT = '''
 exit:
   mov ebx, eax
   mov eax, 1
   int 0x80
+'''
 
+DEFAULT_EXIT = '''  mov eax, 0
+  jmp exit
+'''
+
+PRINTCHAR = '''
 printchar:
   push ebp            ; save base pointer
   mov ebp, esp        ; set base pointer
@@ -26,7 +40,9 @@ printchar:
   mov esp, ebp
   pop ebp
   ret
+'''
 
+PRINT = '''
 dividebyten:      ; divide eax by 10
                   ; eax is input, eax is output
                   ; edx is output remainder
@@ -91,38 +107,4 @@ print_int_loop2:
   mov esp, ebp
   pop ebp
   ret
-
-_start:
-  mov eax, 4
-  inc eax
-  inc eax
-  mov eax, 01065
-
-  push edx
-  push ecx
-  push eax
-  call print_int
-  pop eax
-  pop ecx
-  pop edx
-
-  push 10
-  call printchar
-  push 13
-  call printchar
-  add esp, 8
-  mov eax, 01065
-  inc eax
-
-  push edx
-  push ecx
-  push eax
-  call print_int
-  pop eax
-  pop ecx
-  pop edx
-  mov eax, 0
-  jmp exit
-  mov eax, 0
-  jmp exit
-
+'''
