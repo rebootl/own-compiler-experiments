@@ -1,0 +1,5 @@
+print(55)
+println()
+print(inc(64))
+println()
+exit(0)

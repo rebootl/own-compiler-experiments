@@ -5,11 +5,12 @@ import sys
 from assembly import HEAD, EXIT, PRINTCHAR, PRINT, START, \
   DEFAULT_EXIT, PRINT
 
-PROGRAM = '''inc(inc(4))
-print(01065)
-println()
-print(inc(01065))
-exit(0)'''
+if len(sys.argv) < 2:
+  sys.exit("Usage: compiler.py <program file>")
+
+# open program file
+with open(sys.argv[1], 'r') as f:
+  PROGRAM = f.read()
 
 KEYWORDS = {
   'exit': '''  jmp exit
@@ -28,8 +29,6 @@ KEYWORDS = {
 ''',
   'println': '''
   push 10
-  call printchar
-  push 13
   call printchar
   add esp, 8
 ''',
