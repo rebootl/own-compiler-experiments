@@ -93,34 +93,14 @@ print_int_loop2:
   ret
 
 _start:
-  mov eax, 55
+  push 1
+  not eax
 
-  push edx
-  push ecx
-  push eax
   call print_int
+  add esp, 4      ; clear stack
+  push 0
+
   pop eax
-  pop ecx
-  pop edx
-
-  push 10
-  call printchar
-  add esp, 8
-  mov eax, 64
-  inc eax
-
-  push edx
-  push ecx
-  push eax
-  call print_int
-  pop eax
-  pop ecx
-  pop edx
-
-  push 10
-  call printchar
-  add esp, 8
-  mov eax, 0
   jmp exit
   mov eax, 0
   jmp exit

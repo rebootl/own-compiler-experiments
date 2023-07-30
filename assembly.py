@@ -20,6 +20,45 @@ DEFAULT_EXIT = '''  mov eax, 0
   jmp exit
 '''
 
+
+LITERAL = '''  push {}
+'''
+
+UNARIES = {
+  'exit': '''
+  pop eax
+  jmp exit
+''',
+  'inc': '''
+  pop eax
+  inc eax
+  push eax
+''',
+  'dec': '''
+  pop eax
+  dec eax
+  push eax
+''',
+# these are binary ops
+  'neg': '''  neg eax
+''',
+  'not': '''  not eax
+''',
+#  'printchar': '''
+#  push eax
+#  call printchar
+#''',
+  'println': '''
+  push 10         ; ascii newline
+  call printchar
+  add esp, 4      ; clear stack
+''',
+  'print': '''
+  call print_int
+  add esp, 4      ; clear stack
+''',
+}
+
 PRINTCHAR = '''
 printchar:
   push ebp            ; save base pointer

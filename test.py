@@ -17,6 +17,7 @@ CASES = [
   [ 'programs/09-print-inc.src', '56', 0 ],
   [ 'programs/10-println.src', '\n', 0 ],
   [ 'programs/11-print-println.src', '55\n65\n', 0 ],
+  [ 'programs/12-print-not.src', '0', 0 ],
 ]
 
 for case in CASES:
@@ -35,10 +36,11 @@ for case in CASES:
   # check exit code
   if p.returncode != case[2]:
     print('FAIL: ' + name + ' exit code ' + str(p.returncode) + ' != ' + str(case[2]))
+    exit(1)
 
   # check stdout
-  elif stdout.decode('utf-8') != case[1]:
+  if stdout.decode('utf-8') != case[1]:
     print('FAIL: ' + name + ' stdout "' + stdout.decode('utf-8') + '" != "' + case[1] + '"')
+    exit(1)
 
-  else:
-    print('PASS: ' + name)
+  print('PASS: ' + name)
