@@ -1,2 +1,2 @@
-add(2, 2)
+print(add(2, 2))
 exit(0)

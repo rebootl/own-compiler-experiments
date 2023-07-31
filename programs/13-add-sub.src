@@ -1,0 +1,5 @@
+print( add(4, sub(3, 1)) )
+println()
+print( sub( add(2, 2), sub(3, 1) ) )
+println()
+exit(0)

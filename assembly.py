@@ -48,6 +48,12 @@ BINARIES = {
   add eax, ebx
   push eax
 ''',
+  'sub': '''
+  pop ebx
+  pop eax
+  sub eax, ebx
+  push eax
+''',
 }
 
 ### built-in functions
