@@ -5,8 +5,11 @@ import sys
 from assembly import HEAD, EXIT, PRINTCHAR, PRINT, START, \
   DEFAULT_EXIT, PRINT, LITERAL, UNARIES
 
+OUTFILE = 'out.asm'
+
 if len(sys.argv) < 2:
-  sys.exit("Usage: compiler.py <program file>")
+  sys.exit("""Usage: compiler.py <program file>
+Output: {}""".format(OUTFILE))
 
 # open program file
 with open(sys.argv[1], 'r') as f:
@@ -92,4 +95,5 @@ parse(PROGRAM)
 ASM = HEAD + EXIT + PRINTCHAR + PRINT + \
   START + ASM + DEFAULT_EXIT
 
-print(ASM)
+with open(OUTFILE, 'w') as f:
+  f.write(ASM)

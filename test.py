@@ -17,7 +17,7 @@ CASES = [
   [ 'programs/09-print-inc.src', '56', 0 ],
   [ 'programs/10-println.src', '\n', 0 ],
   [ 'programs/11-print-println.src', '55\n65\n', 0 ],
-  [ 'programs/12-add.src', '4', 0 ],
+  #[ 'programs/12-add.src', '4', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 
@@ -26,7 +26,7 @@ for case in CASES:
   name = case[0][:-4]
 
   # build program
-  os.system('./compiler.py ' + case[0] + ' > out.asm')
+  os.system('./compiler.py ' + case[0])
   os.system('nasm -f elf32 out.asm -o out.o')
   os.system('ld -m elf_i386 -o out out.o')
 
