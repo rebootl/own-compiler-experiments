@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 #
+# toy compiler
+#
+
 import sys
 
-from assembly import HEAD, EXIT, PRINTCHAR, PRINT, START, \
-  DEFAULT_EXIT, PRINT, LITERAL, UNARIES
+from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
+  HEAD, START, EXIT, DEFAULT_EXIT, PRINTCHAR, PRINT
 
 OUTFILE = 'out.asm'
 
@@ -15,85 +18,99 @@ Output: {}""".format(OUTFILE))
 with open(sys.argv[1], 'r') as f:
   PROGRAM = f.read()
 
-BINARIES = {
-  'add': '''
-  pop ebx
-  pop eax
-  add eax, ebx
-  push eax
-''',
-}
 
-def stderr(t):
-  print(t, file = sys.stderr)
-
-def get_keyword_arg(string):
-  # trim whitespace
-  s = string.strip()
-  l = s.split('(', 1)
-  #stderr('l ' + str(l))
-  if len(l) == 1:
-    return l[0], None
-
-  arg = l[1][:-1] # trim last char ')'
-  return l[0], arg
-
-def get_args(arg):
+def split_args(argstr):
   args = []
-  while arg:
-    # Find the first occurrence of '(' and the corresponding closing ')'
-    start = arg.find('(')
-    if start == -1:
-      # No more nested expressions found, add the remaining argument
+  arg = ''
+  count = 0
+  for c in argstr:
+    if c == '(':
+      count += 1
+    elif c == ')':
+      count -= 1
+    elif c == ',' and count == 0:
       args.append(arg.strip())
-      arg = None
-    else:
-      # Extract the nested expression and remove it from the argument string
-      end = start + 1
-      count = 1
-      while count != 0 and end < len(arg):
-        if arg[end] == '(':
-          count += 1
-        elif arg[end] == ')':
-          count -= 1
-        end += 1
-      if count != 0:
-        sys.exit("Mismatched parentheses in expression: " + arg)
-      args.append(arg[start:end].strip())
-      arg = arg[:start] + arg[end:]
+      arg = ''
+      continue
+    arg += c
+  if count != 0:
+    sys.exit("Mismatched parentheses in expression: " + argstr)
+  args.append(arg.strip())
   return args
 
-ASM = ""
-def parse(code):
-  global ASM
-  for line in code.splitlines():
-    [ kw, arg ] = get_keyword_arg(line)
-    if kw in UNARIES:
-      if arg:
-        parse(arg)
-      # adding 0 if no argument for default exit
-      if kw == 'exit' and arg == '':
-        ASM += LITERAL.format(0)
-      #stderr('UNARY ' + kw)
-      ASM += UNARIES[kw]
-    elif kw in BINARIES:
-      args = get_args(arg)
-      stderr('BINARY args ' + str(args))
-      for arg in args:
-        parse(arg)
-      #stderr('BINARY ' + kw)
-      ASM += BINARIES[kw]
-    elif kw.isnumeric():
-      #stderr('LITERAL ' + kw)
-      ASM += LITERAL.format(kw)
+# intermediate representation
+REPR = ""
+
+def parse_expression(expr):
+  global REPR
+  # trim whitespace
+  expr = expr.strip()
+
+  # check for literal
+  if expr.isdigit():
+    REPR += 'LITERAL ' + expr + '\n'
+    return
+
+  kw = expr.split('(', 1)[0]
+
+  # check for primary
+  if kw in PRIMARIES:
+    REPR += 'PRIMARY ' + kw + '\n'
+    return
+
+  # check for unary
+  if kw in UNARIES:
+    arg = expr.split('(', 1)[1][:-1]
+    if kw == 'exit' and arg == '':
+      parse_expression('0')
     else:
-      sys.exit("Unknown keyword: " + kw)
-    #print(kw, arg)
+      parse_expression(arg)
+    REPR += 'UNARY ' + kw + '\n'
+    return
 
-parse(PROGRAM)
+  # check for binary
+  if kw in BINARIES:
+    argstr = expr.split('(', 1)[1][:-1]
+    args = split_args(argstr)
+    parse_expression(args[0])
+    parse_expression(args[1])
+    REPR += 'BINARY ' + kw + '\n'
+    return
 
-ASM = HEAD + EXIT + PRINTCHAR + PRINT + \
+  sys.exit("Unknown keyword: '" + kw + "'")
+
+
+for line in PROGRAM.splitlines():
+  line = line.strip()
+  if line == '':
+    continue
+  if line[0] == '#':
+    continue
+  parse_expression(line)
+
+# assembly code
+ASM = ""
+
+def emit(expr):
+  global ASM
+  [ optype, opval ] = expr.split(' ', 1)
+  if optype == 'LITERAL':
+    ASM += LITERAL.format(opval)
+  elif optype == 'PRIMARY':
+    ASM += PRIMARIES[opval]
+  elif optype == 'UNARY':
+    ASM += UNARIES[opval]
+  elif optype == 'BINARY':
+    ASM += BINARIES[opval]
+  else:
+    sys.exit("Erroneous intermediate expression: " + expr)
+
+
+for expr in REPR.splitlines():
+  emit(expr)
+
+OUT = HEAD + EXIT + PRINTCHAR + PRINT + \
   START + ASM + DEFAULT_EXIT
 
 with open(OUTFILE, 'w') as f:
-  f.write(ASM)
+  f.write(OUT)

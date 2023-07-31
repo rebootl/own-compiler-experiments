@@ -1,28 +1,18 @@
-# x86 assembly chunks
-
-HEAD = '''global _start
-
-section .text
-'''
-
-START = '''
-_start:
-'''
-
-EXIT = '''
-exit:
-  mov ebx, eax
-  mov eax, 1
-  int 0x80
-'''
-
-DEFAULT_EXIT = '''  mov eax, 0
-  jmp exit
-'''
-
+# assembly chunks
+#
+# 32-bit x86
+#
 
 LITERAL = '''  push {}
 '''
+
+PRIMARIES = {
+  'println': '''
+  push 10         ; ascii newline
+  call printchar
+  add esp, 4      ; clear stack
+''',
+}
 
 UNARIES = {
   'exit': '''
@@ -44,20 +34,43 @@ UNARIES = {
 ''',
   'not': '''  not eax
 ''',
-#  'printchar': '''
-#  push eax
-#  call printchar
-#''',
-  'println': '''
-  push 10         ; ascii newline
-  call printchar
-  add esp, 4      ; clear stack
-''',
+#
   'print': '''
   call print_int
   add esp, 4      ; clear stack
 ''',
 }
+
+BINARIES = {
+  'add': '''
+  pop ebx
+  pop eax
+  add eax, ebx
+  push eax
+''',
+}
+
+### built-in functions
+
+HEAD = '''global _start
+
+section .text
+'''
+
+START = '''
+_start:
+'''
+
+EXIT = '''
+exit:
+  mov ebx, eax
+  mov eax, 1
+  int 0x80
+'''
+
+DEFAULT_EXIT = '''  mov eax, 0
+  jmp exit
+'''
 
 PRINTCHAR = '''
 printchar:
