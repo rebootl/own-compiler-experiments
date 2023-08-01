@@ -1,0 +1,21 @@
+# comment
+5
+inc(1)
+
+print(
+  add(
+    inc(1),
+    add(2, dec(3))
+  )
+)
+println()
+
+# comment
+print(add(
+  sub(5, 2),
+  sub(3, 1)
+))
+println()
+
+# exit ok
+exit(0)
