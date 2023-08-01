@@ -1,6 +1,6 @@
 # assembly chunks
 #
-# 32-bit x86
+# 32-bit x86 nasm assembly
 #
 
 LITERAL = '''  push {}
