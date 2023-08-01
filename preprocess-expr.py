@@ -3,10 +3,18 @@
 #
 import sys
 
-EXPR0 = '5'
-EXPR1 = 'inc(1)'
-EXPR2 = 'add(inc(1), add(2, dec(3)))'
-EXPR3 = 'add(sub(5, 2), sub(3, 1))'
+PROGRAM = '''5
+inc(1)
+add(
+  inc(1),
+  add(2, dec(3))
+)
+
+add(
+  sub(5, 2),
+  sub(3, 1)
+)
+'''
 
 UNARIES = [ 'inc', 'dec' ]
 BINARIES = [ 'add', 'sub' ]
@@ -58,14 +66,25 @@ def parse_expression(expr):
     print('BINARY ' + kw)
     return
 
-print('"' + EXPR0 + '"')
-parse_expression(EXPR0)
-print()
-print('"' + EXPR1 + '"')
-parse_expression(EXPR1)
-print()
-print('"' + EXPR2 + '"')
-parse_expression(EXPR2)
-print()
-print('"' + EXPR3 + '"')
-parse_expression(EXPR3)
+def collapse_expressions(program):
+
+  ### remove newlines while inside parentheses
+
+  COLLAPSED_PROGRAM = ''
+  count = 0
+  for c in program:
+    if c == '(':
+      count += 1
+    elif c == ')':
+      count -= 1
+    elif c == '\n' and count != 0:
+      continue
+    COLLAPSED_PROGRAM += c
+
+  return COLLAPSED_PROGRAM
+
+COLLAPSED_PROGRAM = collapse_expressions(PROGRAM)
+print(COLLAPSED_PROGRAM)
+
+for line in COLLAPSED_PROGRAM.splitlines():
+  parse_expression(line)

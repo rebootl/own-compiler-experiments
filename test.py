@@ -19,6 +19,7 @@ CASES = [
   [ 'programs/11-print-println.src', '55\n65\n', 0 ],
   [ 'programs/12-add.src', '4', 0 ],
   [ 'programs/13-add-sub.src', '6\n2\n', 0 ],
+  [ 'programs/14-collapse-comments.src', '6\n5\n', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 

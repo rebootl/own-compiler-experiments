@@ -93,13 +93,27 @@ print_int_loop2:
   ret
 
 _start:
-  push 4
-  push 3
+  push 5
   push 1
+
+  pop eax
+  inc eax
+  push eax
+  push 1
+
+  pop eax
+  inc eax
+  push eax
+  push 2
+  push 3
+
+  pop eax
+  dec eax
+  push eax
 
   pop ebx
   pop eax
-  sub eax, ebx
+  add eax, ebx
   push eax
 
   pop ebx
@@ -113,12 +127,12 @@ _start:
   push 10         ; ascii newline
   call printchar
   add esp, 4      ; clear stack
-  push 2
+  push 5
   push 2
 
   pop ebx
   pop eax
-  add eax, ebx
+  sub eax, ebx
   push eax
   push 3
   push 1
@@ -130,7 +144,7 @@ _start:
 
   pop ebx
   pop eax
-  sub eax, ebx
+  add eax, ebx
   push eax
 
   call print_int

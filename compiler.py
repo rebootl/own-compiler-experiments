@@ -18,6 +18,22 @@ Output: {}""".format(OUTFILE))
 with open(sys.argv[1], 'r') as f:
   PROGRAM = f.read()
 
+def collapse_expressions(program):
+
+  ### remove newlines while inside parentheses
+
+  collapsed_program = ''
+  count = 0
+  for c in program:
+    if c == '(':
+      count += 1
+    elif c == ')':
+      count -= 1
+    elif c == '\n' and count != 0:
+      continue
+    collapsed_program += c
+
+  return collapsed_program
 
 def split_args(argstr):
   args = []
@@ -80,7 +96,10 @@ def parse_expression(expr):
   sys.exit("Unknown keyword: '" + kw + "'")
 
 
-for line in PROGRAM.splitlines():
+# preprocess program
+COLLAPSED_PROGRAM = collapse_expressions(PROGRAM)
+
+for line in COLLAPSED_PROGRAM.splitlines():
   line = line.strip()
   if line == '':
     continue
