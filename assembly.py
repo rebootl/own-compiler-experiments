@@ -3,37 +3,45 @@
 # 32-bit x86 nasm assembly
 #
 
-LITERAL = '''  push {}
+LITERAL = '''
+  ; get literal
+  push {}
 '''
 
 SET_LOCAL_VARIABLE = '''
+  ; set local variable
   pop eax
-  mov [ebp-{}], eax
+  mov [ebp - {}], eax
 '''
 
 GET_LOCAL_VARIABLE = '''
-  push DWORD [ebp-{}]
+  ; get local variable
+  push DWORD [ebp - {}]
 '''
 
 PRIMARIES = {
   'println': '''
-  push 10         ; ascii newline
+  ; print newline
+  push 10                       ; ascii newline
   call printchar
-  add esp, 4      ; clear stack
+  add esp, 4                    ; clear stack
 ''',
 }
 
 UNARIES = {
   'exit': '''
+  ; jump to exit
   pop eax
   jmp exit
 ''',
   'inc': '''
+  ; increment stack top
   pop eax
   inc eax
   push eax
 ''',
   'dec': '''
+  ; decrement stack top
   pop eax
   dec eax
   push eax
@@ -45,6 +53,7 @@ UNARIES = {
 ''',
 #
   'print': '''
+  ; print stack top
   call print_int
   add esp, 4      ; clear stack
 ''',
@@ -52,26 +61,27 @@ UNARIES = {
 
 BINARIES = {
   'add': '''
+  ; add stack top
   pop ebx
   pop eax
   add eax, ebx
   push eax
 ''',
   'sub': '''
+  ; subtract stack top
   pop ebx
   pop eax
   sub eax, ebx
   push eax
 ''',
-  'var': '''
-  pop eax
-  mov [ebp-{}], eax
-''',
+  'var': SET_LOCAL_VARIABLE,
+  'set': SET_LOCAL_VARIABLE,
 }
 
 ### built-in functions
 
 ALLOCATE_LOCAL_VARIABLES = '''
+  ; allocate space for local variables
   sub esp, {}
 '''
 
@@ -93,7 +103,9 @@ exit:
   int 0x80
 '''
 
-DEFAULT_EXIT = '''  mov eax, 0
+DEFAULT_EXIT = '''
+  ; default exit
+  mov eax, 0
   jmp exit
 '''
 

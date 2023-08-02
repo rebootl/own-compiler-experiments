@@ -88,11 +88,31 @@ def parse_expression(expr, asm):
     args = split_args(argstr)
 
     if kw == 'var':
+      if args[0] in LOCAL_VARIABLES:
+        sys.exit("Redeclaration Error: '" + args[0] + "'")
+
+      # get value
       asm += parse_expression(args[1], asm)
-      LOCAL_VARIABLES[args[0]] = [ 4 + len(LOCAL_VARIABLES) * 4, args[1] ]
-      asm += SET_LOCAL_VARIABLE.format(
-        LOCAL_VARIABLES[args[0]][0]
-      )
+
+      stack_pos = 4 + len(LOCAL_VARIABLES) * 4
+
+      # store variable name and stack position
+      LOCAL_VARIABLES[args[0]] = [ stack_pos, args[1] ]
+      #print(LOCAL_VARIABLES)
+
+      asm += BINARIES[kw].format(stack_pos)
+
+    elif kw == 'set':
+      if args[0] not in LOCAL_VARIABLES:
+        sys.exit("Error setting undeclared variable: '" + args[0] + "'")
+
+      asm += parse_expression(args[1], asm)
+
+      stack_pos = LOCAL_VARIABLES[args[0]][0]
+
+      LOCAL_VARIABLES[args[0]] = [ stack_pos, args[1] ]
+
+      asm += BINARIES[kw].format(stack_pos)
 
     else:
       asm = parse_expression(args[0], asm)
