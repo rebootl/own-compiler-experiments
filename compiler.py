@@ -6,7 +6,8 @@
 import sys
 
 from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
-  HEAD, START, EXIT, DEFAULT_EXIT, PRINTCHAR, PRINT
+  HEAD, START, EXIT, DEFAULT_EXIT, PRINTCHAR, PRINT, \
+  SET_LOCAL_VARIABLE, GET_LOCAL_VARIABLE, DECLARE_LOCAL_VARIABLE
 
 OUTFILE = 'out.asm'
 
@@ -50,6 +51,7 @@ def split_args(argstr):
   args.append(arg.strip())
   return args
 
+LOCAL_VARIABLES = {}
 
 def parse_expression(expr, repr):
 
@@ -84,9 +86,21 @@ def parse_expression(expr, repr):
   if kw in BINARIES:
     argstr = expr.split('(', 1)[1][:-1]
     args = split_args(argstr)
-    repr = parse_expression(args[0], repr)
-    repr = parse_expression(args[1], repr)
-    repr += 'BINARY ' + kw + '\n'
+
+    if kw == 'var':
+      #arg2 = parse_expression(args[1], repr)
+      LOCAL_VARIABLES[args[0]] = [ 4 + len(LOCAL_VARIABLES) * 4, args[1] ]
+      repr += 'DECLARE ' + args[0] + '\n'
+
+    else:
+      repr = parse_expression(args[0], repr)
+      repr = parse_expression(args[1], repr)
+      repr += 'BINARY ' + kw + '\n'
+
+    return repr
+
+  if kw in LOCAL_VARIABLES:
+    repr += 'VARIABLE ' + kw + '\n'
     return repr
 
   sys.exit("Unknown keyword: '" + kw + "'")
@@ -105,7 +119,26 @@ def emit(expr):
     return UNARIES[opval]
   if optype == 'BINARY':
     return BINARIES[opval]
+  if optype == 'DECLARE':
+    return DECLARE_LOCAL_VARIABLE.format(
+      LOCAL_VARIABLES[opval][0],
+      LOCAL_VARIABLES[opval][1]
+    )
+  if optype == 'VARIABLE':
+    return GET_LOCAL_VARIABLE.format(LOCAL_VARIABLES[opval][0])
   sys.exit("Erroneous intermediate expression: " + expr)
+
+
+def allocate_local_variables(program):
+
+  ### create space on the stack for local variables
+
+  c = 0
+  for line in program.splitlines():
+    line = line.strip()
+    if line[:3] == 'var':
+      c += 1
+  return '  sub esp, ' + str(c * 4) + '\n'
 
 
 def main():
@@ -139,9 +172,12 @@ def main():
   for expr in intermediate_repr.splitlines():
     main_asm += emit(expr)
 
+  # allocate space for local variables
+  local_vars_alloc = allocate_local_variables(collapsed_program)
+
   # combine main assembly code with header, built-in functions and footer
   out = HEAD + EXIT + PRINTCHAR + PRINT + \
-    START + main_asm + DEFAULT_EXIT
+    START + local_vars_alloc + main_asm + DEFAULT_EXIT
 
   # write to output file
   with open(OUTFILE, 'w') as f:

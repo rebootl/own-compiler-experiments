@@ -11,9 +11,9 @@ print(
 println()
 
 # comment
-print(add(
-  sub(5, 2),
-  sub(3, 1)
+print(sub(
+  6,
+  3
 ))
 println()
 

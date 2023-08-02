@@ -6,6 +6,19 @@
 LITERAL = '''  push {}
 '''
 
+DECLARE_LOCAL_VARIABLE = '''
+  mov DWORD [ebp-{}], {}
+'''
+
+SET_LOCAL_VARIABLE = '''
+  pop eax
+  mov [ebp-{}], eax
+'''
+
+GET_LOCAL_VARIABLE = '''
+  push DWORD [ebp-{}]
+'''
+
 PRIMARIES = {
   'println': '''
   push 10         ; ascii newline
@@ -54,6 +67,10 @@ BINARIES = {
   sub eax, ebx
   push eax
 ''',
+  'var': '''
+  pop eax
+  mov [ebp-{}], eax
+''',
 }
 
 ### built-in functions
@@ -65,6 +82,8 @@ section .text
 
 START = '''
 _start:
+  push ebp
+  mov ebp, esp
 '''
 
 EXIT = '''
