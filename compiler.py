@@ -53,34 +53,34 @@ def split_args(argstr):
 
 LOCAL_VARIABLES = {}
 
-def parse_expression(expr, repr):
+def parse_expression(expr, asm):
 
-  ### parse an expression and return an intermediate representation
+  ### parse an expression and return assembly snippet
 
   # trim whitespace
   expr = expr.strip()
 
   # check for literal
   if expr.isdigit():
-    repr += 'LITERAL ' + expr + '\n'
-    return repr
+    asm += LITERAL.format(expr)
+    return asm
 
   kw = expr.split('(', 1)[0]
 
   # check for primary
   if kw in PRIMARIES:
-    repr += 'PRIMARY ' + kw + '\n'
-    return repr
+    asm += PRIMARIES[kw]
+    return asm
 
   # check for unary
   if kw in UNARIES:
     arg = expr.split('(', 1)[1][:-1]
     if kw == 'exit' and arg == '':
-      repr = parse_expression('0', repr)
+      asm = parse_expression('0', asm)
     else:
-      repr = parse_expression(arg, repr)
-    repr += 'UNARY ' + kw + '\n'
-    return repr
+      asm = parse_expression(arg, asm)
+    asm += UNARIES[kw]
+    return asm
 
   # check for binary
   if kw in BINARIES:
@@ -88,45 +88,25 @@ def parse_expression(expr, repr):
     args = split_args(argstr)
 
     if kw == 'var':
-      #arg2 = parse_expression(args[1], repr)
+      #arg2 = parse_expression(args[1], asm)
       LOCAL_VARIABLES[args[0]] = [ 4 + len(LOCAL_VARIABLES) * 4, args[1] ]
-      repr += 'DECLARE ' + args[0] + '\n'
+      asm += DECLARE_LOCAL_VARIABLE.format(
+        LOCAL_VARIABLES[args[0]][0],
+        LOCAL_VARIABLES[args[0]][1]
+      )
 
     else:
-      repr = parse_expression(args[0], repr)
-      repr = parse_expression(args[1], repr)
-      repr += 'BINARY ' + kw + '\n'
+      asm = parse_expression(args[0], asm)
+      asm = parse_expression(args[1], asm)
+      asm += BINARIES[kw]
 
-    return repr
+    return asm
 
   if kw in LOCAL_VARIABLES:
-    repr += 'VARIABLE ' + kw + '\n'
-    return repr
+    asm += GET_LOCAL_VARIABLE.format(LOCAL_VARIABLES[kw][0])
+    return asm
 
   sys.exit("Unknown keyword: '" + kw + "'")
-
-
-def emit(expr):
-
-  ### emit assembly code from intermediate representation
-
-  [ optype, opval ] = expr.split(' ', 1)
-  if optype == 'LITERAL':
-    return LITERAL.format(opval)
-  if optype == 'PRIMARY':
-    return PRIMARIES[opval]
-  if optype == 'UNARY':
-    return UNARIES[opval]
-  if optype == 'BINARY':
-    return BINARIES[opval]
-  if optype == 'DECLARE':
-    return DECLARE_LOCAL_VARIABLE.format(
-      LOCAL_VARIABLES[opval][0],
-      LOCAL_VARIABLES[opval][1]
-    )
-  if optype == 'VARIABLE':
-    return GET_LOCAL_VARIABLE.format(LOCAL_VARIABLES[opval][0])
-  sys.exit("Erroneous intermediate expression: " + expr)
 
 
 def allocate_local_variables(program):
@@ -157,20 +137,15 @@ def main():
   # preprocess program
   collapsed_program = collapse_expressions(program)
 
-  # parse expressions into intermediate representation
-  intermediate_repr = ''
+  # parse expressions and emit assembly code
+  main_asm = ''
   for line in collapsed_program.splitlines():
     line = line.strip()
     if line == '':
       continue
     if line[0] == '#':
       continue
-    intermediate_repr += parse_expression(line, '')
-
-  # emit assembly code from intermediate representation
-  main_asm = ''
-  for expr in intermediate_repr.splitlines():
-    main_asm += emit(expr)
+    main_asm += parse_expression(line, '')
 
   # allocate space for local variables
   local_vars_alloc = allocate_local_variables(collapsed_program)
