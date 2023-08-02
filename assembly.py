@@ -6,10 +6,6 @@
 LITERAL = '''  push {}
 '''
 
-DECLARE_LOCAL_VARIABLE = '''
-  mov DWORD [ebp-{}], {}
-'''
-
 SET_LOCAL_VARIABLE = '''
   pop eax
   mov [ebp-{}], eax
@@ -74,6 +70,10 @@ BINARIES = {
 }
 
 ### built-in functions
+
+ALLOCATE_LOCAL_VARIABLES = '''
+  sub esp, {}
+'''
 
 HEAD = '''global _start
 

@@ -7,7 +7,7 @@ import sys
 
 from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
   HEAD, START, EXIT, DEFAULT_EXIT, PRINTCHAR, PRINT, \
-  SET_LOCAL_VARIABLE, GET_LOCAL_VARIABLE, DECLARE_LOCAL_VARIABLE
+  ALLOCATE_LOCAL_VARIABLES, SET_LOCAL_VARIABLE, GET_LOCAL_VARIABLE
 
 OUTFILE = 'out.asm'
 
@@ -88,11 +88,10 @@ def parse_expression(expr, asm):
     args = split_args(argstr)
 
     if kw == 'var':
-      #arg2 = parse_expression(args[1], asm)
+      asm += parse_expression(args[1], asm)
       LOCAL_VARIABLES[args[0]] = [ 4 + len(LOCAL_VARIABLES) * 4, args[1] ]
-      asm += DECLARE_LOCAL_VARIABLE.format(
-        LOCAL_VARIABLES[args[0]][0],
-        LOCAL_VARIABLES[args[0]][1]
+      asm += SET_LOCAL_VARIABLE.format(
+        LOCAL_VARIABLES[args[0]][0]
       )
 
     else:
@@ -118,8 +117,7 @@ def allocate_local_variables(program):
     line = line.strip()
     if line[:3] == 'var':
       c += 1
-  return '  sub esp, ' + str(c * 4) + '\n'
-
+  return ALLOCATE_LOCAL_VARIABLES.format(c * 4)
 
 def main():
 
