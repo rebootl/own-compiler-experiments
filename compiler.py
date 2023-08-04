@@ -7,7 +7,8 @@ import sys
 
 from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
   HEAD, START, EXIT, DEFAULT_EXIT, PRINTCHAR, PRINT, \
-  ALLOCATE_LOCAL_VARIABLES, SET_LOCAL_VARIABLE, GET_LOCAL_VARIABLE
+  ALLOCATE_LOCAL_VARIABLES, SET_LOCAL_VARIABLE, GET_LOCAL_VARIABLE, \
+  BLOCK_START, BLOCK_END
 
 OUTFILE = 'out.asm'
 
@@ -170,7 +171,7 @@ def main():
 
   # combine main assembly code with header, built-in functions and footer
   out = HEAD + EXIT + PRINTCHAR + PRINT + \
-    START + local_vars_alloc + main_asm + DEFAULT_EXIT
+    START + BLOCK_START + local_vars_alloc + main_asm + DEFAULT_EXIT
 
   # write to output file
   with open(OUTFILE, 'w') as f:

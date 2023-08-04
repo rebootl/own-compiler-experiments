@@ -14,9 +14,15 @@ SET_LOCAL_VARIABLE = '''
   mov [ebp - {}], eax
 '''
 
+# GET_LOCAL_VARIABLE = '''
+#   ; get local variable
+#   push DWORD [ebp - {}]
+# '''
+
 GET_LOCAL_VARIABLE = '''
-  ; get local variable
-  push DWORD [ebp - {}]
+ mov eax, ebp
+ ;mov eax, [eax]
+ push DWORD [eax - {}]
 '''
 
 PRIMARIES = {
@@ -80,11 +86,6 @@ BINARIES = {
 
 ### built-in functions
 
-ALLOCATE_LOCAL_VARIABLES = '''
-  ; allocate space for local variables
-  sub esp, {}
-'''
-
 HEAD = '''global _start
 
 section .text
@@ -92,8 +93,24 @@ section .text
 
 START = '''
 _start:
+'''
+
+BLOCK_START = '''
+  ; block start
   push ebp
   mov ebp, esp
+'''
+
+BLOCK_END = '''
+  ; block end
+  mov esp, ebp
+  pop ebp
+  ret
+'''
+
+ALLOCATE_LOCAL_VARIABLES = '''
+  ; allocate space for local variables
+  sub esp, {}
 '''
 
 EXIT = '''
