@@ -95,7 +95,7 @@ def parse_expression(expr, asm):
         sys.exit("Redeclaration Error: '" + args[0] + "'")
 
       # get value
-      asm += parse_expression(args[1], asm)
+      asm = parse_expression(args[1], asm)
 
       stack_pos = 4 + len(LOCAL_VARIABLES) * 4
 
@@ -109,7 +109,7 @@ def parse_expression(expr, asm):
       if args[0] not in LOCAL_VARIABLES:
         sys.exit("Error setting undeclared variable: '" + args[0] + "'")
 
-      asm += parse_expression(args[1], asm)
+      asm = parse_expression(args[1], asm)
 
       stack_pos = LOCAL_VARIABLES[args[0]][0]
 
@@ -137,6 +137,7 @@ def allocate_local_variables(n_local_vars):
 
   return ALLOCATE_LOCAL_VARIABLES.format(n_local_vars * 4)
 
+BLOCKS = []
 
 def parse_block(block):
   
@@ -159,12 +160,11 @@ def parse_block(block):
       line_indent = len(line) - len(line.lstrip())
       if line_indent == indent - INDENT:
         # end of block
-        block_content += parse_block('\n'.join(block_lines))
+        parse_block('\n'.join(block_lines))
         block_lines = []
         readahead = False
-        continue
       
-      if line_indent >= indent:
+      elif line_indent >= indent:
         # same or larger indent level
         block_lines.append(line)
         continue
@@ -187,7 +187,7 @@ def parse_block(block):
     allocate_local_variables(n_local_vars) + block_content + \
     BLOCK_END
 
-  return block_content
+  BLOCKS.append(block_content)
 
 
 def main():
@@ -207,12 +207,12 @@ def main():
   collapsed_program = collapse_expressions(program)
 
   # parse blocks
-  block = parse_block(collapsed_program)
-  #print(block)
+  parse_block(collapsed_program)
+  #print(BLOCKS)
 
   # combine main assembly code with header, built-in functions and footer
   out = HEAD + EXIT + PRINTCHAR + PRINT \
-    + block + START + DEFAULT_EXIT
+    + BLOCKS[-1] + START + DEFAULT_EXIT
 
   # write to output file
   with open(OUTFILE, 'w') as f:
