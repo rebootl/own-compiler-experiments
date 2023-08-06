@@ -12,6 +12,8 @@ from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
 
 OUTFILE = 'out.asm'
 
+INDENT = 2
+
 def collapse_expressions(program):
 
   ### remove newlines while inside parentheses
@@ -129,16 +131,64 @@ def parse_expression(expr, asm):
   sys.exit("Unknown keyword: '" + kw + "'")
 
 
-def allocate_local_variables(program):
+def allocate_local_variables(n_local_vars):
 
   ### create space on the stack for local variables
 
-  c = 0
-  for line in program.splitlines():
+  return ALLOCATE_LOCAL_VARIABLES.format(n_local_vars * 4)
+
+
+def parse_block(block):
+  
+  readahead = False
+  indent = 0
+  block_lines = []
+
+  n_local_vars = 0
+
+  block_content = ''
+
+  for line in block.splitlines():
+
+    if line == '':
+      continue
+    if line[0] == '#':
+      continue
+
+    if readahead:
+      line_indent = len(line) - len(line.lstrip())
+      if line_indent == indent - INDENT:
+        # end of block
+        block_content += parse_block('\n'.join(block_lines))
+        block_lines = []
+        readahead = False
+        continue
+      
+      if line_indent >= indent:
+        # same or larger indent level
+        block_lines.append(line)
+        continue
+      else:
+        # error
+        sys.exit("Indentation error: " + line)
+
     line = line.strip()
+
     if line[:3] == 'var':
-      c += 1
-  return ALLOCATE_LOCAL_VARIABLES.format(c * 4)
+      n_local_vars += 1
+    if line[:5] == 'block':
+      readahead = True
+      indent += INDENT
+      continue
+
+    block_content = parse_expression(line, block_content)
+  
+  block_content = BLOCK_START.format(0) + \
+    allocate_local_variables(n_local_vars) + block_content + \
+    BLOCK_END
+
+  return block_content
+
 
 def main():
 
@@ -156,22 +206,13 @@ def main():
   # preprocess program
   collapsed_program = collapse_expressions(program)
 
-  # parse expressions and emit assembly code
-  main_asm = ''
-  for line in collapsed_program.splitlines():
-    line = line.strip()
-    if line == '':
-      continue
-    if line[0] == '#':
-      continue
-    main_asm += parse_expression(line, '')
-
-  # allocate space for local variables
-  local_vars_alloc = allocate_local_variables(collapsed_program)
+  # parse blocks
+  block = parse_block(collapsed_program)
+  #print(block)
 
   # combine main assembly code with header, built-in functions and footer
-  out = HEAD + EXIT + PRINTCHAR + PRINT + \
-    START + BLOCK_START + local_vars_alloc + main_asm + DEFAULT_EXIT
+  out = HEAD + EXIT + PRINTCHAR + PRINT \
+    + block + START + DEFAULT_EXIT
 
   # write to output file
   with open(OUTFILE, 'w') as f:

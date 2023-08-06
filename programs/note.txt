@@ -1,0 +1,28 @@
+
+
+block_0:
+  local variables
+
+  call block_1
+
+  print
+
+  return
+
+block_1:
+  local variables
+
+  set a
+  set b
+
+  call block_2
+
+  return
+
+
+block_2:
+  local variables
+
+  set b
+
+  return

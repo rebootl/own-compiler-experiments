@@ -1,0 +1,20 @@
+
+
+var(a, 5)
+var(b, 10)
+
+block:
+
+  var(a, 10)
+  set(a, inc(a))
+
+  set(b, add(b, 5))
+
+  block:
+    set(b, add(b, 5))
+
+
+# 25
+print(add(a, b))
+
+

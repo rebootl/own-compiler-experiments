@@ -20,9 +20,9 @@ SET_LOCAL_VARIABLE = '''
 # '''
 
 GET_LOCAL_VARIABLE = '''
- mov eax, ebp
- ;mov eax, [eax]
- push DWORD [eax - {}]
+  mov eax, ebp
+  ;mov eax, [eax]
+  push DWORD [eax - {}]
 '''
 
 PRIMARIES = {
@@ -93,9 +93,14 @@ section .text
 
 START = '''
 _start:
+  push ebp
+  mov ebp, esp
+
+  call block_0
 '''
 
 BLOCK_START = '''
+block_{}:
   ; block start
   push ebp
   mov ebp, esp
