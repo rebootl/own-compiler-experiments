@@ -8,7 +8,7 @@ LITERAL = '''
   push {}
 '''
 
-SET_LOCAL_VARIABLE = '''
+UPDATE_LOCAL_VARIABLE = '''
   ; set local variable
   pop eax
   mov [ebp - {}], eax
@@ -20,8 +20,8 @@ SET_LOCAL_VARIABLE = '''
 # '''
 
 GET_LOCAL_VARIABLE = '''
+  ; get local variable
   mov eax, ebp
-  ;mov eax, [eax]
   push DWORD [eax - {}]
 '''
 
@@ -80,8 +80,8 @@ BINARIES = {
   sub eax, ebx
   push eax
 ''',
-  'var': SET_LOCAL_VARIABLE,
-  'set': SET_LOCAL_VARIABLE,
+  'var': None,
+  'set': UPDATE_LOCAL_VARIABLE,
 }
 
 ### built-in functions
@@ -115,7 +115,7 @@ BLOCK_END = '''
 
 ALLOCATE_LOCAL_VARIABLES = '''
   ; allocate space for local variables
-  sub esp, {}
+  ;sub esp, {}
 '''
 
 EXIT = '''

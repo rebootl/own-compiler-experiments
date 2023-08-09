@@ -13,8 +13,6 @@ block:
   block:
     set(b, add(b, 5))
 
+  inc(a)
 
-# 25
 print(add(a, b))
-
-

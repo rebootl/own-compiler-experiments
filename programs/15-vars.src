@@ -1,4 +1,6 @@
 var(a, 5)
 var(b, 10)
 
+inc(a)
+
 print(add(a, b))
