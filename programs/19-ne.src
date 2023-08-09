@@ -1,0 +1,10 @@
+
+
+
+print(ne(1, 1))
+
+print(ne(1, 5))
+
+print(ne(0, 0))
+
+print(ne(2, add(1, 1)))

@@ -93,7 +93,6 @@ def parse_expression(expr, asm):
 
   """parse an expression and return assembly snippet"""
 
-
   # trim whitespace
   expr = expr.strip()
 

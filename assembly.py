@@ -84,20 +84,75 @@ BINARIES = {
   'set': UPDATE_LOCAL_VARIABLE,
 }
 
-COMPARISONS = {
-  'eq': '''
-  ; equal
+CMP_START = '''
   pop ebx
   pop eax
   cmp eax, ebx
-  jne eq_false_{0} ; jump if not equal
+'''
+
+CMP_END = '''
+  jmp cmp_false_{0}
+cmp_true_{0}:
   push 1
-  jmp eq_end_{0}   ; jump to end
-eq_false_{0}:
+  jmp cmp_end_{0}
+cmp_false_{0}:
   push 0
-eq_end_{0}:
+cmp_end_{0}:
+'''
+
+COMPARISONS = {
+  'eq': '''
+  ; equal
+''' + CMP_START + '''
+  je cmp_true_{0}     ; jump if equal
+''' + CMP_END,
+  'ne': '''
+  ; not equal
+''' + CMP_START + '''
+  jne cmp_true_{0}     ; jump if not equal
+''' + CMP_END,
+  'gt': '''
+  ; greater than
+''' + CMP_START + '''
+  jg cmp_true_{0}     ; jump if greater than
+''' + CMP_END,
+  'lt': '''
+  ; less than
+''' + CMP_START + '''
+  jl cmp_true_{0}     ; jump if less than
+''' + CMP_END,
+  'ge': '''
+  ; greater than or equal
+''' + CMP_START + '''
+  jge cmp_true_{0}     ; jump if greater than or equal
+''' + CMP_END,
+  'le': '''
+  ; less than or equal
+''' + CMP_START + '''
+  jle cmp_true_{0}     ; jump if less than or equal
+''' + CMP_END,
+}
+
+LOGICALS = {
+  'and': '''
+  ; logical and
+  pop ebx
+  pop eax
+  cmp eax, 0
+  jne a_true_{0}
+  jmp r_false_{0}
+a_true_{0}:
+  cmp ebx, 0
+  jne r_true_{0}
+r_true_{0}:
+  push 1
+  jmp r_end_{0}
+r_false_{0}:
+  push 0
+r_end_{0}:
 ''',
 }
+
 
 ### built-in functions
 

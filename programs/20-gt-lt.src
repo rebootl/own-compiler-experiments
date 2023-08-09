@@ -1,0 +1,19 @@
+
+
+
+print(gt(2, 2))
+
+print(gt(1, 5))
+
+print(gt(3, 2))
+
+print(gt(2, 1))
+
+
+print(lt(2, 2))
+
+print(lt(1, 5))
+
+print(lt(3, 2))
+
+print(lt(2, 1))

@@ -1,0 +1,19 @@
+
+
+
+print(ge(2, 2))
+
+print(ge(1, 5))
+
+print(ge(3, 2))
+
+print(ge(2, 1))
+
+
+print(le(2, 2))
+
+print(le(1, 5))
+
+print(le(3, 2))
+
+print(le(2, 1))
