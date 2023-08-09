@@ -53,10 +53,10 @@ UNARIES = {
   push eax
 ''',
 # these are binary ops
-  'neg': '''  neg eax
-''',
-  'not': '''  not eax
-''',
+#  'neg': '''  neg eax
+#''',
+#  'not': '''  not eax
+#''',
 #
   'print': '''
   ; print stack top
@@ -82,6 +82,21 @@ BINARIES = {
 ''',
   'var': None,
   'set': UPDATE_LOCAL_VARIABLE,
+}
+
+COMPARISONS = {
+  'eq': '''
+  ; equal
+  pop ebx
+  pop eax
+  cmp eax, ebx
+  jne eq_false_{0} ; jump if not equal
+  push 1
+  jmp eq_end_{0}   ; jump to end
+eq_false_{0}:
+  push 0
+eq_end_{0}:
+''',
 }
 
 ### built-in functions

@@ -23,6 +23,7 @@ CASES = [
   [ 'programs/15-vars.src', '15', 0 ],
   [ 'programs/16-vars-set.src', '15', 0 ],
   [ 'programs/17-block.src', '25', 0 ],
+  [ 'programs/18-eq.src', '1011', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 

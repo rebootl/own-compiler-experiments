@@ -7,8 +7,7 @@ import sys
 
 from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
   HEAD, START, EXIT, DEFAULT_EXIT, PRINTCHAR, PRINT, \
-  ALLOCATE_LOCAL_VARIABLES, GET_LOCAL_VARIABLE, \
-  BLOCK_START, BLOCK_END
+  GET_LOCAL_VARIABLE, COMPARISONS
 
 OUTFILE = 'out.asm'
 
@@ -60,6 +59,7 @@ def split_args(argstr):
 
 VARIABLE_STACK = []
 CURRENT_BLOCK_DEPTH = 0
+UNIQUE_COUNTER = 0
 
 def check_redeclaration(name):
   #global CURRENT_BLOCK_DEPTH
@@ -88,8 +88,11 @@ def find_variable(name):
 def parse_expression(expr, asm):
   #global CURRENT_BLOCK_DEPTH
   #global VARIABLE_STACK
+  global UNIQUE_COUNTER
+  UNIQUE_COUNTER += 1
 
   """parse an expression and return assembly snippet"""
+
 
   # trim whitespace
   expr = expr.strip()
@@ -150,6 +153,16 @@ def parse_expression(expr, asm):
       asm = parse_expression(args[0], asm)
       asm = parse_expression(args[1], asm)
       asm += BINARIES[kw]
+
+    return asm
+  
+  if kw in COMPARISONS:
+    argstr = expr.split('(', 1)[1][:-1]
+    args = split_args(argstr)
+    # this pushes the value onto the stack in asm
+    asm = parse_expression(args[0], asm)
+    asm = parse_expression(args[1], asm)
+    asm += COMPARISONS[kw].format(UNIQUE_COUNTER)
 
     return asm
 
