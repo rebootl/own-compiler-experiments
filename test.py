@@ -22,7 +22,7 @@ CASES = [
   [ 'programs/14-collapse-comments.src', '6\n5\n', 0 ],
   [ 'programs/15-vars.src', '15', 0 ],
   [ 'programs/16-vars-set.src', '15', 0 ],
-  [ 'programs/17-block.src', '20', 0 ],
+  [ 'programs/17-block.src', '25', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 

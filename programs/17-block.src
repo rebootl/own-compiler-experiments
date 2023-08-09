@@ -11,6 +11,7 @@ block:
   set(b, add(b, 5))
 
   block:
+    ;set(a, 20)
     set(b, add(b, 5))
 
   inc(a)

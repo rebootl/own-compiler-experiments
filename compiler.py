@@ -18,7 +18,7 @@ COMMENT_CHAR = ';'
 
 def collapse_expressions(program):
 
-  ### remove newlines while inside parentheses
+  """remove newlines while inside parentheses"""
 
   collapsed_program = ''
   count = 0
@@ -36,7 +36,7 @@ def collapse_expressions(program):
 
 def split_args(argstr):
 
-  ### helper function to split comma-separated arguments
+  """helper function to split comma-separated arguments"""
 
   args = []
   arg = ''
@@ -62,17 +62,20 @@ VARIABLE_STACK = []
 CURRENT_BLOCK_DEPTH = 0
 
 def check_redeclaration(name):
+  #global CURRENT_BLOCK_DEPTH
+  #global VARIABLE_STACK
 
-  ### check if a variable is defined in the current scope
-
+  """check if a variable is defined in the current scope"""
+  #print(CURRENT_BLOCK_DEPTH)
   for var in VARIABLE_STACK:
     if var[0] == name and var[1] == CURRENT_BLOCK_DEPTH:
       return True
   return False
 
 def find_variable(name):
+  #global VARIABLE_STACK
 
-  ### find the stack position of a variable
+  """find the stack position of a variable"""
 
   # we need to find the first occurrence, from the end (top) of the stack
   # but we want to return the index from the start (bottom)
@@ -83,8 +86,10 @@ def find_variable(name):
   return None
 
 def parse_expression(expr, asm):
+  #global CURRENT_BLOCK_DEPTH
+  #global VARIABLE_STACK
 
-  ### parse an expression and return assembly snippet
+  """parse an expression and return assembly snippet"""
 
   # trim whitespace
   expr = expr.strip()
@@ -151,16 +156,15 @@ def parse_expression(expr, asm):
   # check for variable
   stack_pos = find_variable(expr)
   if stack_pos is not None:
-    print(stack_pos)
     asm += GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
     return asm
 
   sys.exit("Unknown keyword: '" + kw + "'")
 
 
-def allocate_local_variables(n_local_vars):
+"""def allocate_local_variables(n_local_vars):
 
-  ### create space on the stack for local variables
+  # create space on the stack for local variables
   #
   # it seems like we don't need to do this, at least not for now,
   # we can just push to the stack directly
@@ -169,11 +173,11 @@ def allocate_local_variables(n_local_vars):
 
   return ALLOCATE_LOCAL_VARIABLES.format(n_local_vars * 4)
 
-BLOCKS = []
+BLOCKS = []"""
 
-def parse_block_recursive(block):
+""" def parse_block_recursive(block):
   
-  ### parse a block of code recursively
+  # parse a block of code recursively
   #
   # we don't need to actually do this
   # for the block / scope we just have to keep track of the local variables
@@ -229,13 +233,24 @@ def parse_block_recursive(block):
     block_content + \
     BLOCK_END
 
-  BLOCKS.append(block_content)
+  BLOCKS.append(block_content) """
+
+def clear_block_stack():
+  #global CURRENT_BLOCK_DEPTH
+  #global VARIABLE_STACK
+
+  """clear the stack of local variables"""
+
+  for var in reversed(VARIABLE_STACK):
+    if var[1] > CURRENT_BLOCK_DEPTH:
+      VARIABLE_STACK.pop()
 
 def parse(program):
+  global CURRENT_BLOCK_DEPTH
   
   indent = 0
-  block_depth = 0
-  block_count = 0
+  #block_depth = 0
+  #block_count = 0
 
   main_asm = ''
 
@@ -250,11 +265,13 @@ def parse(program):
     if line_indent < indent:
       # end of block
       closes = (indent - line_indent) / INDENT
-      if closes % INDENT != 0 or closes > block_depth:
+      if closes % 1 != 0:
         sys.exit("Indentation error: " + line)
-      for i in range(closes):
+
+      for i in range(int(closes)):
         indent -= INDENT
-        block_depth -= 1
+        CURRENT_BLOCK_DEPTH -= 1
+        clear_block_stack()
     
     elif line_indent > indent:
       # error
@@ -263,9 +280,9 @@ def parse(program):
     line = line.strip()
 
     if line[:5] == 'block':
-      block_depth += 1
+      CURRENT_BLOCK_DEPTH += 1
       indent += INDENT
-      block_count += 1
+      #block_count += 1
       continue
 
     main_asm = parse_expression(line, main_asm)
@@ -279,7 +296,7 @@ def parse(program):
 
 def main():
 
-  ### main function
+  """main function"""
 
   # check for program file
   if len(sys.argv) < 2:
