@@ -96,7 +96,7 @@ _start:
   push ebp
   mov ebp, esp
 
-  call block_0
+  ;call block_0
 '''
 
 BLOCK_START = '''

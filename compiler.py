@@ -287,9 +287,9 @@ def parse(program):
 
     main_asm = parse_expression(line, main_asm)
   
-  main_asm = BLOCK_START.format(0) + \
-    main_asm + \
-    BLOCK_END
+  #main_asm = BLOCK_START.format(0) + \
+  #  main_asm + \
+  #  BLOCK_END
 
   return main_asm
 
@@ -314,8 +314,8 @@ def main():
   main_asm = parse(collapsed_program)
 
   # combine main assembly code with header, built-in functions and footer
-  out = HEAD + EXIT + PRINTCHAR + PRINT \
-    + main_asm + START + DEFAULT_EXIT
+  out = HEAD + EXIT + PRINTCHAR + PRINT + START \
+    + main_asm + DEFAULT_EXIT
 
   # write to output file
   with open(OUTFILE, 'w') as f:
