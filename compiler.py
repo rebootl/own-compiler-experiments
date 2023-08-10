@@ -55,8 +55,6 @@ def split_args(argstr):
   args.append(arg.strip())
   return args
 
-#LOCAL_VARIABLES = {}
-
 VARIABLE_STACK = []
 CURRENT_BLOCK_DEPTH = 0
 UNIQUE_COUNTER = 0
@@ -67,18 +65,15 @@ def get_unique_count():
   return UNIQUE_COUNTER
 
 def check_redeclaration(name):
-  #global CURRENT_BLOCK_DEPTH
-  #global VARIABLE_STACK
 
   """check if a variable is defined in the current scope"""
-  #print(CURRENT_BLOCK_DEPTH)
+
   for var in VARIABLE_STACK:
     if var[0] == name and var[1] == CURRENT_BLOCK_DEPTH:
       return True
   return False
 
 def find_variable(name):
-  #global VARIABLE_STACK
 
   """find the stack position of a variable"""
 
@@ -98,11 +93,6 @@ def check_arguments(args, num, fn_name=None):
       sys.exit("Error: expected " + str(num) + " arguments for " + fn_name + ", got " + str(len(args)))
 
 def parse_expression(expr, asm):
-  #global CURRENT_BLOCK_DEPTH
-  #global VARIABLE_STACK
-  #global UNIQUE_COUNTER
-  #UNIQUE_COUNTER += 1
-  #print(str(UNIQUE_COUNTER) + " " + expr)
 
   """parse an expression and return assembly snippet"""
 
@@ -233,82 +223,7 @@ def parse_expression(expr, asm):
   sys.exit("Unknown keyword: '" + kw + "'")
 
 
-"""def allocate_local_variables(n_local_vars):
-
-  # create space on the stack for local variables
-  #
-  # it seems like we don't need to do this, at least not for now,
-  # we can just push to the stack directly
-  # and it will result in going to the same location as if we allocated,
-  # the important part is that the compiler keeps track the locations
-
-  return ALLOCATE_LOCAL_VARIABLES.format(n_local_vars * 4)
-
-BLOCKS = []"""
-
-""" def parse_block_recursive(block):
-  
-  # parse a block of code recursively
-  #
-  # we don't need to actually do this
-  # for the block / scope we just have to keep track of the local variables
-  # and the stack position of each one
-  # we don't have to reorder the blocks as i thought first
-  #
-  # however the code may be useful later for functions
-
-  readahead = False
-  indent = 0
-  block_lines = []
-
-  n_local_vars = 0
-
-  block_content = ''
-
-  for line in block.splitlines():
-
-    if line == '':
-      continue
-    if line.lstrip()[0] == COMMENT_CHAR:
-      continue
-
-    if readahead:
-      line_indent = len(line) - len(line.lstrip())
-      if line_indent == indent - INDENT:
-        # end of block
-        parse_block_recursive('\n'.join(block_lines))
-        block_lines = []
-        indent -= INDENT
-        readahead = False
-      
-      elif line_indent >= indent:
-        # same or larger indent level
-        block_lines.append(line)
-        continue
-      else:
-        # error
-        sys.exit("Indentation error: " + line)
-
-    line = line.strip()
-
-    if line[:3] == 'var':
-      n_local_vars += 1
-    if line[:5] == 'block':
-      readahead = True
-      indent += INDENT
-      continue
-
-    block_content = parse_expression(line, block_content)
-  
-  block_content = BLOCK_START.format(0) + \
-    block_content + \
-    BLOCK_END
-
-  BLOCKS.append(block_content) """
-
 def clear_block_stack():
-  #global CURRENT_BLOCK_DEPTH
-  #global VARIABLE_STACK
 
   """clear the stack of local variables"""
 
@@ -320,8 +235,6 @@ def parse(program):
   global CURRENT_BLOCK_DEPTH
   
   indent = 0
-  #block_depth = 0
-  #block_count = 0
 
   main_asm = ''
 
@@ -353,14 +266,9 @@ def parse(program):
     if line[:5] == 'block':
       CURRENT_BLOCK_DEPTH += 1
       indent += INDENT
-      #block_count += 1
       continue
 
     main_asm = parse_expression(line, main_asm)
-  
-  #main_asm = BLOCK_START.format(0) + \
-  #  main_asm + \
-  #  BLOCK_END
 
   return main_asm
 
