@@ -5,6 +5,7 @@ A toy compiler for a toy language, for learning purposes.
 
 ## Language grammar:
 
+```
 Program   : <empty> | PRIMARY | UNARY | BINARY
 
 PRIMARY   : print( EXPRESSION ) | println() |
@@ -35,4 +36,4 @@ COMPARISON: eq( EXPRESSION, EXPRESSION ) |
 LOGICAL   : and( EXPRESSION, EXPRESSION ) |
             or( EXPRESSION, EXPRESSION ) |
             not( EXPRESSION )
-
+```
