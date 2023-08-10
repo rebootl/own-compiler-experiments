@@ -2,7 +2,7 @@ print(55)
 
 println()
 
-print(inc(64))
+print(65)
 println()
 
 exit(0)

@@ -11,7 +11,7 @@ A toy compiler for a toy language, for learning purposes.
 ## Language grammar:
 
 ```
-Program   : <empty> | PRIMARY | UNARY | BINARY
+PROGRAM   : <empty> | PRIMARY | UNARY | BINARY
 
 PRIMARY   : print( EXPRESSION ) | println() |
             exit( EXPRESSION Default: 0 ) |
@@ -41,4 +41,8 @@ COMPARISON: eq( EXPRESSION, EXPRESSION ) |
 LOGICAL   : and( EXPRESSION, EXPRESSION ) |
             or( EXPRESSION, EXPRESSION ) |
             not( EXPRESSION )
+
+BLOCK     : block:
+              PROGRAM
+
 ```

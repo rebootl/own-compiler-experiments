@@ -92,7 +92,7 @@ def check_arguments(args, num, fn_name=None):
     else:
       sys.exit("Error: expected " + str(num) + " arguments for " + fn_name + ", got " + str(len(args)))
 
-def parse_expression(expr, asm):
+def parse_expression(expr, asm, level = 0):
 
   """parse an expression and return assembly snippet"""
 
@@ -110,8 +110,21 @@ def parse_expression(expr, asm):
   if kw in PRIMARIES:
     argstr = expr.split('(', 1)[1][:-1]
 
+    if level > 0:
+      sys.exit("Error: primary '" + kw + "' cannot be nested")
+
     if kw == 'println':
       asm += PRIMARIES[kw]
+      return asm
+
+    if kw == 'inc' or kw == 'dec':
+      check_arguments(argstr, 1, 'inc/dec')
+
+      stack_pos = find_variable(argstr)
+      if stack_pos is None:
+        sys.exit("Error in inc/dec: variable '" + argstr + "' not found")
+      
+      asm += PRIMARIES[kw].format(4 + stack_pos * 4)
       return asm
 
     if kw == 'var':
@@ -128,7 +141,7 @@ def parse_expression(expr, asm):
 
       # this pushes the value onto the stack in asm
       # we leave it there as a local variable
-      asm = parse_expression(args[1], asm)
+      asm = parse_expression(args[1], asm, level + 1)
 
       # store variable name and stack position
       VARIABLE_STACK.append([ args[0], CURRENT_BLOCK_DEPTH ])
@@ -145,7 +158,7 @@ def parse_expression(expr, asm):
         sys.exit("Error setting undeclared variable: '" + args[0] + "'")
       
       # this pushes the value onto the stack in asm
-      asm = parse_expression(args[1], asm)
+      asm = parse_expression(args[1], asm, level + 1)
 
       # this will consume the value on the stack top
       # and update the variable in the correct stack location
@@ -157,7 +170,7 @@ def parse_expression(expr, asm):
     if kw == 'exit' and argstr == '':
       argstr = '0'
 
-    asm = parse_expression(argstr, asm)
+    asm = parse_expression(argstr, asm, level + 1)
 
     asm += PRIMARIES[kw]
     return asm
@@ -166,7 +179,7 @@ def parse_expression(expr, asm):
   if kw in UNARIES:
     arg = expr.split('(', 1)[1][:-1]
 
-    asm = parse_expression(arg, asm)
+    asm = parse_expression(arg, asm, level + 1)
 
     asm += UNARIES[kw]
     return asm
@@ -178,8 +191,8 @@ def parse_expression(expr, asm):
 
     check_arguments(args, 2, kw)
 
-    asm = parse_expression(args[0], asm)
-    asm = parse_expression(args[1], asm)
+    asm = parse_expression(args[0], asm, level + 1)
+    asm = parse_expression(args[1], asm, level + 1)
     asm += BINARIES[kw]
 
     return asm
@@ -191,8 +204,8 @@ def parse_expression(expr, asm):
     check_arguments(args, 2, kw)
 
     # this pushes the value onto the stack in asm
-    asm = parse_expression(args[0], asm)
-    asm = parse_expression(args[1], asm)
+    asm = parse_expression(args[0], asm, level + 1)
+    asm = parse_expression(args[1], asm, level + 1)
     asm += COMPARISONS[kw].format(get_unique_count())
 
     return asm
@@ -201,15 +214,15 @@ def parse_expression(expr, asm):
     argstr = expr.split('(', 1)[1][:-1]
 
     if kw == 'not':
-      asm = parse_expression(argstr, asm)
+      asm = parse_expression(argstr, asm, level + 1)
     else:
       args = split_args(argstr)
 
       check_arguments(args, 2, kw)
 
       # this pushes the value onto the stack in asm
-      asm = parse_expression(args[0], asm)
-      asm = parse_expression(args[1], asm)
+      asm = parse_expression(args[0], asm, level + 1)
+      asm = parse_expression(args[1], asm, level + 1)
     
     asm += LOGICALS[kw].format(get_unique_count())
     return asm

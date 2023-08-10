@@ -1,9 +1,12 @@
 var(a, 5)
 var(b, 10)
 
-set(a, inc(a))
-set(b, add(4, inc(4)))
+dec(a)
+set(b, add(a, 5))
 
 set(b, add(b, 5))
 
-print(add(a, b))
+print(add(2, add(a, b)))
+
+;print(a)
+;print(b)

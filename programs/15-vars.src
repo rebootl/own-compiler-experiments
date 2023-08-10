@@ -1,6 +1,11 @@
-var(a, 5)
+var(a, 4)
 var(b, 10)
 
 inc(a)
 
 print(add(a, b))
+println()
+
+dec(b)
+
+print(b)

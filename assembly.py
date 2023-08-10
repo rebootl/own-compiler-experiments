@@ -11,14 +11,14 @@ LITERAL = '''
 UPDATE_LOCAL_VARIABLE = '''
   ; set local variable
   pop eax
-  mov [ebp - {}], eax
+  mov [ebp - {0}], eax
 '''
 
 
 GET_LOCAL_VARIABLE = '''
   ; get local variable
   mov eax, ebp
-  push DWORD [eax - {}]
+  push DWORD [eax - {0}]
 '''
 
 PRIMARIES = {
@@ -40,21 +40,23 @@ PRIMARIES = {
 ''',
   'var': None,
   'set': UPDATE_LOCAL_VARIABLE,
-}
-
-UNARIES = {
-  'inc': '''
+  'inc': GET_LOCAL_VARIABLE +
+'''
   ; increment stack top
   pop eax
   inc eax
   push eax
-''',
-  'dec': '''
+''' + UPDATE_LOCAL_VARIABLE,
+  'dec': GET_LOCAL_VARIABLE +
+'''
   ; decrement stack top
   pop eax
   dec eax
   push eax
-''',
+''' + UPDATE_LOCAL_VARIABLE,
+}
+
+UNARIES = {
 # these are binary ops
 #  'neg': '''  neg eax
 #''',

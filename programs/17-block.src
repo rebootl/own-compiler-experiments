@@ -6,7 +6,7 @@ var(b, 10)
 block:
 
   var(a, 10)
-  set(a, inc(a))
+  inc(a)
 
   set(b, add(b, 5))
 
