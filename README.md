@@ -11,20 +11,24 @@ A toy compiler for a toy language, for learning purposes.
 ## Language grammar:
 
 ```
-PROGRAM   : <empty> | PRIMARY | UNARY | BINARY
+PROGRAM   : "" | "\n" | <indent of block> + LINE
+
+LINE      : "" | PRIMARY | BINARY |
+            BLOCK | COMMENT + "\n"
+
+COMMENT   : <COMMENT_CHAR> + <comment> + "\n"
 
 PRIMARY   : print( EXPRESSION ) | println() |
             exit( EXPRESSION Default: 0 ) |
             var( VARIABLE, EXPRESSION ) |
-            set( VARIABLE, EXPRESSION )
-
-UNARY     : inc( VARIABLE ) | dec( VARIABLE )
+            set( VARIABLE, EXPRESSION ) |
+            inc( VARIABLE ) | dec( VARIABLE )
 
 BINARY    : add( EXPRESSION, EXPRESSION ) | 
             sub( EXPRESSION, EXPRESSION )
 
 EXPRESSION: VARIABLE | LITERAL |
-            BINARY | UNARY |
+            BINARY |
             COMPARISON | LOGICAL
 
 VARIABLE  : <variable name>
@@ -43,6 +47,6 @@ LOGICAL   : and( EXPRESSION, EXPRESSION ) |
             not( EXPRESSION )
 
 BLOCK     : block:
-              PROGRAM
+            <indent of block> + PROGRAM
 
 ```
