@@ -23,10 +23,12 @@ CASES = [
   [ 'programs/15-vars.src', '15', 0 ],
   [ 'programs/16-vars-set.src', '15', 0 ],
   [ 'programs/17-block.src', '25', 0 ],
-  [ 'programs/18-eq.src', '1011', 0 ],
+  [ 'programs/18-eq.src', '101101', 0 ],
   [ 'programs/19-ne.src', '0100', 0 ],
-  [ 'programs/20-gt-lt.src', '00110100', 0 ],
+  [ 'programs/20-gt-lt.src', '001110100', 0 ],
   [ 'programs/21-ge-le.src', '10111100', 0 ],
+  [ 'programs/22-and-or.src', '10001110', 0 ],
+  [ 'programs/23-not-combs.src', '01100', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 

@@ -55,9 +55,19 @@ UNARIES = {
 # these are binary ops
 #  'neg': '''  neg eax
 #''',
-#  'not': '''  not eax
-#''',
-#
+  'not': '''
+  ; logical not
+  pop eax
+  cmp eax, 0
+  je r_true_{0}
+  jmp r_false_{0}
+r_true_{0}:
+  push 1
+  jmp r_end_{0}
+r_false_{0}:
+  push 0
+r_end_{0}:
+''',
   'print': '''
   ; print stack top
   call print_int
@@ -144,6 +154,25 @@ LOGICALS = {
 a_true_{0}:
   cmp ebx, 0
   jne r_true_{0}
+  jmp r_false_{0}
+r_true_{0}:
+  push 1
+  jmp r_end_{0}
+r_false_{0}:
+  push 0
+r_end_{0}:
+''',
+  'or': '''
+  ; logical or
+  pop ebx
+  pop eax
+  cmp eax, 0
+  je a_false_{0}
+  jmp r_true_{0}
+a_false_{0}:
+  cmp ebx, 0
+  je r_false_{0}
+  jmp r_true_{0}
 r_true_{0}:
   push 1
   jmp r_end_{0}

@@ -8,3 +8,9 @@ print(eq(1, 5))
 print(eq(0, 0))
 
 print(eq(2, add(1, 1)))
+
+
+
+print(eq(2, eq(1, 1)))
+
+print(eq(1, eq(1, 1)))

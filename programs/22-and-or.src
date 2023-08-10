@@ -1,0 +1,20 @@
+
+print(and(2, 2))
+
+print(and(0, 5))
+
+print(and(3, 0))
+
+print(and(0, 0))
+
+
+
+print(or(2, 2))
+
+print(or(0, 5))
+
+print(or(3, 0))
+
+print(or(0, 0))
+
+

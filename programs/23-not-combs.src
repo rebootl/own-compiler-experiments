@@ -1,0 +1,14 @@
+
+
+
+print(not(2))
+
+print(not(0))
+
+
+print(not(not(1)))
+
+print(not(and(3, or(5, 0))))
+
+
+print(and(0, and(0, 1)))
