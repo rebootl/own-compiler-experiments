@@ -17,4 +17,3 @@ print(or(3, 0))
 
 print(or(0, 0))
 
-

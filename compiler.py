@@ -111,28 +111,17 @@ def parse_expression(expr, asm):
 
   # check for primary
   if kw in PRIMARIES:
-    asm += PRIMARIES[kw]
-    return asm
-
-  # check for unary
-  if kw in UNARIES:
-    arg = expr.split('(', 1)[1][:-1]
-    if kw == 'exit' and arg == '':
-      asm = parse_expression('0', asm)
-    else:
-      asm = parse_expression(arg, asm)
-    if kw == 'not':
-      asm += UNARIES[kw].format(get_unique_count())
-      return asm
-    asm += UNARIES[kw]
-    return asm
-
-  # check for binary
-  if kw in BINARIES:
     argstr = expr.split('(', 1)[1][:-1]
-    args = split_args(argstr)
+
+    if kw == 'println':
+      asm += PRIMARIES[kw]
+      return asm
 
     if kw == 'var':
+      args = split_args(argstr)
+
+      # -> check arguments
+
       if check_redeclaration(args[0]):
         sys.exit("Redeclaration Error: '" + args[0] + "'")
 
@@ -143,9 +132,11 @@ def parse_expression(expr, asm):
       # store variable name and stack position
       VARIABLE_STACK.append([ args[0], CURRENT_BLOCK_DEPTH ])
 
-      #asm += BINARIES[kw].format(stack_pos)
+      return asm
 
-    elif kw == 'set':
+    if kw == 'set':
+      args = split_args(argstr)
+
       stack_pos = find_variable(args[0])
       if stack_pos is None:
         sys.exit("Error setting undeclared variable: '" + args[0] + "'")
@@ -155,12 +146,36 @@ def parse_expression(expr, asm):
 
       # this will consume the value on the stack top
       # and update the variable in the correct stack location
-      asm += BINARIES[kw].format(4 + stack_pos * 4)
+      asm += PRIMARIES[kw].format(4 + stack_pos * 4)
 
-    else:
-      asm = parse_expression(args[0], asm)
-      asm = parse_expression(args[1], asm)
-      asm += BINARIES[kw]
+      return asm
+
+    # set default exit code
+    if kw == 'exit' and argstr == '':
+      argstr = '0'
+
+    asm = parse_expression(argstr, asm)
+
+    asm += PRIMARIES[kw]
+    return asm
+
+  # check for unary
+  if kw in UNARIES:
+    arg = expr.split('(', 1)[1][:-1]
+
+    asm = parse_expression(arg, asm)
+
+    asm += UNARIES[kw]
+    return asm
+
+  # check for binary
+  if kw in BINARIES:
+    argstr = expr.split('(', 1)[1][:-1]
+    args = split_args(argstr)
+
+    asm = parse_expression(args[0], asm)
+    asm = parse_expression(args[1], asm)
+    asm += BINARIES[kw]
 
     return asm
   
@@ -176,12 +191,16 @@ def parse_expression(expr, asm):
   
   if kw in LOGICALS:
     argstr = expr.split('(', 1)[1][:-1]
-    args = split_args(argstr)
-    # this pushes the value onto the stack in asm
-    asm = parse_expression(args[0], asm)
-    asm = parse_expression(args[1], asm)
-    asm += LOGICALS[kw].format(get_unique_count())
 
+    if kw == 'not':
+      asm = parse_expression(argstr, asm)
+    else:
+      args = split_args(argstr)
+      # this pushes the value onto the stack in asm
+      asm = parse_expression(args[0], asm)
+      asm = parse_expression(args[1], asm)
+    
+    asm += LOGICALS[kw].format(get_unique_count())
     return asm
 
   # check for variable

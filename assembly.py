@@ -14,10 +14,6 @@ UPDATE_LOCAL_VARIABLE = '''
   mov [ebp - {}], eax
 '''
 
-# GET_LOCAL_VARIABLE = '''
-#   ; get local variable
-#   push DWORD [ebp - {}]
-# '''
 
 GET_LOCAL_VARIABLE = '''
   ; get local variable
@@ -32,14 +28,21 @@ PRIMARIES = {
   call printchar
   add esp, 4                    ; clear stack
 ''',
-}
-
-UNARIES = {
   'exit': '''
   ; jump to exit
   pop eax
   jmp exit
 ''',
+  'print': '''
+  ; print stack top
+  call print_int
+  add esp, 4      ; clear stack
+''',
+  'var': None,
+  'set': UPDATE_LOCAL_VARIABLE,
+}
+
+UNARIES = {
   'inc': '''
   ; increment stack top
   pop eax
@@ -55,24 +58,6 @@ UNARIES = {
 # these are binary ops
 #  'neg': '''  neg eax
 #''',
-  'not': '''
-  ; logical not
-  pop eax
-  cmp eax, 0
-  je r_true_{0}
-  jmp r_false_{0}
-r_true_{0}:
-  push 1
-  jmp r_end_{0}
-r_false_{0}:
-  push 0
-r_end_{0}:
-''',
-  'print': '''
-  ; print stack top
-  call print_int
-  add esp, 4      ; clear stack
-''',
 }
 
 BINARIES = {
@@ -90,8 +75,6 @@ BINARIES = {
   sub eax, ebx
   push eax
 ''',
-  'var': None,
-  'set': UPDATE_LOCAL_VARIABLE,
 }
 
 CMP_START = '''
@@ -173,6 +156,19 @@ a_false_{0}:
   cmp ebx, 0
   je r_false_{0}
   jmp r_true_{0}
+r_true_{0}:
+  push 1
+  jmp r_end_{0}
+r_false_{0}:
+  push 0
+r_end_{0}:
+''',
+  'not': '''
+  ; logical not
+  pop eax
+  cmp eax, 0
+  je r_true_{0}
+  jmp r_false_{0}
 r_true_{0}:
   push 1
   jmp r_end_{0}
