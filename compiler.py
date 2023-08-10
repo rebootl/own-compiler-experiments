@@ -90,6 +90,13 @@ def find_variable(name):
       return p - i
   return None
 
+def check_arguments(args, num, fn_name=None):
+  if len(args) != num:
+    if fn_name is None:
+      sys.exit("Error: expected " + str(num) + " arguments, got " + str(len(args)))
+    else:
+      sys.exit("Error: expected " + str(num) + " arguments for " + fn_name + ", got " + str(len(args)))
+
 def parse_expression(expr, asm):
   #global CURRENT_BLOCK_DEPTH
   #global VARIABLE_STACK
@@ -120,7 +127,11 @@ def parse_expression(expr, asm):
     if kw == 'var':
       args = split_args(argstr)
 
-      # -> check arguments
+      check_arguments(args, 2, 'var')
+
+      # check that variable name starts with a letter
+      if not args[0][0].isalpha():
+        sys.exit("Error: variable name must start with a letter")
 
       if check_redeclaration(args[0]):
         sys.exit("Redeclaration Error: '" + args[0] + "'")
@@ -136,6 +147,8 @@ def parse_expression(expr, asm):
 
     if kw == 'set':
       args = split_args(argstr)
+
+      check_arguments(args, 2, 'set')
 
       stack_pos = find_variable(args[0])
       if stack_pos is None:
@@ -173,6 +186,8 @@ def parse_expression(expr, asm):
     argstr = expr.split('(', 1)[1][:-1]
     args = split_args(argstr)
 
+    check_arguments(args, 2, kw)
+
     asm = parse_expression(args[0], asm)
     asm = parse_expression(args[1], asm)
     asm += BINARIES[kw]
@@ -182,6 +197,9 @@ def parse_expression(expr, asm):
   if kw in COMPARISONS:
     argstr = expr.split('(', 1)[1][:-1]
     args = split_args(argstr)
+
+    check_arguments(args, 2, kw)
+
     # this pushes the value onto the stack in asm
     asm = parse_expression(args[0], asm)
     asm = parse_expression(args[1], asm)
@@ -196,6 +214,9 @@ def parse_expression(expr, asm):
       asm = parse_expression(argstr, asm)
     else:
       args = split_args(argstr)
+
+      check_arguments(args, 2, kw)
+
       # this pushes the value onto the stack in asm
       asm = parse_expression(args[0], asm)
       asm = parse_expression(args[1], asm)

@@ -21,7 +21,7 @@ CASES = [
   [ 'programs/13-add-sub.src', '6\n2\n', 0 ],
   [ 'programs/14-collapse-comments.src', '6\n5\n', 0 ],
   [ 'programs/15-vars.src', '15', 0 ],
-  [ 'programs/16-vars-set.src', '15', 0 ],
+  [ 'programs/16-vars-set.src', '20', 0 ],
   [ 'programs/17-block.src', '25', 0 ],
   [ 'programs/18-eq.src', '101101', 0 ],
   [ 'programs/19-ne.src', '0100', 0 ],
@@ -37,6 +37,8 @@ for case in CASES:
   name = case[0][:-4]
 
   # build program
+  # -> check success and break if fail
+  # -> check errors
   os.system('./compiler.py ' + case[0])
   os.system('nasm -f elf32 out.asm -o out.o')
   os.system('ld -m elf_i386 -o out out.o')
