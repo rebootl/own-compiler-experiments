@@ -1,0 +1,32 @@
+
+var(a, 3)
+
+if(1):
+
+  print(1)
+  set(a, 4)
+
+  if(1):
+
+    var(a, 5)
+    print(2)
+    print(a)
+
+    block:
+      print(4)
+
+  else:
+
+    print(3)
+
+else:
+
+  print(0)
+
+if(0):
+  print(5)
+else:
+  print(6)
+
+
+print(a)

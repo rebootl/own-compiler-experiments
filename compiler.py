@@ -7,7 +7,8 @@ import sys
 
 from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
   HEAD, START, EXIT, DEFAULT_EXIT, PRINTCHAR, PRINT, \
-  GET_LOCAL_VARIABLE, COMPARISONS, LOGICALS
+  GET_LOCAL_VARIABLE, COMPARISONS, LOGICALS, \
+  IF_START, IF_TRUE_END, ELSE_START, IF_END
 
 OUTFILE = 'out.asm'
 
@@ -236,7 +237,7 @@ def parse_expression(expr, asm, level = 0):
   sys.exit("Unknown keyword: '" + kw + "'")
 
 
-def clear_block_stack():
+def clear_block_stack_variables():
 
   """clear the stack of local variables"""
 
@@ -251,9 +252,15 @@ def parse(program):
 
   main_asm = ''
 
+  if_count = 0
+
+  block_stack = []
+
   for line in program.splitlines():
 
     if line == '':
+      continue
+    if line.lstrip() == '':
       continue
     if line.lstrip()[0] == COMMENT_CHAR:
       continue
@@ -263,12 +270,30 @@ def parse(program):
       # end of block
       closes = (indent - line_indent) / INDENT
       if closes % 1 != 0:
-        sys.exit("Indentation error: " + line)
+        sys.exit("Indentation error (less): " + line)
 
       for i in range(int(closes)):
         indent -= INDENT
         CURRENT_BLOCK_DEPTH -= 1
-        clear_block_stack()
+        clear_block_stack_variables()
+
+        block = block_stack.pop()
+
+        if block[0] == 'IF_BLOCK':
+          # end of if block
+          if indent * ' ' + 'else:' == line:
+            indent += INDENT
+            CURRENT_BLOCK_DEPTH += 1
+            
+            main_asm += ELSE_START.format(block[1])
+            block_stack.append([ 'ELSE_BLOCK', block[1] ])
+          else:
+            main_asm += ELSE_START.format(block[1])
+            main_asm += IF_END.format(block[1])
+        
+        elif block[0] == 'ELSE_BLOCK':
+          # end of else block
+          main_asm += IF_END.format(block[1])
     
     elif line_indent > indent:
       # error
@@ -279,9 +304,36 @@ def parse(program):
     if line[:5] == 'block':
       CURRENT_BLOCK_DEPTH += 1
       indent += INDENT
+      block_stack.append([ 'BLOCK', None ])
+      continue
+    
+    if line[:2] == 'if':
+      CURRENT_BLOCK_DEPTH += 1
+      indent += INDENT
+      block_stack.append([ 'IF_BLOCK', if_count ])
+
+      # parse condition
+      condition = line.split('(', 1)[1][:-2]
+      main_asm = parse_expression(condition, main_asm)
+
+      # emit if block start
+      main_asm += IF_START.format(if_count)
+
+      if_count += 1
+      continue
+    
+    if line[:4] == 'else':
       continue
 
     main_asm = parse_expression(line, main_asm)
+
+  # close remaining open blocks at EOF
+  #print(block_stack)
+  while len(block_stack) > 0:
+    block = block_stack.pop()
+    if block[0] == 'IF_BLOCK' or block[0] == 'ELSE_BLOCK':
+      main_asm += IF_END.format(block[1])
+
 
   return main_asm
 

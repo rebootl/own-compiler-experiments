@@ -180,6 +180,27 @@ r_end_{0}:
 ''',
 }
 
+IF_START = '''
+  ; if start
+  pop eax
+  cmp eax, 0
+  je else_block_{0}
+'''
+
+IF_TRUE_END = '''
+'''
+
+ELSE_START = '''
+  ; if true end
+  jmp if_block_end_{0}
+  ; else start
+else_block_{0}:
+'''
+
+IF_END = '''
+  ; if end
+if_block_end_{0}:
+'''
 
 ### built-in functions
 
