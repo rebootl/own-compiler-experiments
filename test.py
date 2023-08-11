@@ -31,6 +31,7 @@ CASES = [
   [ 'programs/23-not-combs.src', '01100', 0 ],
   [ 'programs/24-if.src', '703', 0 ],
   [ 'programs/25-if-else.src', '125464', 0 ],
+  [ 'programs/26-while.src', '0123456789', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 

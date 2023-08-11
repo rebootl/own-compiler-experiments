@@ -8,7 +8,9 @@ import sys
 from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
   HEAD, START, EXIT, DEFAULT_EXIT, PRINTCHAR, PRINT, \
   GET_LOCAL_VARIABLE, COMPARISONS, LOGICALS, \
-  IF_START, IF_TRUE_END, ELSE_START, IF_END
+  IF_START, IF_TRUE_END, ELSE_START, IF_END, \
+  WHILE_START, WHILE_CONDITION_EVAL, WHILE_END, \
+  POP_LOCAL_VARIABLE
 
 OUTFILE = 'out.asm'
 
@@ -241,9 +243,13 @@ def clear_block_stack_variables():
 
   """clear the stack of local variables"""
 
+  c = 0
   for var in reversed(VARIABLE_STACK):
     if var[1] > CURRENT_BLOCK_DEPTH:
       VARIABLE_STACK.pop()
+      c += 1
+  
+  return c
 
 def parse(program):
   global CURRENT_BLOCK_DEPTH
@@ -253,6 +259,7 @@ def parse(program):
   main_asm = ''
 
   if_count = 0
+  while_count = 0
 
   block_stack = []
 
@@ -275,7 +282,10 @@ def parse(program):
       for i in range(int(closes)):
         indent -= INDENT
         CURRENT_BLOCK_DEPTH -= 1
-        clear_block_stack_variables()
+        n = clear_block_stack_variables()
+
+        for j in range(n):
+          main_asm += POP_LOCAL_VARIABLE
 
         block = block_stack.pop()
 
@@ -294,6 +304,10 @@ def parse(program):
         elif block[0] == 'ELSE_BLOCK':
           # end of else block
           main_asm += IF_END.format(block[1])
+        
+        elif block[0] == 'WHILE_BLOCK':
+          # end of while block
+          main_asm += WHILE_END.format(block[1])
     
     elif line_indent > indent:
       # error
@@ -324,6 +338,27 @@ def parse(program):
     
     if line[:4] == 'else':
       continue
+    
+    if line[:5] == 'while':
+      CURRENT_BLOCK_DEPTH += 1
+      indent += INDENT
+      block_stack.append([ 'WHILE_BLOCK', while_count ])
+
+      # parse condition
+      condition = line.split('(', 1)[1][:-2]
+      condition_asm = parse_expression(condition, '')
+
+      # emit while block start
+      main_asm += WHILE_START.format(while_count)
+
+      # emit condition
+      main_asm += condition_asm
+
+      # emit condition evaluation
+      main_asm += WHILE_CONDITION_EVAL.format(while_count)
+
+      while_count += 1
+      continue
 
     main_asm = parse_expression(line, main_asm)
 
@@ -333,7 +368,8 @@ def parse(program):
     block = block_stack.pop()
     if block[0] == 'IF_BLOCK' or block[0] == 'ELSE_BLOCK':
       main_asm += IF_END.format(block[1])
-
+    elif block[0] == 'WHILE_BLOCK':
+      main_asm += WHILE_END.format(block[1])
 
   return main_asm
 

@@ -14,6 +14,10 @@ UPDATE_LOCAL_VARIABLE = '''
   mov [ebp - {0}], eax
 '''
 
+POP_LOCAL_VARIABLE = '''
+  ; pop local variable
+  pop eax
+'''
 
 GET_LOCAL_VARIABLE = '''
   ; get local variable
@@ -200,6 +204,24 @@ else_block_{0}:
 IF_END = '''
   ; if end
 if_block_end_{0}:
+'''
+
+WHILE_START = '''
+  ; while start
+while_block_{0}:
+'''
+
+WHILE_CONDITION_EVAL = '''
+  ; while condition eval
+  pop eax
+  cmp eax, 0
+  je while_block_end_{0}
+'''
+
+WHILE_END = '''
+  ; while end
+  jmp while_block_{0}
+while_block_end_{0}:
 '''
 
 ### built-in functions
