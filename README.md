@@ -5,7 +5,9 @@ A toy compiler for a toy language, for learning purposes.
 
 ## Resources:
 
+* Crafting Interpreters: https://craftinginterpreters.com/
 
+* An Incremental Approach to Compiler Construction: http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf
 
 
 ## Language grammar:
