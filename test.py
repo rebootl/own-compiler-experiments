@@ -32,6 +32,7 @@ CASES = [
   [ 'programs/24-if.src', '703', 0 ],
   [ 'programs/25-if-else.src', '125464', 0 ],
   [ 'programs/26-while.src', '0012341012342012343012344012345', 0 ],
+  [ 'programs/27-fib.src', '23581321345589144', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 
@@ -53,6 +54,7 @@ for case in CASES:
   # check exit code
   if p.returncode != case[2]:
     print('FAIL: ' + name + ' exit code ' + str(p.returncode) + ' != ' + str(case[2]))
+    print('stdout: ' + stdout.decode('utf-8'))
     exit(1)
 
   # check stdout

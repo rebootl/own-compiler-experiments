@@ -1,0 +1,14 @@
+
+; Fibonacci numbers
+
+var(a, 1)
+var(b, 1)
+
+while(lt(b, 100)):
+
+  var(sum, add(a, b))
+  print(sum)
+  ;println()
+
+  set(a, b)
+  set(b, sum)

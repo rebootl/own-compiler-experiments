@@ -369,6 +369,12 @@ def parse(program):
     if block[0] == 'IF_BLOCK' or block[0] == 'ELSE_BLOCK':
       main_asm += IF_END.format(block[1])
     elif block[0] == 'WHILE_BLOCK':
+      indent -= INDENT
+      CURRENT_BLOCK_DEPTH -= 1
+      n = clear_block_stack_variables()
+
+      for j in range(n):
+        main_asm += POP_LOCAL_VARIABLE
       main_asm += WHILE_END.format(block[1])
 
   return main_asm
