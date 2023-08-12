@@ -18,7 +18,6 @@ INDENT = 2
 
 COMMENT_CHAR = ';'
 
-#END_OF_BLOCK_MARKER = '/::'
 
 def collapse_expressions(program):
 
@@ -297,8 +296,6 @@ def clear_block_stack_variables():
   return c
 
 def parse(program):
-  
-  #indent = 0
 
   main_asm = ''
 
@@ -313,9 +310,6 @@ def parse(program):
     if line.lstrip()[0] == COMMENT_CHAR:
       continue
 
-    #print("indent: " + str(indent))
-    #print("block_depth: " + str(get_current_block_depth()))
-
     line_indent = len(line) - len(line.lstrip())
     if line_indent < CURRENT_INDENT:
       # end of block
@@ -325,7 +319,7 @@ def parse(program):
 
       for i in range(int(closes)):
         decrement_indent()
-        #decrement_block_depth()
+
         n = clear_block_stack_variables()
 
         for j in range(n):
@@ -337,7 +331,6 @@ def parse(program):
           # end of if block
           if CURRENT_INDENT * ' ' + 'else:' == line:
             increment_indent()
-            #increment_block_depth()
             
             main_asm += ELSE_START.format(block[1])
             block_stack.append([ 'ELSE_BLOCK', block[1] ])
@@ -360,13 +353,11 @@ def parse(program):
     line = line.strip()
 
     if line[:5] == 'block':
-      #increment_block_depth()
       increment_indent()
       block_stack.append([ 'BLOCK', None ])
       continue
     
     if line[:2] == 'if':
-      #increment_block_depth()
       increment_indent()
 
       # get id for block
@@ -381,14 +372,12 @@ def parse(program):
       # emit if block start
       main_asm += IF_START.format(id)
 
-      #id += 1
       continue
     
     if line[:4] == 'else':
       continue
     
     if line[:5] == 'while':
-      #increment_block_depth()
       increment_indent()
 
       # get id for block
@@ -414,14 +403,13 @@ def parse(program):
     main_asm = parse_expression(line, main_asm)
 
   # close remaining open blocks at EOF
-  #print(block_stack)
+
   while len(block_stack) > 0:
     block = block_stack.pop()
     if block[0] == 'IF_BLOCK' or block[0] == 'ELSE_BLOCK':
       main_asm += IF_END.format(block[1])
     elif block[0] == 'WHILE_BLOCK':
       decrement_indent()
-      #decrement_block_depth()
       n = clear_block_stack_variables()
 
       for j in range(n):
