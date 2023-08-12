@@ -23,10 +23,10 @@ else:
 
   print(0)
 
+
 if(0):
   print(5)
 else:
   print(6)
-
 
 print(a)
