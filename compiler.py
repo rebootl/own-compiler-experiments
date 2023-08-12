@@ -63,6 +63,7 @@ def split_args(argstr):
   args.append(arg.strip())
   return args
 
+
 UNIQUE_COUNTER = 0
 
 def get_unique_count():
@@ -71,15 +72,28 @@ def get_unique_count():
   return UNIQUE_COUNTER
 
 
-VARIABLE_STACK = []
 CURRENT_BLOCK_DEPTH = 0
+
+def get_current_block_depth():
+  return CURRENT_BLOCK_DEPTH
+
+def increment_block_depth():
+  global CURRENT_BLOCK_DEPTH
+  CURRENT_BLOCK_DEPTH += 1
+
+def decrement_block_depth():
+  global CURRENT_BLOCK_DEPTH
+  CURRENT_BLOCK_DEPTH -= 1
+
+
+VARIABLE_STACK = []
 
 def check_redeclaration(name):
 
   """check if a variable is defined in the current scope"""
 
   for var in VARIABLE_STACK:
-    if var[0] == name and var[1] == CURRENT_BLOCK_DEPTH:
+    if var[0] == name and var[1] == get_current_block_depth():
       return True
   return False
 
@@ -177,7 +191,7 @@ def parse_expression(expr, asm, level = 0):
       asm = parse_expression(args[1], asm, level + 1)
 
       # store variable name and stack position
-      VARIABLE_STACK.append([ args[0], CURRENT_BLOCK_DEPTH ])
+      VARIABLE_STACK.append([ args[0], get_current_block_depth() ])
 
       return asm
 
@@ -273,23 +287,17 @@ def clear_block_stack_variables():
 
   c = 0
   for var in reversed(VARIABLE_STACK):
-    if var[1] > CURRENT_BLOCK_DEPTH:
+    if var[1] > get_current_block_depth():
       VARIABLE_STACK.pop()
       c += 1
   
   return c
 
 def parse(program):
-  global CURRENT_BLOCK_DEPTH
-
-  current_block_depth = 0
   
   indent = 0
 
   main_asm = ''
-
-  if_count = 0
-  while_count = 0
 
   block_stack = []
 
@@ -311,7 +319,7 @@ def parse(program):
 
       for i in range(int(closes)):
         indent -= INDENT
-        CURRENT_BLOCK_DEPTH -= 1
+        decrement_block_depth()
         n = clear_block_stack_variables()
 
         for j in range(n):
@@ -323,7 +331,7 @@ def parse(program):
           # end of if block
           if indent * ' ' + 'else:' == line:
             indent += INDENT
-            CURRENT_BLOCK_DEPTH += 1
+            increment_block_depth()
             
             main_asm += ELSE_START.format(block[1])
             block_stack.append([ 'ELSE_BLOCK', block[1] ])
@@ -346,48 +354,55 @@ def parse(program):
     line = line.strip()
 
     if line[:5] == 'block':
-      CURRENT_BLOCK_DEPTH += 1
+      increment_block_depth()
       indent += INDENT
       block_stack.append([ 'BLOCK', None ])
       continue
     
     if line[:2] == 'if':
-      CURRENT_BLOCK_DEPTH += 1
+      increment_block_depth()
       indent += INDENT
-      block_stack.append([ 'IF_BLOCK', if_count ])
+
+      # get id for block
+      id = get_unique_count()
+
+      block_stack.append([ 'IF_BLOCK', id ])
 
       # parse condition
       condition = line.split('(', 1)[1][:-2]
       main_asm = parse_expression(condition, main_asm)
 
       # emit if block start
-      main_asm += IF_START.format(if_count)
+      main_asm += IF_START.format(id)
 
-      if_count += 1
+      id += 1
       continue
     
     if line[:4] == 'else':
       continue
     
     if line[:5] == 'while':
-      CURRENT_BLOCK_DEPTH += 1
+      increment_block_depth()
       indent += INDENT
-      block_stack.append([ 'WHILE_BLOCK', while_count ])
+
+      # get id for block
+      id = get_unique_count()
+
+      block_stack.append([ 'WHILE_BLOCK', id ])
 
       # parse condition
       condition = line.split('(', 1)[1][:-2]
       condition_asm = parse_expression(condition, '')
 
       # emit while block start
-      main_asm += WHILE_START.format(while_count)
+      main_asm += WHILE_START.format(id)
 
       # emit condition
       main_asm += condition_asm
 
       # emit condition evaluation
-      main_asm += WHILE_CONDITION_EVAL.format(while_count)
+      main_asm += WHILE_CONDITION_EVAL.format(id)
 
-      while_count += 1
       continue
 
     main_asm = parse_expression(line, main_asm)
@@ -400,7 +415,7 @@ def parse(program):
       main_asm += IF_END.format(block[1])
     elif block[0] == 'WHILE_BLOCK':
       indent -= INDENT
-      CURRENT_BLOCK_DEPTH -= 1
+      decrement_block_depth()
       n = clear_block_stack_variables()
 
       for j in range(n):
