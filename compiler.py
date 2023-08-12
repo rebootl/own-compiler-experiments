@@ -85,18 +85,8 @@ def decrement_indent():
   CURRENT_INDENT -= INDENT
 
 
-CURRENT_BLOCK_DEPTH = 0
-
 def get_current_block_depth():
   return CURRENT_INDENT / INDENT
-
-def increment_block_depth():
-  global CURRENT_BLOCK_DEPTH
-  CURRENT_BLOCK_DEPTH += 1
-
-def decrement_block_depth():
-  global CURRENT_BLOCK_DEPTH
-  CURRENT_BLOCK_DEPTH -= 1
 
 
 VARIABLE_STACK = []
