@@ -18,6 +18,8 @@ INDENT = 2
 
 COMMENT_CHAR = ';'
 
+#END_OF_BLOCK_MARKER = '/::'
+
 def collapse_expressions(program):
 
   """remove newlines while inside parentheses"""
@@ -72,10 +74,21 @@ def get_unique_count():
   return UNIQUE_COUNTER
 
 
+CURRENT_INDENT = 0
+
+def increment_indent():
+  global CURRENT_INDENT
+  CURRENT_INDENT += INDENT
+
+def decrement_indent():
+  global CURRENT_INDENT
+  CURRENT_INDENT -= INDENT
+
+
 CURRENT_BLOCK_DEPTH = 0
 
 def get_current_block_depth():
-  return CURRENT_BLOCK_DEPTH
+  return CURRENT_INDENT / INDENT
 
 def increment_block_depth():
   global CURRENT_BLOCK_DEPTH
@@ -295,7 +308,7 @@ def clear_block_stack_variables():
 
 def parse(program):
   
-  indent = 0
+  #indent = 0
 
   main_asm = ''
 
@@ -310,16 +323,19 @@ def parse(program):
     if line.lstrip()[0] == COMMENT_CHAR:
       continue
 
+    #print("indent: " + str(indent))
+    #print("block_depth: " + str(get_current_block_depth()))
+
     line_indent = len(line) - len(line.lstrip())
-    if line_indent < indent:
+    if line_indent < CURRENT_INDENT:
       # end of block
-      closes = (indent - line_indent) / INDENT
+      closes = (CURRENT_INDENT - line_indent) / INDENT
       if closes % 1 != 0:
         sys.exit("Indentation error (less): " + line)
 
       for i in range(int(closes)):
-        indent -= INDENT
-        decrement_block_depth()
+        decrement_indent()
+        #decrement_block_depth()
         n = clear_block_stack_variables()
 
         for j in range(n):
@@ -329,9 +345,9 @@ def parse(program):
 
         if block[0] == 'IF_BLOCK':
           # end of if block
-          if indent * ' ' + 'else:' == line:
-            indent += INDENT
-            increment_block_depth()
+          if CURRENT_INDENT * ' ' + 'else:' == line:
+            increment_indent()
+            #increment_block_depth()
             
             main_asm += ELSE_START.format(block[1])
             block_stack.append([ 'ELSE_BLOCK', block[1] ])
@@ -347,21 +363,21 @@ def parse(program):
           # end of while block
           main_asm += WHILE_END.format(block[1])
     
-    elif line_indent > indent:
+    elif line_indent > CURRENT_INDENT:
       # error
       sys.exit("Indentation error: " + line)
 
     line = line.strip()
 
     if line[:5] == 'block':
-      increment_block_depth()
-      indent += INDENT
+      #increment_block_depth()
+      increment_indent()
       block_stack.append([ 'BLOCK', None ])
       continue
     
     if line[:2] == 'if':
-      increment_block_depth()
-      indent += INDENT
+      #increment_block_depth()
+      increment_indent()
 
       # get id for block
       id = get_unique_count()
@@ -375,15 +391,15 @@ def parse(program):
       # emit if block start
       main_asm += IF_START.format(id)
 
-      id += 1
+      #id += 1
       continue
     
     if line[:4] == 'else':
       continue
     
     if line[:5] == 'while':
-      increment_block_depth()
-      indent += INDENT
+      #increment_block_depth()
+      increment_indent()
 
       # get id for block
       id = get_unique_count()
@@ -414,8 +430,8 @@ def parse(program):
     if block[0] == 'IF_BLOCK' or block[0] == 'ELSE_BLOCK':
       main_asm += IF_END.format(block[1])
     elif block[0] == 'WHILE_BLOCK':
-      indent -= INDENT
-      decrement_block_depth()
+      decrement_indent()
+      #decrement_block_depth()
       n = clear_block_stack_variables()
 
       for j in range(n):
