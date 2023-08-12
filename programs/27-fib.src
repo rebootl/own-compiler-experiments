@@ -12,3 +12,6 @@ while(lt(b, 100)):
 
   set(a, b)
   set(b, sum)
+
+:;
+

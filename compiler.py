@@ -38,7 +38,12 @@ def collapse_expressions(program):
 
 def split_args(argstr):
 
-  """helper function to split comma-separated arguments"""
+  """helper function to split comma-separated arguments
+
+  e.g.: '1, 2, 3' -> [ '1', '2', '3' ]
+        '1, add(2, 3)' -> [ '1', 'add(2, 3)' ]
+
+  """
 
   args = []
   arg = ''
@@ -58,14 +63,16 @@ def split_args(argstr):
   args.append(arg.strip())
   return args
 
-VARIABLE_STACK = []
-CURRENT_BLOCK_DEPTH = 0
 UNIQUE_COUNTER = 0
 
 def get_unique_count():
   global UNIQUE_COUNTER
   UNIQUE_COUNTER += 1
   return UNIQUE_COUNTER
+
+
+VARIABLE_STACK = []
+CURRENT_BLOCK_DEPTH = 0
 
 def check_redeclaration(name):
 
@@ -89,15 +96,39 @@ def find_variable(name):
   return None
 
 def check_arguments(args, num, fn_name=None):
+
+  """check that the number of arguments is correct"""
+
   if len(args) != num:
     if fn_name is None:
       sys.exit("Error: expected " + str(num) + " arguments, got " + str(len(args)))
     else:
       sys.exit("Error: expected " + str(num) + " arguments for " + fn_name + ", got " + str(len(args)))
 
+def get_kwargstr(expr):
+
+  """helper function to split keyword and argument string
+
+  e.g.: 'print(1)' -> [ 'print', '1' ]
+        'var(x, 1)' -> [ 'var', 'x, 1' ]
+        'add(1, add(2, 3))' -> [ 'add', '1, add(2, 3)' ]
+
+  """
+
+  s = expr.split('(', 1)
+  if len(s) == 1:
+    return [ s[0], '' ]
+  
+  return [ s[0], s[1][:-1] ]
+
 def parse_expression(expr, asm, level = 0):
 
-  """parse an expression and return assembly snippet"""
+  """recursively parse an expression and return assembly snippet
+  
+  level is the nesting level of the expression, used to check for
+  nested primaries
+
+  """
 
   # trim whitespace
   expr = expr.strip()
@@ -107,11 +138,10 @@ def parse_expression(expr, asm, level = 0):
     asm += LITERAL.format(expr)
     return asm
 
-  kw = expr.split('(', 1)[0]
+  [ kw, argstr ] = get_kwargstr(expr)
 
   # check for primary
   if kw in PRIMARIES:
-    argstr = expr.split('(', 1)[1][:-1]
 
     if level > 0:
       sys.exit("Error: primary '" + kw + "' cannot be nested")
@@ -180,16 +210,15 @@ def parse_expression(expr, asm, level = 0):
 
   # check for unary
   if kw in UNARIES:
-    arg = expr.split('(', 1)[1][:-1]
 
-    asm = parse_expression(arg, asm, level + 1)
+    asm = parse_expression(argstr, asm, level + 1)
 
     asm += UNARIES[kw]
     return asm
 
   # check for binary
   if kw in BINARIES:
-    argstr = expr.split('(', 1)[1][:-1]
+
     args = split_args(argstr)
 
     check_arguments(args, 2, kw)
@@ -201,7 +230,7 @@ def parse_expression(expr, asm, level = 0):
     return asm
   
   if kw in COMPARISONS:
-    argstr = expr.split('(', 1)[1][:-1]
+
     args = split_args(argstr)
 
     check_arguments(args, 2, kw)
@@ -214,7 +243,6 @@ def parse_expression(expr, asm, level = 0):
     return asm
   
   if kw in LOGICALS:
-    argstr = expr.split('(', 1)[1][:-1]
 
     if kw == 'not':
       asm = parse_expression(argstr, asm, level + 1)
@@ -253,6 +281,8 @@ def clear_block_stack_variables():
 
 def parse(program):
   global CURRENT_BLOCK_DEPTH
+
+  current_block_depth = 0
   
   indent = 0
 
