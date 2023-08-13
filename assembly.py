@@ -251,6 +251,11 @@ WHILE_END = '''
 while_block_end_{0}:
 '''
 
+WHILE_BREAK = '''
+  ; while break
+  jmp while_block_end_{0}
+'''
+
 ### built-in functions
 
 HEAD = '''global _start

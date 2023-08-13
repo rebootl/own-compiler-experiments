@@ -10,7 +10,7 @@ from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
   GET_LOCAL_VARIABLE, COMPARISONS, LOGICALS, \
   IF_START, IF_TRUE_END, ELSE_START, IF_END, \
   WHILE_START, WHILE_CONDITION_EVAL, WHILE_END, \
-  POP_LOCAL_VARIABLE, CHECK_OVERFLOW
+  POP_LOCAL_VARIABLE, CHECK_OVERFLOW, WHILE_BREAK
 
 OUTFILE = 'out.asm'
 
@@ -402,6 +402,19 @@ def parse(program):
 
       # emit condition evaluation
       main_asm += WHILE_CONDITION_EVAL.format(id)
+
+      continue
+    
+    if line[:5] == 'break':
+      while_found = False
+      for block in reversed(block_stack):
+        if block[0] == 'WHILE_BLOCK':
+          main_asm += WHILE_BREAK.format(block[1])
+          while_found = True
+          break
+  
+      if not while_found:
+        sys.exit("Error: break outside of while loop")
 
       continue
 
