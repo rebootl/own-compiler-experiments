@@ -81,6 +81,21 @@ BINARIES = {
   sub eax, ebx
   push eax
 ''',
+  'mul': '''
+  ; multiply stack top
+  pop ebx
+  pop eax
+  imul eax, ebx
+  push eax
+''',
+  'div': '''
+  ; divide stack top
+  pop ebx
+  pop eax
+  cdq
+  idiv ebx
+  push eax
+''',
 }
 
 CMP_START = '''

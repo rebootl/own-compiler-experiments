@@ -1,0 +1,17 @@
+
+; Factorial
+
+; 12 -> 479001600
+; max. for 32-bit signed integer: 12
+;
+
+var(a, 12)
+
+var(r, a)
+
+while(gt(a, 1)):
+
+  dec(a)
+  set(r, mul(r, a))
+
+print(r)

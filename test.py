@@ -19,6 +19,7 @@ CASES = [
   [ 'programs/11-print-println.src', '55\n65\n', 0 ],
   [ 'programs/12-add.src', '4', 0 ],
   [ 'programs/13-add-sub.src', '6\n2\n', 0 ],
+  [ 'programs/13.1-mul.src', '4\n25\n', 0 ],
   [ 'programs/14-collapse-comments.src', '6\n5\n', 0 ],
   [ 'programs/15-vars.src', '15\n9', 0 ],
   [ 'programs/16-vars-set.src', '20', 0 ],
@@ -33,6 +34,7 @@ CASES = [
   [ 'programs/25-if-else.src', '125464', 0 ],
   [ 'programs/26-while.src', '0012341012342012343012344012345', 0 ],
   [ 'programs/27-fib.src', '23581321345589144', 0 ],
+  [ 'programs/28-fac.src', '3628800', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 

@@ -1,0 +1,9 @@
+
+
+print( mul(2, 2) )
+
+println()
+
+print( mul(5, 5) )
+
+println()
