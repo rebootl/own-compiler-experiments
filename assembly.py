@@ -256,6 +256,11 @@ WHILE_BREAK = '''
   jmp while_block_end_{0}
 '''
 
+WHILE_CONTINUE = '''
+  ; while continue
+  jmp while_block_{0}
+'''
+
 ### built-in functions
 
 HEAD = '''global _start

@@ -1,0 +1,15 @@
+
+
+var(a, 10)
+
+
+while(gt(a, 0)):
+
+  dec(a)
+
+  if(lt(a, 4)):
+    continue
+
+  print(a)
+
+print(a)

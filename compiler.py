@@ -10,7 +10,7 @@ from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
   GET_LOCAL_VARIABLE, COMPARISONS, LOGICALS, \
   IF_START, IF_TRUE_END, ELSE_START, IF_END, \
   WHILE_START, WHILE_CONDITION_EVAL, WHILE_END, \
-  POP_LOCAL_VARIABLE, CHECK_OVERFLOW, WHILE_BREAK
+  POP_LOCAL_VARIABLE, CHECK_OVERFLOW, WHILE_BREAK, WHILE_CONTINUE
 
 OUTFILE = 'out.asm'
 
@@ -405,11 +405,14 @@ def parse(program):
 
       continue
     
-    if line[:5] == 'break':
+    if line.startswith('break') or line.startswith('continue'):
       while_found = False
       for block in reversed(block_stack):
         if block[0] == 'WHILE_BLOCK':
-          main_asm += WHILE_BREAK.format(block[1])
+          if line.startswith('continue'):
+            main_asm += WHILE_CONTINUE.format(block[1])
+          else:
+            main_asm += WHILE_BREAK.format(block[1])
           while_found = True
           break
   

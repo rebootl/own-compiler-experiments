@@ -37,6 +37,7 @@ CASES = [
   [ 'programs/28-fac.src', '3628800', 0 ],
   [ 'programs/29-fac-overflow.src', '', 99 ],
   [ 'programs/30-while-break.src', '98765', 0 ],
+  [ 'programs/31-while-continue.src', '9876540', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 
