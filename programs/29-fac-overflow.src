@@ -5,7 +5,7 @@
 ; max. for 32-bit signed integer: 12
 ;
 
-var(a, 10)
+var(a, 13)
 
 var(r, a)
 
@@ -13,5 +13,10 @@ while(gt(a, 1)):
 
   dec(a)
   set(r, mul(r, a))
+
+  ; check for overflow of
+  ; last arithmetic operation
+  if(check_overflow()):
+    exit(99)
 
 print(r)

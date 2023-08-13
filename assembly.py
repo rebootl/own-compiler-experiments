@@ -98,6 +98,18 @@ BINARIES = {
 ''',
 }
 
+CHECK_OVERFLOW = '''
+  ; check for overflow
+  jo overflow_true_{0}
+  jmp overflow_false_{0}
+overflow_true_{0}:
+  push 1
+  jmp overflow_end_{0}
+overflow_false_{0}:
+  push 0
+overflow_end_{0}:
+'''
+
 CMP_START = '''
   pop ebx
   pop eax

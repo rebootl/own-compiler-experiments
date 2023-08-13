@@ -10,7 +10,7 @@ from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
   GET_LOCAL_VARIABLE, COMPARISONS, LOGICALS, \
   IF_START, IF_TRUE_END, ELSE_START, IF_END, \
   WHILE_START, WHILE_CONDITION_EVAL, WHILE_END, \
-  POP_LOCAL_VARIABLE
+  POP_LOCAL_VARIABLE, CHECK_OVERFLOW
 
 OUTFILE = 'out.asm'
 
@@ -272,6 +272,11 @@ def parse_expression(expr, asm, level = 0):
       asm = parse_expression(args[1], asm, level + 1)
     
     asm += LOGICALS[kw].format(get_unique_count())
+    return asm
+
+  if kw == 'check_overflow':
+    id = get_unique_count()
+    asm += CHECK_OVERFLOW.format(id)
     return asm
 
   # check for variable
