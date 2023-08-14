@@ -1,0 +1,16 @@
+
+
+var(a, 10)
+
+
+function f():
+
+  set(a, 20)
+
+  var(b, 30)
+
+print(a)
+
+f()
+
+print(a)

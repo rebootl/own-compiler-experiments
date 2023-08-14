@@ -357,12 +357,12 @@ def parse(program):
 
     line = line.strip()
 
-    if line[:5] == 'block':
+    if line.startswith('block'):
       increment_indent()
       block_stack.append([ 'BLOCK', None ])
       continue
     
-    if line[:2] == 'if':
+    if line.startswith('if'):
       increment_indent()
 
       # get id for block
@@ -379,10 +379,10 @@ def parse(program):
 
       continue
     
-    if line[:4] == 'else':
+    if line.startswith('else'):
       continue
     
-    if line[:5] == 'while':
+    if line.startswith('while'):
       increment_indent()
 
       # get id for block
