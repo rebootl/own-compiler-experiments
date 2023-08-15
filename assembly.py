@@ -58,6 +58,17 @@ PRIMARIES = {
   dec eax
   push eax
 ''' + UPDATE_LOCAL_VARIABLE,
+  'return': '''
+  ; return
+  pop eax
+  mov esp, ebp
+  pop ebp
+  ret
+''',
+  'consume': '''
+  ; consume stack top
+  pop eax
+''',
 }
 
 UNARIES = {
@@ -259,6 +270,28 @@ WHILE_BREAK = '''
 WHILE_CONTINUE = '''
   ; while continue
   jmp while_block_{0}
+'''
+
+FUNCTION_START = '''
+  ; function start
+  jmp function_end_{0}
+function_{0}:
+  push ebp
+  mov ebp, esp
+'''
+
+FUNCTION_END = '''
+  ; function end
+  mov esp, ebp
+  pop ebp
+  ret
+function_end_{0}:
+'''
+
+FUNCTION_CALL = '''
+  ; function call
+  call function_{0}
+  push eax                     ; push return value
 '''
 
 ### built-in functions

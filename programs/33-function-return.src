@@ -11,8 +11,13 @@ function f():
   var(b, 30)
   print(b)
 
-print(a)
-
-f()
+  return(b)
 
 print(a)
+
+print( f() )
+
+print(a)
+
+consume( 1 )
+consume( f() )

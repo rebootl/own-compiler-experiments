@@ -10,7 +10,8 @@ from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
   GET_LOCAL_VARIABLE, COMPARISONS, LOGICALS, \
   IF_START, IF_TRUE_END, ELSE_START, IF_END, \
   WHILE_START, WHILE_CONDITION_EVAL, WHILE_END, \
-  POP_LOCAL_VARIABLE, CHECK_OVERFLOW, WHILE_BREAK, WHILE_CONTINUE
+  POP_LOCAL_VARIABLE, CHECK_OVERFLOW, WHILE_BREAK, WHILE_CONTINUE, \
+  FUNCTION_START, FUNCTION_END, FUNCTION_CALL
 
 OUTFILE = 'out.asm'
 
@@ -90,23 +91,27 @@ def get_current_block_depth():
 
 VARIABLE_STACK = []
 
-def check_redeclaration(name):
+FUNCTIONS = {}
+
+STACK_FRAMES = [ [] ]
+
+def check_redeclaration(name, stack_frame):
 
   """check if a variable is defined in the current scope"""
 
-  for var in VARIABLE_STACK:
+  for var in stack_frame:
     if var[0] == name and var[1] == get_current_block_depth():
       return True
   return False
 
-def find_variable(name):
+def find_variable(name, stack_frame):
 
   """find the stack position of a variable"""
 
   # we need to find the first occurrence, from the end (top) of the stack
   # but we want to return the index from the start (bottom)
-  p = len(VARIABLE_STACK) - 1
-  for i, var in enumerate(reversed(VARIABLE_STACK)):
+  p = len(stack_frame) - 1
+  for i, var in enumerate(reversed(stack_frame)):
     if var[0] == name:
       return p - i
   return None
@@ -125,16 +130,20 @@ def get_kwargstr(expr):
 
   """helper function to split keyword and argument string
 
+  -> make this split arguments automatically
+
   e.g.: 'print(1)' -> [ 'print', '1' ]
         'var(x, 1)' -> [ 'var', 'x, 1' ]
         'add(1, add(2, 3))' -> [ 'add', '1, add(2, 3)' ]
-
   """
 
   s = expr.split('(', 1)
   if len(s) == 1:
     return [ s[0], '' ]
   
+  if s[1].strip().startswith(')'):
+    return [ s[0], '' ]
+
   return [ s[0], s[1][:-1] ]
 
 def parse_expression(expr, asm, level = 0):
@@ -143,7 +152,7 @@ def parse_expression(expr, asm, level = 0):
   
   level is the nesting level of the expression, used to check for
   nested primaries
-
+  
   """
 
   # trim whitespace
@@ -169,7 +178,7 @@ def parse_expression(expr, asm, level = 0):
     if kw == 'inc' or kw == 'dec':
       check_arguments(argstr, 1, 'inc/dec')
 
-      stack_pos = find_variable(argstr)
+      stack_pos = find_variable(argstr, STACK_FRAMES[-1])
       if stack_pos is None:
         sys.exit("Error in inc/dec: variable '" + argstr + "' not found")
       
@@ -185,7 +194,7 @@ def parse_expression(expr, asm, level = 0):
       if not args[0][0].isalpha():
         sys.exit("Error: variable name must start with a letter")
 
-      if check_redeclaration(args[0]):
+      if check_redeclaration(args[0], STACK_FRAMES[-1]):
         sys.exit("Redeclaration Error: '" + args[0] + "'")
 
       # this pushes the value onto the stack in asm
@@ -193,7 +202,7 @@ def parse_expression(expr, asm, level = 0):
       asm = parse_expression(args[1], asm, level + 1)
 
       # store variable name and stack position
-      VARIABLE_STACK.append([ args[0], get_current_block_depth() ])
+      STACK_FRAMES[-1].append([ args[0], get_current_block_depth() ])
 
       return asm
 
@@ -202,7 +211,7 @@ def parse_expression(expr, asm, level = 0):
 
       check_arguments(args, 2, 'set')
 
-      stack_pos = find_variable(args[0])
+      stack_pos = find_variable(args[0], STACK_FRAMES[-1])
       if stack_pos is None:
         sys.exit("Error setting undeclared variable: '" + args[0] + "'")
       
@@ -280,22 +289,35 @@ def parse_expression(expr, asm, level = 0):
     return asm
 
   # check for variable
-  stack_pos = find_variable(expr)
+  stack_pos = find_variable(expr, STACK_FRAMES[-1])
   if stack_pos is not None:
     asm += GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+    return asm
+  
+  # check for function
+  print(FUNCTIONS)
+  if kw in FUNCTIONS:
+    # args = split_args(argstr)
+
+    # check_arguments(args, FUNCTIONS[kw], kw)
+
+    # for arg in args:
+    #   asm = parse_expression(arg, asm, level + 1)
+    
+    asm += FUNCTION_CALL.format(kw)
     return asm
 
   sys.exit("Unknown keyword: '" + kw + "'")
 
 
-def clear_block_stack_variables():
+def clear_block_stack_variables(stack_frame):
 
   """clear the stack of local variables"""
 
   c = 0
-  for var in reversed(VARIABLE_STACK):
+  for var in reversed(stack_frame):
     if var[1] > get_current_block_depth():
-      VARIABLE_STACK.pop()
+      stack_frame.pop()
       c += 1
   
   return c
@@ -325,8 +347,10 @@ def parse(program):
       for i in range(int(closes)):
         decrement_indent()
 
-        n = clear_block_stack_variables()
-
+        # -> these pop local variables off the stack
+        #    for functions this is not necessary
+        n = clear_block_stack_variables(STACK_FRAMES[-1])
+        
         for j in range(n):
           main_asm += POP_LOCAL_VARIABLE
 
@@ -350,6 +374,12 @@ def parse(program):
         elif block[0] == 'WHILE_BLOCK':
           # end of while block
           main_asm += WHILE_END.format(block[1])
+        
+        elif block[0] == 'FUNCTION_BLOCK':
+          # end of function block
+          main_asm += FUNCTION_END.format(block[1])
+
+          STACK_FRAMES.pop()
     
     elif line_indent > CURRENT_INDENT:
       # error
@@ -420,8 +450,37 @@ def parse(program):
         sys.exit("Error: break outside of while loop")
 
       continue
+    
+    if line.startswith('function'):
+      increment_indent()
+      
+      # split on white space
+      kwargstr = line.split(None, 1)[1]
+      [ name, argstr ] = get_kwargstr(kwargstr)
+      #print("Function: " + str(name) + " " + str(argstr))
 
+      # -> check name redeclaration
+
+      # get id for block
+      #id = get_unique_count()
+
+      block_stack.append([ 'FUNCTION_BLOCK', name ])
+
+      FUNCTIONS[name] = 1
+
+      # push a new frame onto the stack_frames
+      STACK_FRAMES.append([])
+
+      # -> parse arguments
+
+      # emit function start
+      main_asm += FUNCTION_START.format(name)
+
+      continue
+    
     main_asm = parse_expression(line, main_asm)
+    #print("Line: " + line)
+    #print(STACK_FRAMES)
 
   # close remaining open blocks at EOF
 
@@ -431,7 +490,7 @@ def parse(program):
       main_asm += IF_END.format(block[1])
     elif block[0] == 'WHILE_BLOCK':
       decrement_indent()
-      n = clear_block_stack_variables()
+      n = clear_block_stack_variables(STACK_FRAMES[-1])
 
       for j in range(n):
         main_asm += POP_LOCAL_VARIABLE
