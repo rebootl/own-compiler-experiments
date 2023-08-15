@@ -1,0 +1,30 @@
+
+
+
+
+function fib(a):
+
+  if (eq(a, 0)):
+    return(0)
+
+  if (eq(a, 1)):
+    return(1)
+  
+  var(n1, fib( sub(a, 1) ))
+  ;print(n1)
+  ;println()
+  var(n2, fib( sub(a, 2) ))
+  ;print(n2)
+  ;println()
+
+
+  return( add(n1, n2) )
+
+
+var(a, 0)
+
+while( lt(a, 12) ):
+
+  print( fib(a) )
+
+  inc(a)

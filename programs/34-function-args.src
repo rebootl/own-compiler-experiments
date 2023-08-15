@@ -1,0 +1,34 @@
+
+
+var(a, 10)
+
+
+function add2(a, b):
+
+  ;print(a)
+  ;println()
+  ;print(b)
+  ;println()
+
+  return(add(a, b))
+
+;print(a)
+
+var(n1, add2(a, 5))
+
+var(n2, add2(a, 10))
+
+var(n3, add2(a, 15))
+
+print(n1)
+println()
+
+print(n2)
+println()
+
+print(n3)
+println()
+
+print( add2(2, 3) )
+
+print(a)

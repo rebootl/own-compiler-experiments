@@ -8,6 +8,12 @@ LITERAL = '''
   push {}
 '''
 
+GET_PARAMETER = '''
+  ; get parameter
+  mov eax, ebp
+  push DWORD [eax + {0}]
+'''
+
 UPDATE_LOCAL_VARIABLE = '''
   ; set local variable
   pop eax
@@ -291,6 +297,7 @@ function_end_{0}:
 FUNCTION_CALL = '''
   ; function call
   call function_{0}
+  add esp, {1}
   push eax                     ; push return value
 '''
 

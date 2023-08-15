@@ -11,7 +11,8 @@ from assembly import LITERAL, PRIMARIES, UNARIES, BINARIES, \
   IF_START, IF_TRUE_END, ELSE_START, IF_END, \
   WHILE_START, WHILE_CONDITION_EVAL, WHILE_END, \
   POP_LOCAL_VARIABLE, CHECK_OVERFLOW, WHILE_BREAK, WHILE_CONTINUE, \
-  FUNCTION_START, FUNCTION_END, FUNCTION_CALL
+  FUNCTION_START, FUNCTION_END, FUNCTION_CALL, \
+  GET_PARAMETER
 
 OUTFILE = 'out.asm'
 
@@ -63,6 +64,10 @@ def split_args(argstr):
   if count != 0:
     sys.exit("Mismatched parentheses in expression: " + argstr)
   args.append(arg.strip())
+
+  if args == ['']:
+    return []
+
   return args
 
 
@@ -89,11 +94,19 @@ def get_current_block_depth():
   return CURRENT_INDENT / INDENT
 
 
-VARIABLE_STACK = []
+#VARIABLE_STACK = []
 
 FUNCTIONS = {}
 
-STACK_FRAMES = [ [] ]
+STACK_FRAME = {
+  'params': [],
+  'vars': [],
+}
+
+STACK_FRAMES = [ {
+  'params': [],
+  'vars': [],
+} ]
 
 def check_redeclaration(name, stack_frame):
 
@@ -114,6 +127,16 @@ def find_variable(name, stack_frame):
   for i, var in enumerate(reversed(stack_frame)):
     if var[0] == name:
       return p - i
+  return None
+
+def find_parameter(name, stack_frame):
+
+  """find the stack position of a parameter"""
+
+  # we need to find the first occurrence, from the end (top) of the stack
+  for i, param in enumerate(reversed(stack_frame)):
+    if param[0] == name:
+      return i
   return None
 
 def check_arguments(args, num, fn_name=None):
@@ -178,7 +201,7 @@ def parse_expression(expr, asm, level = 0):
     if kw == 'inc' or kw == 'dec':
       check_arguments(argstr, 1, 'inc/dec')
 
-      stack_pos = find_variable(argstr, STACK_FRAMES[-1])
+      stack_pos = find_variable(argstr, STACK_FRAMES[-1]['vars'])
       if stack_pos is None:
         sys.exit("Error in inc/dec: variable '" + argstr + "' not found")
       
@@ -194,7 +217,7 @@ def parse_expression(expr, asm, level = 0):
       if not args[0][0].isalpha():
         sys.exit("Error: variable name must start with a letter")
 
-      if check_redeclaration(args[0], STACK_FRAMES[-1]):
+      if check_redeclaration(args[0], STACK_FRAMES[-1]['vars']):
         sys.exit("Redeclaration Error: '" + args[0] + "'")
 
       # this pushes the value onto the stack in asm
@@ -202,7 +225,7 @@ def parse_expression(expr, asm, level = 0):
       asm = parse_expression(args[1], asm, level + 1)
 
       # store variable name and stack position
-      STACK_FRAMES[-1].append([ args[0], get_current_block_depth() ])
+      STACK_FRAMES[-1]['vars'].append([ args[0], get_current_block_depth() ])
 
       return asm
 
@@ -211,7 +234,7 @@ def parse_expression(expr, asm, level = 0):
 
       check_arguments(args, 2, 'set')
 
-      stack_pos = find_variable(args[0], STACK_FRAMES[-1])
+      stack_pos = find_variable(args[0], STACK_FRAMES[-1]['vars'])
       if stack_pos is None:
         sys.exit("Error setting undeclared variable: '" + args[0] + "'")
       
@@ -289,22 +312,29 @@ def parse_expression(expr, asm, level = 0):
     return asm
 
   # check for variable
-  stack_pos = find_variable(expr, STACK_FRAMES[-1])
+  stack_pos = find_variable(expr, STACK_FRAMES[-1]['vars'])
   if stack_pos is not None:
     asm += GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
     return asm
   
+  # check for function parameter
+  stack_pos = find_parameter(expr, STACK_FRAMES[-1]['params'])
+  #print(STACK_FRAMES[-1]['params'])
+  #print(stack_pos)
+  if stack_pos is not None:
+    asm += GET_PARAMETER.format(8 + stack_pos * 4)
+    return asm
+
   # check for function
-  print(FUNCTIONS)
   if kw in FUNCTIONS:
-    # args = split_args(argstr)
+    args = split_args(argstr)
 
     # check_arguments(args, FUNCTIONS[kw], kw)
 
-    # for arg in args:
-    #   asm = parse_expression(arg, asm, level + 1)
+    for arg in args:
+      asm = parse_expression(arg, asm, level + 1)
     
-    asm += FUNCTION_CALL.format(kw)
+    asm += FUNCTION_CALL.format(kw, len(args) * 4)
     return asm
 
   sys.exit("Unknown keyword: '" + kw + "'")
@@ -349,8 +379,8 @@ def parse(program):
 
         # -> these pop local variables off the stack
         #    for functions this is not necessary
-        n = clear_block_stack_variables(STACK_FRAMES[-1])
-        
+        n = clear_block_stack_variables(STACK_FRAMES[-1]['vars'])
+
         for j in range(n):
           main_asm += POP_LOCAL_VARIABLE
 
@@ -455,9 +485,9 @@ def parse(program):
       increment_indent()
       
       # split on white space
-      kwargstr = line.split(None, 1)[1]
+      kwargstr = line.split(None, 1)[1].rstrip(':')
+
       [ name, argstr ] = get_kwargstr(kwargstr)
-      #print("Function: " + str(name) + " " + str(argstr))
 
       # -> check name redeclaration
 
@@ -469,15 +499,33 @@ def parse(program):
       FUNCTIONS[name] = 1
 
       # push a new frame onto the stack_frames
-      STACK_FRAMES.append([])
+      STACK_FRAMES.append({
+        'params': [],
+        'vars': [],
+      })
 
-      # -> parse arguments
+      # parse arguments
+      args = split_args(argstr)
+      #print(args)
+      if args:
 
+        # check that variable name starts with a letter
+        for arg in args:
+          # -> unify with variable check
+          if not arg[0].isalpha():
+            sys.exit("Error: parameter name must start with a letter")
+
+          STACK_FRAMES[-1]['params'].append([ arg, -1 ])
+
+      #print(STACK_FRAMES)
       # emit function start
       main_asm += FUNCTION_START.format(name)
 
       continue
     
+    # -> detect single standing variables, literals and function calls
+    #    and consume them automatically (pop the stack)
+
     main_asm = parse_expression(line, main_asm)
     #print("Line: " + line)
     #print(STACK_FRAMES)
@@ -490,7 +538,7 @@ def parse(program):
       main_asm += IF_END.format(block[1])
     elif block[0] == 'WHILE_BLOCK':
       decrement_indent()
-      n = clear_block_stack_variables(STACK_FRAMES[-1])
+      n = clear_block_stack_variables(STACK_FRAMES[-1]['vars'])
 
       for j in range(n):
         main_asm += POP_LOCAL_VARIABLE

@@ -39,7 +39,10 @@ CASES = [
   [ 'programs/30-while-break.src', '98765', 0 ],
   [ 'programs/31-while-continue.src', '9876540', 0 ],
   [ 'programs/32-function.src', '103010', 0 ],
-  [ 'programs/33-function-return.src', '11', 0 ],
+  [ 'programs/33-function-return.src', '1030301030', 0 ],
+  [ 'programs/34-function-args.src', '15\n20\n25\n510', 0 ],
+  [ 'programs/35-function-recursion.src', '109876543210', 0 ],
+  [ 'programs/36-function-recursion-fib.src', '01123581321345589', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 
