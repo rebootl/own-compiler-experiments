@@ -43,6 +43,7 @@ CASES = [
   [ 'programs/34-function-args.src', '15\n20\n25\n510', 0 ],
   [ 'programs/35-function-recursion.src', '109876543210', 0 ],
   [ 'programs/36-function-recursion-fib.src', '01123581321345589', 0 ],
+  [ 'programs/37-function-recursion-fac.src', '3628800', 0 ],
   #[ 'programs/12-print-not.src', '0', 0 ],
 ]
 

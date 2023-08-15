@@ -1,0 +1,24 @@
+
+
+
+function fac(n):
+
+  if (eq(n, 0)):
+    return(1)
+
+  return( mul(
+    n,
+    fac( sub(n, 1) )
+  ) )
+
+
+print( fac(10) )
+
+
+;var(a, 0)
+;
+;while( lt(a, 12) ):
+;
+;  print( fib(a) )
+;
+;  inc(a)
