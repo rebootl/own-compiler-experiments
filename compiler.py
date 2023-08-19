@@ -74,18 +74,9 @@ def get_split_argstr(argstr):
   split_argstr = []
   arg = ''
   depth = 0
-  inline_comment = False
 
   for c in argstr:
-    if c == COMMENT_CHAR:
-      inline_comment = True
-      continue
-    elif c == '\n' and inline_comment:
-      inline_comment = False
-      continue
-    elif inline_comment:
-      continue
-    elif c == '(':
+    if c == '(':
       depth += 1
     elif c == ')':
       depth -= 1
@@ -130,15 +121,8 @@ def parse(expr):
 
   return [ kw, args ]
 
-#r = parse("add(1, add ( 2, 3 ), sub ( 4, 5 ))")
-#r = parse("""fn ( 1, fn (a,
-#  2,
-#  4), 3 )""")
-#r = parse("""fn(1, fn (a,))""")
-#print(r)
 
-
-def eval(expr, asm):
+def eval(expr, asm, depth = 0):
 
   """evaluate an expression of the form:
   
@@ -146,26 +130,31 @@ def eval(expr, asm):
   
   """
   
-  r = parse(expr)
+  #r = parse(expr)
 
-  print(r)
+  #print(r)
 
-  if type(r) == str:
+  if type(expr) == str:
 
-    if r == '': return asm
+    if expr == '': return asm
 
-    asm += assembly.LITERAL.format(r)
+    asm += assembly.LITERAL.format(expr)
     return asm
 
-  [ kw, args ] = r
+  [ kw, args ] = expr
 
   for arg in args:
-    asm = eval(arg, asm)
+    asm = eval(arg, asm, depth + 1)
 
   if kw == "exit":
     if len(args) == 0:
       args = [ "0" ]
     asm += assembly.PRIMARIES[kw].format(args[0])
+  
+  elif kw == "print":
+    asm += assembly.PRIMARIES[kw].format(args[0])
+  
+
 
   return asm
 
@@ -183,11 +172,18 @@ def main():
   with open(sys.argv[1], 'r') as f:
     program = f.read()
 
-  # preprocess program
-  #collapsed_program = collapse_expressions(program)
-
   # parse program
-  main_asm = eval(program, '')
+  expressions = split_expressions(program)
+
+  parsed_expressions = []
+  for expr in expressions:
+    parsed_expressions.append(parse(expr))
+
+  # evaluate program
+  main_asm = ''
+  for expr in parsed_expressions:
+    print(expr)
+    main_asm = eval(expr, main_asm)
 
   # combine main assembly code with header, built-in functions and footer
   out = assembly.HEAD + assembly.EXIT + assembly.PRINTCHAR + assembly.PRINT \
