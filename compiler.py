@@ -22,12 +22,15 @@ def split_expressions(program):
   expr = ''
   depth = 0
   inline_comment = False
+  in_expr_identifier = True
 
   if program.strip() == '':
     return []
 
   if '(' not in program and ')' not in program:
-    return [ program.strip() ]
+    #if len(program.split()) > 1:
+    #  sys.exit("Error: consecutive literals not allowed in program: %s" % program)
+    return []
 
   for c in program:
     if c == COMMENT_CHAR:
@@ -38,6 +41,8 @@ def split_expressions(program):
       continue
     elif inline_comment:
       continue
+    #elif ( c == ' ' or c == '\t' or c == '\n' ) and in_expr_identifier:
+    #  sys.exit("Error: whitespace in expression identifier: %s" % program)
     elif c == ' ' or c == '\t' or c == '\n':
       continue
     elif c == '(':
@@ -51,6 +56,9 @@ def split_expressions(program):
         continue
 
     expr += c
+  
+  if expr.strip() != '':
+    expressions.append(expr.strip())
 
   if depth != 0:
     sys.exit("Error: unbalanced parentheses in program: %s" % program)
@@ -129,10 +137,6 @@ def eval(expr, asm, depth = 0):
   <kw | func> ( <expr> [, <expr>]* )
   
   """
-  
-  #r = parse(expr)
-
-  #print(r)
 
   if type(expr) == str:
 
@@ -154,7 +158,15 @@ def eval(expr, asm, depth = 0):
   elif kw == "print":
     asm += assembly.PRIMARIES[kw].format(args[0])
   
-
+  elif kw == "println":
+    if len(args) == 0:
+      asm += assembly.PRIMARIES[kw]
+    else:
+      asm += assembly.PRIMARIES["print"].format(args[0])
+      asm += assembly.PRIMARIES[kw]
+  
+  elif kw in assembly.BINARIES:
+    asm += assembly.BINARIES[kw]
 
   return asm
 

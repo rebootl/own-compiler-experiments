@@ -1,6 +1,6 @@
 ; comment
-5
-2
+;5
+;2
 
 print(
   add(
@@ -11,11 +11,13 @@ print(
 println()
 
 ; comment
-print(add(
-  sub(5, 2),
+
+println(add(
+  sub(5, 2),          ; inline comment
   sub(3, 1)
 ))
-println()           ; inline comment
+
+;println()            ; inline comment
 
 ; exit ok
 exit(0)
