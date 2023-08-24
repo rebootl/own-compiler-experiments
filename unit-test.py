@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# 
+#
 
 from compiler import parse, split_expressions
 
@@ -35,46 +35,44 @@ PROGRAMS = [
   [ "1", [] ],
   [ "123", [] ],
   [ "fn()", [ "fn()" ] ],
-  [ "fn ( )", [ "fn()" ] ],
-  [ "fn (  )", [ "fn()" ] ],
-  [ "5 fn(1)", [ "5fn(1)" ] ],
-  [ "fn(1) fn(2, 3)", [ "fn(1)", "fn(2,3)" ] ],
-  [ "fn (1) fn (2, 3)", [ "fn(1)", "fn(2,3)" ] ],
-  [ "fn ( 1 ) add ( 2, 3 )", [ "fn(1)", "add(2,3)" ] ],
-  [ "fn(1, 2) sub(3, 4)", [ "fn(1,2)", "sub(3,4)" ] ],
-  [ "fn(1, fn(2)) fn(3, 4)", [ "fn(1,fn(2))", "fn(3,4)" ] ],
+  [ "fn ( )", [ "fn ( )" ] ],
+  [ "fn (  )", [ "fn (  )" ] ],
+  [ "5 fn(1)", [ "5 fn(1)" ] ],
+  [ "a () b fn(1)", [ "a ()", "b fn(1)" ] ],
+  [ "fn(1) fn(2, 3)", [ "fn(1)", "fn(2, 3)" ] ],
+  [ "fn (1) fn (2, 3)", [ "fn (1)", "fn (2, 3)" ] ],
+  [ "fn ( 1 ) add ( 2, 3 )", [ "fn ( 1 )", "add ( 2, 3 )" ] ],
+  [ "fn(1, 2) sub(3, 4)", [ "fn(1, 2)", "sub(3, 4)" ] ],
+  [ "fn(1, fn(2)) fn(3, 4)", [ "fn(1, fn(2))", "fn(3, 4)" ] ],
   [ """fn( 1, add(2, 3) )
-  fn(4, 5)""", [ "fn(1,add(2,3))", "fn(4,5)" ] ],
+  fn(4, 5)""", [ "fn( 1, add(2, 3) )", "fn(4, 5)" ] ],
   [ """fn( 1, add(2, 3) )
   fn(4, 5)
-  """, [ "fn(1,add(2,3))", "fn(4,5)" ] ],
-  [ """; comment
-fn( 1, add(2, 3) )
+  """, [ "fn( 1, add(2, 3) )", "fn(4, 5)" ] ],
+  [ """fn( 1, add(2, 3) )
+
+  ; comment
 
   add(
-    1,
-    2          ; comment
+    1,      ; comment
+    2
   )
 
   fn(4, 5)
-  """, [ "fn(1,add(2,3))", "add(1,2)", "fn(4,5)" ] ],
-  [ """
-
-; comment
-
-fn( 1, add(2, 3) )
+  """, [ "fn( 1, add(2, 3) )", "add(\n    1,          2\n  )", "fn(4, 5)" ] ],
+  [ """fn( 1, add(2, 3) )
 
 add(
   1,
-  2          ; comment
+  2
 )
 
-""", [ "fn(1,add(2,3))", "add(1,2)" ] ],
+""", [ "fn( 1, add(2, 3) )", "add(\n  1,\n  2\n)" ] ],
 ]
 
 
 def test_get_kwargs():
-  
+
   for expr in EXPRESSIONS:
     #print("Testing: %s" % expr[0])
     try:
@@ -83,12 +81,12 @@ def test_get_kwargs():
     except AssertionError as e:
       print(e)
       return
-  
+
   print("get_kwargs() tests passed!")
 
 
 def test_split_expressions():
-    
+
   for program in PROGRAMS:
     #print("Testing: %s" % program[0])
     try:
@@ -97,7 +95,7 @@ def test_split_expressions():
     except AssertionError as e:
       print(e)
       return
-  
+
   print("split_expressions() tests passed!")
 
 if __name__ == "__main__":

@@ -13,24 +13,39 @@ INDENT = 2
 
 COMMENT_CHAR = ';'
 
+# def filter_comments(program):
+
+#   """filter out comments from a program"""
+
+#   filtered_program = ''
+
+#   inline_comment = False
+
+#   for c in program:
+#     if c == COMMENT_CHAR:
+#       inline_comment = True
+#       continue
+#     elif c == '\n' and inline_comment:
+#       inline_comment = False
+#       continue
+#     elif inline_comment:
+#       continue
+
+#     filtered_program += c
+
+#   return filtered_program
+
 
 def split_expressions(program):
 
   """split a program into a list of expressions"""
 
   expressions = []
+
   expr = ''
   depth = 0
+
   inline_comment = False
-  in_expr_identifier = True
-
-  if program.strip() == '':
-    return []
-
-  if '(' not in program and ')' not in program:
-    #if len(program.split()) > 1:
-    #  sys.exit("Error: consecutive literals not allowed in program: %s" % program)
-    return []
 
   for c in program:
     if c == COMMENT_CHAR:
@@ -41,29 +56,26 @@ def split_expressions(program):
       continue
     elif inline_comment:
       continue
-    #elif ( c == ' ' or c == '\t' or c == '\n' ) and in_expr_identifier:
-    #  sys.exit("Error: whitespace in expression identifier: %s" % program)
-    elif c == ' ' or c == '\t' or c == '\n':
-      continue
+
     elif c == '(':
       depth += 1
     elif c == ')':
       depth -= 1
-      if depth == 0 and expr.strip() != '':
+      if depth == 0:
         expr += c
         expressions.append(expr.strip())
         expr = ''
         continue
 
     expr += c
-  
-  if expr.strip() != '':
-    expressions.append(expr.strip())
 
   if depth != 0:
     sys.exit("Error: unbalanced parentheses in program: %s" % program)
 
   return expressions
+
+
+#print(split_expressions("a fn (1, 2)\nfn(3, sub(2 , 4)) inc(a)\n"))
 
 
 def get_kwargstr(s):
@@ -100,20 +112,20 @@ def get_split_argstr(argstr):
 
   if arg != '':
     split_argstr.append(arg.strip())
-  
+
   return split_argstr
 
 def parse(expr):
 
   """parse an expression of the form:
-  
+
   <kw> ( <expr> [, <expr>]* )
 
   into a list of keyword and arguments, e.g.:
 
   [ "fn", [ "1", "2" ] ]
   [ "fn", [ "1", [ "add", [ "2", "3" ] ], [ "sub", [ "4", "5" ] ] ] ]
-  
+
   """
 
   if '(' not in expr and ')' not in expr:
@@ -133,9 +145,9 @@ def parse(expr):
 def eval(expr, asm, depth = 0):
 
   """evaluate an expression of the form:
-  
+
   <kw | func> ( <expr> [, <expr>]* )
-  
+
   """
 
   if type(expr) == str:
@@ -154,17 +166,17 @@ def eval(expr, asm, depth = 0):
     if len(args) == 0:
       args = [ "0" ]
     asm += assembly.PRIMARIES[kw].format(args[0])
-  
+
   elif kw == "print":
     asm += assembly.PRIMARIES[kw].format(args[0])
-  
+
   elif kw == "println":
     if len(args) == 0:
       asm += assembly.PRIMARIES[kw]
     else:
       asm += assembly.PRIMARIES["print"].format(args[0])
       asm += assembly.PRIMARIES[kw]
-  
+
   elif kw in assembly.BINARIES:
     asm += assembly.BINARIES[kw]
 
@@ -183,6 +195,9 @@ def main():
   # open program file
   with open(sys.argv[1], 'r') as f:
     program = f.read()
+
+  # filter out comments
+  #program = filter_comments(program)
 
   # parse program
   expressions = split_expressions(program)
@@ -208,5 +223,5 @@ def main():
 
 
 # run main function
-if __name__ == '__main__':
-  main()
+#if __name__ == '__main__':
+#  main()
