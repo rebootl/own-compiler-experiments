@@ -8,4 +8,5 @@ println()
 
 dec(b)
 
+;print(a)
 print(b)

@@ -115,6 +115,18 @@ def get_split_argstr(argstr):
 
   return split_argstr
 
+
+def check_arguments(args, num, fn_name=None):
+
+  """check that the number of arguments is correct"""
+
+  if len(args) != num:
+    if fn_name is None:
+      sys.exit("Error: expected " + str(num) + " arguments, got " + str(len(args)))
+    else:
+      sys.exit("Error: expected " + str(num) + " arguments for " + fn_name + ", got " + str(len(args)))
+
+
 def parse(expr):
 
   """parse an expression of the form:
@@ -142,6 +154,30 @@ def parse(expr):
   return [ kw, args ]
 
 
+STACK_FRAMES = [
+    {
+      'params': [],
+      'vars': [ [] ],   # blocks
+    }
+]
+
+def find_variable(name, stack_frame):
+
+  """find the stack position of a variable"""
+
+  # we need to find the first occurrence, from the end (top) of the stack
+  # but we want to return the index from the start (bottom)
+  #p = len(stack_frame) - 1
+  r = None
+  c = 0
+  for block in stack_frame:
+    for var in block:
+      if var == name:
+        r = c
+      c += 1
+  return r
+
+
 def eval(expr, asm, depth = 0):
 
   """evaluate an expression of the form:
@@ -149,15 +185,43 @@ def eval(expr, asm, depth = 0):
   <kw | func> ( <expr> [, <expr>]* )
 
   """
+  print(expr)
+  print(STACK_FRAMES)
 
   if type(expr) == str:
 
     if expr == '': return asm
 
+    # check for variable
+    stack_pos = find_variable(expr, STACK_FRAMES[-1]['vars'])
+    print(stack_pos)
+    if stack_pos is not None:
+      asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+      return asm
+
     asm += assembly.LITERAL.format(expr)
     return asm
 
   [ kw, args ] = expr
+
+  if kw == "var":
+    check_arguments(args, 2, 'var')
+
+    # check that variable name starts with a letter
+    if not args[0][0].isalpha():
+      sys.exit("Error: variable name must start with a letter")
+
+    if args[0] in STACK_FRAMES[-1]['vars'][-1]:
+      sys.exit("Redeclaration Error: '" + args[0] + "'")
+
+    # this pushes the value onto the stack in asm
+    # we leave it there as a local variable
+    asm = eval(args[1], asm, depth + 1)
+
+    # store variable in comp.
+    STACK_FRAMES[-1]['vars'][-1].append(args[0])
+
+    return asm
 
   for arg in args:
     asm = eval(arg, asm, depth + 1)
@@ -179,6 +243,18 @@ def eval(expr, asm, depth = 0):
 
   elif kw in assembly.BINARIES:
     asm += assembly.BINARIES[kw]
+
+  elif kw == 'inc' or kw == 'dec':
+
+    #print(args)
+    check_arguments(args, 1, 'inc/dec')
+
+    stack_pos = find_variable(args[0], STACK_FRAMES[-1]['vars'])
+    if stack_pos is None:
+      sys.exit("Error in inc/dec: variable '" + args[0] + "' not found")
+
+    asm += assembly.PRIMARIES[kw].format(4 + stack_pos * 4)
+    return asm
 
   return asm
 
@@ -209,7 +285,7 @@ def main():
   # evaluate program
   main_asm = ''
   for expr in parsed_expressions:
-    print(expr)
+    #print(expr)
     main_asm = eval(expr, main_asm)
 
   # combine main assembly code with header, built-in functions and footer
@@ -223,5 +299,5 @@ def main():
 
 
 # run main function
-#if __name__ == '__main__':
-#  main()
+if __name__ == '__main__':
+  main()
