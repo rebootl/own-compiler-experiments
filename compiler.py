@@ -185,8 +185,8 @@ def eval(expr, asm, depth = 0):
   <kw | func> ( <expr> [, <expr>]* )
 
   """
-  print(expr)
-  print(STACK_FRAMES)
+  #print(expr)
+  #print(STACK_FRAMES)
 
   if type(expr) == str:
 
@@ -194,7 +194,7 @@ def eval(expr, asm, depth = 0):
 
     # check for variable
     stack_pos = find_variable(expr, STACK_FRAMES[-1]['vars'])
-    print(stack_pos)
+    #print(stack_pos)
     if stack_pos is not None:
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
       return asm
@@ -220,6 +220,22 @@ def eval(expr, asm, depth = 0):
 
     # store variable in comp.
     STACK_FRAMES[-1]['vars'][-1].append(args[0])
+
+    return asm
+
+  if kw == 'set':
+    check_arguments(args, 2, 'set')
+
+    stack_pos = find_variable(args[0], STACK_FRAMES[-1]['vars'])
+    if stack_pos is None:
+      sys.exit("Error setting undeclared variable: '" + args[0] + "'")
+
+    # this pushes the value onto the stack in asm
+    asm = eval(args[1], asm, depth + 1)
+
+    # this will consume the value on the stack top
+    # and update the variable in the correct stack location
+    asm += assembly.PRIMARIES[kw].format(4 + stack_pos * 4)
 
     return asm
 
