@@ -170,6 +170,19 @@ def find_variable(name, stack_frame):
   return r
 
 
+def eval_block(block, asm, depth):
+
+  STACK_FRAMES[-1]['vars'].append([])
+
+  block_exprs = split_expressions(block.strip()[1:-1])
+  for expr in block_exprs:
+    asm = eval(parse(expr), asm, depth + 1)
+
+  STACK_FRAMES[-1]['vars'].pop()
+
+  return asm
+
+
 def eval(expr, asm, depth = 0):
 
   """evaluate an expression of the form:
@@ -231,44 +244,26 @@ def eval(expr, asm, depth = 0):
     return asm
 
   if kw == 'block':
-    STACK_FRAMES[-1]['vars'].append([])
-
-    block_exprs = split_expressions(args[0].strip()[1:-1])
-    for expr in block_exprs:
-      asm = eval(parse(expr), asm, depth + 1)
-
-    STACK_FRAMES[-1]['vars'].pop()
+    asm = eval_block(args[0], asm, depth)
 
     return asm
 
   if kw == 'if':
-    #print(args)
-    STACK_FRAMES[-1]['vars'].append([])
-
     # get id for block
     id = get_unique_count()
 
     # eval condition
     asm = eval(args[0], asm, depth + 1)
 
-    # emit if block start
     asm += assembly.IF_START.format(id)
 
-    block_exprs = split_expressions(args[1].strip()[1:-1])
-    for expr in block_exprs:
-      asm = eval(parse(expr), asm, depth + 1)
-
-    STACK_FRAMES[-1]['vars'].pop()
+    asm = eval_block(args[1], asm, depth)
 
     if len(args) == 3:
-      STACK_FRAMES[-1]['vars'].append([])
       asm += assembly.ELSE_START.format(id)
 
-      block_exprs = split_expressions(args[2].strip()[1:-1])
-      for expr in block_exprs:
-        asm = eval(parse(expr), asm, depth + 1)
+      asm = eval_block(args[2], asm, depth)
 
-      STACK_FRAMES[-1]['vars'].pop()
     else:
       asm += assembly.ELSE_START.format(id)
 
