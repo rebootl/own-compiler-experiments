@@ -117,6 +117,9 @@ def get_split_argstr(argstr):
   if depth != 0:
     sys.exit("Error: unbalanced parentheses in expression: %s" % argstr)
 
+  if block_depth != 0:
+    sys.exit("Error: unbalanced curly braces in expression: %s" % argstr)
+
   if arg != '':
     split_argstr.append(arg.strip())
 
@@ -172,6 +175,13 @@ STACK_FRAMES = [
       'vars': [ [] ],   # blocks
     }
 ]
+
+UNIQUE_COUNTER = 0
+
+def get_unique_count():
+  global UNIQUE_COUNTER
+  UNIQUE_COUNTER += 1
+  return UNIQUE_COUNTER
 
 def find_variable(name, stack_frame):
 
@@ -282,9 +292,6 @@ def eval(expr, asm, depth = 0):
       asm += assembly.PRIMARIES["print"].format(args[0])
       asm += assembly.PRIMARIES[kw]
 
-  elif kw in assembly.BINARIES:
-    asm += assembly.BINARIES[kw]
-
   elif kw == 'inc' or kw == 'dec':
 
     #print(args)
@@ -295,6 +302,21 @@ def eval(expr, asm, depth = 0):
       sys.exit("Error in inc/dec: variable '" + args[0] + "' not found")
 
     asm += assembly.PRIMARIES[kw].format(4 + stack_pos * 4)
+    #return asm
+
+  elif kw in assembly.BINARIES:
+    check_arguments(args, 2, kw)
+
+    asm += assembly.BINARIES[kw]
+
+  elif kw in assembly.COMPARISONS:
+    check_arguments(args, 2, kw)
+
+    # this pushes the value onto the stack in asm
+    #asm = parse_expression(args[0], asm, level + 1)
+    #asm = parse_expression(args[1], asm, level + 1)
+    asm += assembly.COMPARISONS[kw].format(get_unique_count())
+
     return asm
 
   return asm
