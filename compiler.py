@@ -241,6 +241,30 @@ def eval(expr, asm, depth = 0):
 
     return asm
 
+  if kw == 'if':
+    #print(args)
+    STACK_FRAMES[-1]['vars'].append([])
+
+    # get id for block
+    id = get_unique_count()
+
+    # eval condition
+    asm = eval(args[0], asm, depth + 1)
+
+    # emit if block start
+    asm += assembly.IF_START.format(id)
+
+    block_exprs = split_expressions(args[1].strip()[1:-1])
+    for expr in block_exprs:
+      asm = eval(parse(expr), asm, depth + 1)
+
+    asm += assembly.ELSE_START.format(id)
+    asm += assembly.IF_END.format(id)
+
+    STACK_FRAMES[-1]['vars'].pop()
+
+    return asm
+
   for arg in args:
     asm = eval(arg, asm, depth + 1)
 
