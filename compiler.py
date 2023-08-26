@@ -13,28 +13,6 @@ INDENT = 2
 
 COMMENT_CHAR = ';'
 
-# def filter_comments(program):
-
-#   """filter out comments from a program"""
-
-#   filtered_program = ''
-
-#   inline_comment = False
-
-#   for c in program:
-#     if c == COMMENT_CHAR:
-#       inline_comment = True
-#       continue
-#     elif c == '\n' and inline_comment:
-#       inline_comment = False
-#       continue
-#     elif inline_comment:
-#       continue
-
-#     filtered_program += c
-
-#   return filtered_program
-
 
 def split_expressions(program):
 
@@ -75,9 +53,6 @@ def split_expressions(program):
   return expressions
 
 
-#print(split_expressions("a fn (1, 2)\nfn(3, sub(2 , 4)) inc(a)\n"))
-
-
 def get_kwargstr(s):
 
   """split a keyword and argument string from an expression"""
@@ -95,8 +70,6 @@ def get_split_argstr(argstr):
   arg = ''
   depth = 0
   block_depth = 0
-
-  #print(argstr)
 
   for c in argstr:
     if c == '(':
@@ -157,8 +130,6 @@ def parse(expr):
 
   split_argstr = get_split_argstr(argstr)
 
-  #print(split_argstr)
-
   args = []
   for arg in split_argstr:
     if arg.lstrip().startswith('{'):
@@ -189,7 +160,6 @@ def find_variable(name, stack_frame):
 
   # we need to find the first occurrence, from the end (top) of the stack
   # but we want to return the index from the start (bottom)
-  #p = len(stack_frame) - 1
   r = None
   c = 0
   for block in stack_frame:
@@ -207,8 +177,6 @@ def eval(expr, asm, depth = 0):
   <kw | func> ( <expr> [, <expr>]* )
 
   """
-  #print(expr)
-  #print(STACK_FRAMES)
 
   if type(expr) == str:
 
@@ -216,7 +184,7 @@ def eval(expr, asm, depth = 0):
 
     # check for variable
     stack_pos = find_variable(expr, STACK_FRAMES[-1]['vars'])
-    #print(stack_pos)
+
     if stack_pos is not None:
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
       return asm
@@ -225,7 +193,6 @@ def eval(expr, asm, depth = 0):
       asm += assembly.LITERAL.format(expr)
       return asm
 
-  #print(expr)
   [ kw, args ] = expr
 
   if kw == "var":
@@ -293,8 +260,6 @@ def eval(expr, asm, depth = 0):
       asm += assembly.PRIMARIES[kw]
 
   elif kw == 'inc' or kw == 'dec':
-
-    #print(args)
     check_arguments(args, 1, 'inc/dec')
 
     stack_pos = find_variable(args[0], STACK_FRAMES[-1]['vars'])
@@ -302,7 +267,6 @@ def eval(expr, asm, depth = 0):
       sys.exit("Error in inc/dec: variable '" + args[0] + "' not found")
 
     asm += assembly.PRIMARIES[kw].format(4 + stack_pos * 4)
-    #return asm
 
   elif kw in assembly.BINARIES:
     check_arguments(args, 2, kw)
@@ -313,11 +277,7 @@ def eval(expr, asm, depth = 0):
     check_arguments(args, 2, kw)
 
     # this pushes the value onto the stack in asm
-    #asm = parse_expression(args[0], asm, level + 1)
-    #asm = parse_expression(args[1], asm, level + 1)
     asm += assembly.COMPARISONS[kw].format(get_unique_count())
-
-    return asm
 
   return asm
 
@@ -334,9 +294,6 @@ def main():
   # open program file
   with open(sys.argv[1], 'r') as f:
     program = f.read()
-
-  # filter out comments
-  #program = filter_comments(program)
 
   # parse program
   expressions = split_expressions(program)
