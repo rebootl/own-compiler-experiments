@@ -94,13 +94,20 @@ def get_split_argstr(argstr):
   split_argstr = []
   arg = ''
   depth = 0
+  block_depth = 0
+
+  #print(argstr)
 
   for c in argstr:
     if c == '(':
       depth += 1
     elif c == ')':
       depth -= 1
-    elif c == ',' and depth == 0:
+    elif c == '{':
+      block_depth += 1
+    elif c == '}':
+      block_depth -= 1
+    elif c == ',' and depth == 0 and block_depth == 0:
       split_argstr.append(arg.strip())
       arg = ''
       continue
@@ -147,9 +154,14 @@ def parse(expr):
 
   split_argstr = get_split_argstr(argstr)
 
+  #print(split_argstr)
+
   args = []
   for arg in split_argstr:
-    args.append(parse(arg))
+    if arg.lstrip().startswith('{'):
+      args.append(arg)
+    else:
+      args.append(parse(arg))
 
   return [ kw, args ]
 
@@ -199,9 +211,11 @@ def eval(expr, asm, depth = 0):
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
       return asm
 
-    asm += assembly.LITERAL.format(expr)
-    return asm
+    if expr.isdigit():
+      asm += assembly.LITERAL.format(expr)
+      return asm
 
+  #print(expr)
   [ kw, args ] = expr
 
   if kw == "var":
@@ -236,6 +250,17 @@ def eval(expr, asm, depth = 0):
     # this will consume the value on the stack top
     # and update the variable in the correct stack location
     asm += assembly.PRIMARIES[kw].format(4 + stack_pos * 4)
+
+    return asm
+
+  if kw == 'block':
+    STACK_FRAMES[-1]['vars'].append([])
+
+    block_exprs = split_expressions(args[0].strip()[1:-1])
+    for expr in block_exprs:
+      asm = eval(parse(expr), asm, depth + 1)
+
+    STACK_FRAMES[-1]['vars'].pop()
 
     return asm
 

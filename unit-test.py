@@ -19,11 +19,20 @@ EXPRESSIONS = [
   [ "fn(1,2)", [ "fn", [ "1", "2" ] ] ],
   [ "fn(1,fn(2))", [ "fn", [ "1", [ "fn", [ "2" ] ] ] ] ],
   [ "fn(1,add(2,3))", [ "fn", [ "1", [ "add", [ "2", "3" ] ] ] ] ],
-  [ "add(1,2,3)", [ "add", [ "1", "2", "3" ] ] ],
-  [ "add(1,2,3,4)", [ "add", [ "1", "2", "3", "4" ] ] ],
-  [ "add(1,2,3,4)", [ "add", [ "1", "2", "3", "4" ] ] ],
-  [ "add(1,add(2,3),4)", [ "add", [ "1", [ "add", [ "2", "3" ] ], "4" ] ] ],
-  [ "add(1,add(2,3),sub(4,5))", [ "add", [ "1", [ "add", [ "2", "3" ] ], [ "sub", [ "4", "5" ] ] ] ] ],
+  [ "add(1, 2, 3)", [ "add", [ "1", "2", "3" ] ] ],
+  [ "add(1,  2,3, 4)", [ "add", [ "1", "2", "3", "4" ] ] ],
+  [ "add(1, 2, 3,4)", [ "add", [ "1", "2", "3", "4" ] ] ],
+  [ "add(1, add(2, 3),4)", [ "add", [ "1", [ "add", [ "2", "3" ] ], "4" ] ] ],
+  [ "add(1, add(2,3), sub(4, 5))", [ "add", [ "1", [ "add", [ "2", "3" ] ], [ "sub", [ "4", "5" ] ] ] ] ],
+  [ "block(1, { add(2, 3) })", [ "block", [ "1", "{ add(2, 3) }" ] ] ],
+  [ "block(1, { add(2, 3) fn(4, 5) })", [ "block", [ "1", "{ add(2, 3) fn(4, 5) }" ] ] ],
+  [ """block(1, {
+    add(2, 3)
+    fn(4, 5)
+  })""", [ "block", [ "1", """{
+    add(2, 3)
+    fn(4, 5)
+  }""" ] ] ],
 ]
 
 
@@ -71,10 +80,10 @@ add(
 ]
 
 
-def test_get_kwargs():
+def test_parse():
 
   for expr in EXPRESSIONS:
-    #print("Testing: %s" % expr[0])
+    print("Testing: %s" % expr[0])
     try:
       assert parse(expr[0]) == expr[1], \
         "parse(%s) should be %s but got %s" % (expr[0], expr[1], parse(expr[0]))
@@ -99,5 +108,5 @@ def test_split_expressions():
   print("split_expressions() tests passed!")
 
 if __name__ == "__main__":
-  test_get_kwargs()
+  test_parse()
   test_split_expressions()

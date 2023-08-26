@@ -3,18 +3,23 @@
 var(a, 5)
 var(b, 10)
 
-block:
+block({
 
   var(a, 10)
   inc(a)
 
   set(b, add(b, 5))
 
-  block:
+  ;print(add(a, b))
+
+  block({
     ;set(a, 20)
     set(b, add(b, 5))
+    ;print(add(a, b))
+  })
 
   inc(a)
+})
 
 
 print(add(a, b))
