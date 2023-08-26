@@ -258,10 +258,21 @@ def eval(expr, asm, depth = 0):
     for expr in block_exprs:
       asm = eval(parse(expr), asm, depth + 1)
 
-    asm += assembly.ELSE_START.format(id)
-    asm += assembly.IF_END.format(id)
-
     STACK_FRAMES[-1]['vars'].pop()
+
+    if len(args) == 3:
+      STACK_FRAMES[-1]['vars'].append([])
+      asm += assembly.ELSE_START.format(id)
+
+      block_exprs = split_expressions(args[2].strip()[1:-1])
+      for expr in block_exprs:
+        asm = eval(parse(expr), asm, depth + 1)
+
+      STACK_FRAMES[-1]['vars'].pop()
+    else:
+      asm += assembly.ELSE_START.format(id)
+
+    asm += assembly.IF_END.format(id)
 
     return asm
 
