@@ -279,6 +279,14 @@ def eval(expr, asm, depth = 0):
     # this pushes the value onto the stack in asm
     asm += assembly.COMPARISONS[kw].format(get_unique_count())
 
+  elif kw in assembly.LOGICALS:
+    if kw == 'not':
+      check_arguments(args, 1, kw)
+    else:
+      check_arguments(args, 2, kw)
+
+    asm += assembly.LOGICALS[kw].format(get_unique_count())
+
   return asm
 
 
