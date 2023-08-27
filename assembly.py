@@ -50,15 +50,13 @@ PRIMARIES = {
 ''',
   'var': None,
   'set': UPDATE_LOCAL_VARIABLE,
-  'inc': GET_LOCAL_VARIABLE +
-'''
+  'inc': '''
   ; increment stack top
   pop eax
   inc eax
   push eax
 ''' + UPDATE_LOCAL_VARIABLE,
-  'dec': GET_LOCAL_VARIABLE +
-'''
+  'dec': '''
   ; decrement stack top
   pop eax
   dec eax

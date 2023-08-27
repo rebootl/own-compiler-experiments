@@ -191,6 +191,9 @@ def eval(expr, asm, depth = 0):
 
   """
 
+  print(expr)
+  print(STACK_FRAMES)
+
   if type(expr) == str:
 
     if expr == '': return asm
@@ -268,6 +271,24 @@ def eval(expr, asm, depth = 0):
       asm += assembly.ELSE_START.format(id)
 
     asm += assembly.IF_END.format(id)
+
+    return asm
+
+  if kw == 'while':
+    # get id for block
+    id = get_unique_count()
+
+    asm += assembly.WHILE_START.format(id)
+
+    # eval condition
+    asm = eval(args[0], asm, depth + 1)
+
+    # emit condition evaluation
+    asm += assembly.WHILE_CONDITION_EVAL.format(id)
+
+    asm = eval_block(args[1], asm, depth)
+
+    asm += assembly.WHILE_END.format(id)
 
     return asm
 
