@@ -178,6 +178,9 @@ def eval_block(block, asm, depth):
   for expr in block_exprs:
     asm = eval(parse(expr), asm, depth + 1)
 
+  for var in STACK_FRAMES[-1]['vars'][-1]:
+    asm += assembly.POP_LOCAL_VARIABLE
+
   STACK_FRAMES[-1]['vars'].pop()
 
   return asm
@@ -191,8 +194,8 @@ def eval(expr, asm, depth = 0):
 
   """
 
-  print(expr)
-  print(STACK_FRAMES)
+  #print(expr)
+  #print(STACK_FRAMES)
 
   if type(expr) == str:
 
