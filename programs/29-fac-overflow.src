@@ -9,14 +9,16 @@ var(a, 13)
 
 var(r, a)
 
-while(gt(a, 1)):
+while(gt(a, 1), {
 
   dec(a)
   set(r, mul(r, a))
 
   ; check for overflow of
   ; last arithmetic operation
-  if(check_overflow()):
+  if(check_overflow(), {
     exit(99)
+  })
+})
 
 print(r)

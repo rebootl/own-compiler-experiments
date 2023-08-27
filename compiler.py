@@ -341,6 +341,10 @@ def eval(expr, asm, depth = 0):
 
     asm += assembly.LOGICALS[kw].format(get_unique_count())
 
+  elif kw == 'check_overflow':
+    id = get_unique_count()
+    asm += assembly.CHECK_OVERFLOW.format(id)
+
   return asm
 
 
