@@ -9,9 +9,9 @@ var(a, 10)
 
 var(r, a)
 
-while(gt(a, 1)):
-
+while(gt(a, 1), {
   dec(a)
   set(r, mul(r, a))
+})
 
 print(r)
