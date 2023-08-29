@@ -3,13 +3,15 @@
 var(a, 10)
 
 
-while(gt(a, 1)):
+while(gt(a, 1), {
 
   dec(a)
 
-  if(lt(a, 5)):
-    break
+  if(lt(a, 5), {
+    break()
+  })
 
   print(a)
+})
 
 ;print(a)

@@ -169,6 +169,16 @@ def find_variable(name, stack_frame):
       c += 1
   return r
 
+WHILE_BLOCK_IDS = []
+
+# def find_block_id(blocks):
+#   r = None
+#   c = 0
+#   for id in blocks:
+#       if b[0] == type:
+#         r = c
+#       c += 1
+#   return r
 
 def eval_block(block, asm, depth):
 
@@ -289,7 +299,9 @@ def eval(expr, asm, depth = 0):
     # emit condition evaluation
     asm += assembly.WHILE_CONDITION_EVAL.format(id)
 
+    WHILE_BLOCK_IDS.append(id)
     asm = eval_block(args[1], asm, depth)
+    WHILE_BLOCK_IDS.pop()
 
     asm += assembly.WHILE_END.format(id)
 
@@ -344,6 +356,9 @@ def eval(expr, asm, depth = 0):
   elif kw == 'check_overflow':
     id = get_unique_count()
     asm += assembly.CHECK_OVERFLOW.format(id)
+
+  elif kw == 'break':
+    asm += assembly.WHILE_BREAK.format(WHILE_BLOCK_IDS[-1])
 
   return asm
 
