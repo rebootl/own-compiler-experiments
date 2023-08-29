@@ -360,6 +360,9 @@ def eval(expr, asm, depth = 0):
   elif kw == 'break':
     asm += assembly.WHILE_BREAK.format(WHILE_BLOCK_IDS[-1])
 
+  elif kw == 'continue':
+    asm += assembly.WHILE_CONTINUE.format(WHILE_BLOCK_IDS[-1])
+
   return asm
 
 
