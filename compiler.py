@@ -155,7 +155,7 @@ STACK_FRAMES = [ {
 
 UNIQUE_COUNTER = 0
 
-WHILE_BLOCK_IDS = []
+LOOP_IDS = []
 
 FUNCTIONS = {}
 
@@ -304,9 +304,9 @@ def eval(expr, asm, depth = 0):
     # emit condition evaluation
     asm += assembly.WHILE_CONDITION_EVAL.format(id)
 
-    WHILE_BLOCK_IDS.append(id)
+    LOOP_IDS.append(id)
     asm = eval_block(args[1], asm, depth)
-    WHILE_BLOCK_IDS.pop()
+    LOOP_IDS.pop()
 
     asm += assembly.WHILE_END.format(id)
 
@@ -393,10 +393,10 @@ def eval(expr, asm, depth = 0):
     asm += assembly.CHECK_OVERFLOW.format(id)
 
   elif kw == 'break':
-    asm += assembly.WHILE_BREAK.format(WHILE_BLOCK_IDS[-1])
+    asm += assembly.WHILE_BREAK.format(LOOP_IDS[-1])
 
   elif kw == 'continue':
-    asm += assembly.WHILE_CONTINUE.format(WHILE_BLOCK_IDS[-1])
+    asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1])
 
   return asm
 
