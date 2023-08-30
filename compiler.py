@@ -155,6 +155,10 @@ STACK_FRAMES = [ {
 
 UNIQUE_COUNTER = 0
 
+WHILE_BLOCK_IDS = []
+
+FUNCTIONS = {}
+
 def get_unique_count():
   global UNIQUE_COUNTER
   UNIQUE_COUNTER += 1
@@ -175,7 +179,6 @@ def find_variable(name, stack_frame):
       c += 1
   return r
 
-WHILE_BLOCK_IDS = []
 
 def eval_block(block, asm, depth):
 
@@ -191,6 +194,11 @@ def eval_block(block, asm, depth):
   STACK_FRAMES[-1]['vars'].pop()
 
   return asm
+
+
+def get_list_args(list_str):
+
+  return [ x.strip() for x in list_str[1:-1].split(',') ]
 
 
 def eval(expr, asm, depth = 0):
@@ -305,13 +313,34 @@ def eval(expr, asm, depth = 0):
     return asm
 
   if kw == 'function':
-    print(args)
+    #print(args)
     check_arguments(args, 3, 'function')
 
     # check that function name starts with a letter
     if not args[0][0].isalpha():
       sys.exit("Error: function name must start with a letter")
 
+    params = get_list_args(args[1])
+    #print(params)
+
+    FUNCTIONS[name] = 1
+
+    # push a new frame onto the stack_frames
+    STACK_FRAMES.append({
+      'params': [],
+      'vars': [],
+    })
+
+    # check that parameter names start with a letter
+    for param in params:
+      if not param[0].isalpha():
+        sys.exit("Error: parameter name must start with a letter")
+
+      STACK_FRAMES[-1]['params'].append(param)
+
+    asm += assembly.FUNCTION_START.format(args[0])
+
+    return asm
 
   for arg in args:
     asm = eval(arg, asm, depth + 1)
