@@ -198,8 +198,10 @@ def eval_block(block, asm, depth):
 
 def get_list_args(list_str):
 
-  return [ x.strip() for x in list_str[1:-1].split(',') ]
+  r = [ x.strip() for x in list_str.strip()[1:-1].split(',') ]
 
+  if r == ['']: return []
+  return r
 
 def eval(expr, asm, depth = 0):
 
@@ -313,7 +315,7 @@ def eval(expr, asm, depth = 0):
     return asm
 
   if kw == 'function':
-    #print(args)
+    print(args)
     check_arguments(args, 3, 'function')
 
     # check that function name starts with a letter
@@ -321,9 +323,9 @@ def eval(expr, asm, depth = 0):
       sys.exit("Error: function name must start with a letter")
 
     params = get_list_args(args[1])
-    #print(params)
+    print(params)
 
-    FUNCTIONS[name] = 1
+    FUNCTIONS[args[0]] = 1
 
     # push a new frame onto the stack_frames
     STACK_FRAMES.append({
@@ -339,6 +341,12 @@ def eval(expr, asm, depth = 0):
       STACK_FRAMES[-1]['params'].append(param)
 
     asm += assembly.FUNCTION_START.format(args[0])
+
+    asm = eval_block(args[2], asm, depth)
+
+    asm += assembly.FUNCTION_END.format(args[0])
+
+    STACK_FRAMES.pop()
 
     return asm
 
@@ -397,6 +405,13 @@ def eval(expr, asm, depth = 0):
 
   elif kw == 'continue':
     asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1])
+
+  elif kw in FUNCTIONS:
+
+    for arg in args:
+      asm = eval(arg, asm, depth + 1)
+
+    asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
 
   return asm
 

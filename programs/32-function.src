@@ -1,7 +1,7 @@
 
 var(a, 10)
 
-function(f, [ a, b ], {
+function(f, [], {
 
   ;set(a, 20)
   ;var(a, get_param(0))
