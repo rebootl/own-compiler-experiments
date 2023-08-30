@@ -70,6 +70,7 @@ def get_split_argstr(argstr):
   arg = ''
   depth = 0
   block_depth = 0
+  list_depth = 0
 
   for c in argstr:
     if c == '(':
@@ -80,7 +81,11 @@ def get_split_argstr(argstr):
       block_depth += 1
     elif c == '}':
       block_depth -= 1
-    elif c == ',' and depth == 0 and block_depth == 0:
+    elif c == '[':
+      list_depth += 1
+    elif c == ']':
+      list_depth -= 1
+    elif c == ',' and depth == 0 and block_depth == 0 and list_depth == 0:
       split_argstr.append(arg.strip())
       arg = ''
       continue
@@ -92,6 +97,9 @@ def get_split_argstr(argstr):
 
   if block_depth != 0:
     sys.exit("Error: unbalanced curly braces in expression: %s" % argstr)
+
+  if list_depth != 0:
+    sys.exit("Error: unbalanced square brackets in expression: %s" % argstr)
 
   if arg != '':
     split_argstr.append(arg.strip())
@@ -140,12 +148,10 @@ def parse(expr):
   return [ kw, args ]
 
 
-STACK_FRAMES = [
-    {
+STACK_FRAMES = [ {
       'params': [],
       'vars': [ [] ],   # blocks
-    }
-]
+} ]
 
 UNIQUE_COUNTER = 0
 
@@ -170,15 +176,6 @@ def find_variable(name, stack_frame):
   return r
 
 WHILE_BLOCK_IDS = []
-
-# def find_block_id(blocks):
-#   r = None
-#   c = 0
-#   for id in blocks:
-#       if b[0] == type:
-#         r = c
-#       c += 1
-#   return r
 
 def eval_block(block, asm, depth):
 
@@ -306,6 +303,15 @@ def eval(expr, asm, depth = 0):
     asm += assembly.WHILE_END.format(id)
 
     return asm
+
+  if kw == 'function':
+    print(args)
+    check_arguments(args, 3, 'function')
+
+    # check that function name starts with a letter
+    if not args[0][0].isalpha():
+      sys.exit("Error: function name must start with a letter")
+
 
   for arg in args:
     asm = eval(arg, asm, depth + 1)
