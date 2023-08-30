@@ -315,7 +315,7 @@ def eval(expr, asm, depth = 0):
     return asm
 
   if kw == 'function':
-    print(args)
+    #print(args)
     check_arguments(args, 3, 'function')
 
     # check that function name starts with a letter
@@ -323,7 +323,7 @@ def eval(expr, asm, depth = 0):
       sys.exit("Error: function name must start with a letter")
 
     params = get_list_args(args[1])
-    print(params)
+    #print(params)
 
     FUNCTIONS[args[0]] = 1
 

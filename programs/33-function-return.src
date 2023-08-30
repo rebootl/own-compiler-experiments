@@ -3,7 +3,7 @@
 var(a, 10)
 
 
-function f():
+function(f, [], {
 
   ;set(a, 20)
   ;var(a, get_param(0))
@@ -13,11 +13,13 @@ function f():
 
   return(b)
 
+})
+
 print(a)
 
 print( f() )
 
 print(a)
 
-consume( 1 )
-consume( f() )
+;consume( 1 )
+f()
