@@ -1,16 +1,16 @@
 
-
 var(a, 10)
 
-
-function add2(a, b):
+function(add2, [a, b], {
 
   ;print(a)
   ;println()
   ;print(b)
   ;println()
 
-  return(add(a, b))
+  return( add(a, b) )
+
+})
 
 ;print(a)
 
@@ -30,5 +30,4 @@ print(n3)
 println()
 
 print( add2(2, 3) )
-
 print(a)

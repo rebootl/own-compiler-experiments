@@ -179,6 +179,15 @@ def find_variable(name, stack_frame):
       c += 1
   return r
 
+def find_parameter(name, stack_frame):
+
+  """find the stack position of a parameter"""
+
+  # we need to find the first occurrence, from the end (top) of the stack
+  for i, param in enumerate(reversed(stack_frame)):
+    if param[0] == name:
+      return i
+  return None
 
 def eval_block(block, asm, depth):
 
@@ -223,6 +232,13 @@ def eval(expr, asm, depth = 0):
 
     if stack_pos is not None:
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+      return asm
+
+    # check for parameter
+    stack_pos = find_parameter(expr, STACK_FRAMES[-1]['params'])
+
+    if stack_pos is not None:
+      asm += assembly.GET_PARAMETER.format(8 + stack_pos * 4)
       return asm
 
     if expr.isdigit():
@@ -407,10 +423,6 @@ def eval(expr, asm, depth = 0):
     asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1])
 
   elif kw in FUNCTIONS:
-
-    for arg in args:
-      asm = eval(arg, asm, depth + 1)
-
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
 
   return asm
