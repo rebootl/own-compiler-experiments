@@ -1,14 +1,15 @@
 
 
+function ( fib, [n], {
 
-function fib(n):
-
-  if (eq(n, 0)):
+  if ( eq(n, 0), {
     return(0)
+  })
 
-  if (eq(n, 1)):
+  if (eq(n, 1), {
     return(1)
-  
+  })
+
   ;var(n1, fib( sub(n, 1) ))
   ;print(n1)
   ;println()
@@ -24,11 +25,14 @@ function fib(n):
 
   ;return( add(n1, n2) )
 
+})
 
 var(a, 0)
 
-while( lt(a, 12) ):
+while( lt(a, 12), {
 
   print( fib(a) )
 
   inc(a)
+
+})
