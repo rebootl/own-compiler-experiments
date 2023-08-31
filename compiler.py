@@ -375,6 +375,7 @@ def eval(expr, asm, depth = 0):
     asm += assembly.PRIMARIES[kw].format(args[0])
 
   elif kw == "print":
+    check_arguments(args, 1, 'print')
     asm += assembly.PRIMARIES[kw].format(args[0])
 
   elif kw == "println":
