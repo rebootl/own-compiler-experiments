@@ -384,6 +384,9 @@ def eval(expr, asm, depth = 0):
       asm += assembly.PRIMARIES["print"].format(args[0])
       asm += assembly.PRIMARIES[kw]
 
+  elif kw == "return":
+    asm += assembly.PRIMARIES[kw]
+
   elif kw == 'inc' or kw == 'dec':
     check_arguments(args, 1, 'inc/dec')
 
