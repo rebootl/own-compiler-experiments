@@ -9,14 +9,14 @@ import assembly
 
 OUTFILE = 'out.asm'
 
-INDENT = 2
-
 COMMENT_CHAR = ';'
 
 
 def split_expressions(program):
 
-  """split a program into a list of expressions"""
+  """split a program into a list of expressions,
+
+  filter out comments, and check for balanced parentheses"""
 
   expressions = []
 
@@ -204,13 +204,13 @@ def eval_block(block, asm, depth):
 
   return asm
 
-
 def get_list_args(list_str):
 
   r = [ x.strip() for x in list_str.strip()[1:-1].split(',') ]
 
   if r == ['']: return []
   return r
+
 
 def eval(expr, asm, depth = 0):
 
@@ -219,9 +219,6 @@ def eval(expr, asm, depth = 0):
   <kw | func> ( <expr> [, <expr>]* )
 
   """
-
-  #print(expr)
-  #print(STACK_FRAMES)
 
   if type(expr) == str:
 
@@ -331,7 +328,6 @@ def eval(expr, asm, depth = 0):
     return asm
 
   if kw == 'function':
-    #print(args)
     check_arguments(args, 3, 'function')
 
     # check that function name starts with a letter
@@ -339,7 +335,6 @@ def eval(expr, asm, depth = 0):
       sys.exit("Error: function name must start with a letter")
 
     params = get_list_args(args[1])
-    #print(params)
 
     FUNCTIONS[args[0]] = 1
 
