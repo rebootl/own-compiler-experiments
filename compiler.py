@@ -220,6 +220,8 @@ def eval(expr, asm, depth = 0):
 
   """
 
+  #print(expr)
+
   if type(expr) == str:
 
     if expr == '': return asm
@@ -257,6 +259,7 @@ def eval(expr, asm, depth = 0):
     # this pushes the value onto the stack in asm
     # we leave it there as a local variable
     asm = eval(args[1], asm, depth + 1)
+    asm += assembly.PUSH_RESULT
 
     # store variable in comp.
     STACK_FRAMES[-1]['vars'][-1].append(args[0])
@@ -272,6 +275,7 @@ def eval(expr, asm, depth = 0):
 
     # this pushes the value onto the stack in asm
     asm = eval(args[1], asm, depth + 1)
+    asm += assembly.PUSH_RESULT
 
     # this will consume the value on the stack top
     # and update the variable in the correct stack location
@@ -290,6 +294,7 @@ def eval(expr, asm, depth = 0):
 
     # eval condition
     asm = eval(args[0], asm, depth + 1)
+    asm += assembly.PUSH_RESULT
 
     asm += assembly.IF_START.format(id)
 
@@ -315,6 +320,7 @@ def eval(expr, asm, depth = 0):
 
     # eval condition
     asm = eval(args[0], asm, depth + 1)
+    asm += assembly.PUSH_RESULT
 
     # emit condition evaluation
     asm += assembly.WHILE_CONDITION_EVAL.format(id)
@@ -363,6 +369,7 @@ def eval(expr, asm, depth = 0):
 
   for arg in args:
     asm = eval(arg, asm, depth + 1)
+    asm += assembly.PUSH_RESULT
 
   if kw == "exit":
     if len(args) == 0:

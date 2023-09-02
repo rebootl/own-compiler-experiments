@@ -3,15 +3,20 @@
 # 32-bit x86 nasm assembly
 #
 
+PUSH_RESULT = '''
+  ; push result
+  push eax
+'''
+
 LITERAL = '''
   ; get literal
-  push {}
+  mov eax, {}
 '''
 
 GET_PARAMETER = '''
   ; get parameter
   mov eax, ebp
-  push DWORD [eax + {0}]
+  mov eax, [eax + {0}]
 '''
 
 UPDATE_LOCAL_VARIABLE = '''
@@ -28,7 +33,7 @@ POP_LOCAL_VARIABLE = '''
 GET_LOCAL_VARIABLE = '''
   ; get local variable
   mov eax, ebp
-  push DWORD [eax - {0}]
+  mov eax, [eax - {0}]
 '''
 
 PRIMARIES = {
@@ -48,31 +53,31 @@ PRIMARIES = {
   call print_int
   add esp, 4      ; clear stack
 ''',
-  'var': None,
+  #'var': None,
   'set': UPDATE_LOCAL_VARIABLE,
   'inc': '''
   ; increment stack top
   pop eax
   inc eax
-  push eax
-''' + UPDATE_LOCAL_VARIABLE,
+  mov [ebp - {0}], eax
+''',
   'dec': '''
   ; decrement stack top
   pop eax
   dec eax
-  push eax
-''' + UPDATE_LOCAL_VARIABLE,
+  mov [ebp - {0}], eax
+''',
   'return': '''
   ; return
-  pop eax
+  ;pop eax                   ; why do we pop here??
   mov esp, ebp
   pop ebp
   ret
 ''',
-  'consume': '''
-  ; consume stack top
-  pop eax
-''',
+#  'consume': '''
+#  ; consume stack top
+#  pop eax
+#''',
 }
 
 UNARIES = {
@@ -87,21 +92,21 @@ BINARIES = {
   pop ebx
   pop eax
   add eax, ebx
-  push eax
+  ;push eax
 ''',
   'sub': '''
   ; subtract stack top
   pop ebx
   pop eax
   sub eax, ebx
-  push eax
+  ;push eax
 ''',
   'mul': '''
   ; multiply stack top
   pop ebx
   pop eax
   imul eax, ebx
-  push eax
+  ;push eax
 ''',
   'div': '''
   ; divide stack top
@@ -109,7 +114,7 @@ BINARIES = {
   pop eax
   cdq
   idiv ebx
-  push eax
+  ;push eax
 ''',
 }
 
@@ -118,10 +123,10 @@ CHECK_OVERFLOW = '''
   jo overflow_true_{0}
   jmp overflow_false_{0}
 overflow_true_{0}:
-  push 1
+  mov eax, 1
   jmp overflow_end_{0}
 overflow_false_{0}:
-  push 0
+  mov eax, 0
 overflow_end_{0}:
 '''
 
@@ -134,10 +139,10 @@ CMP_START = '''
 CMP_END = '''
   jmp cmp_false_{0}
 cmp_true_{0}:
-  push 1
+  mov eax, 1
   jmp cmp_end_{0}
 cmp_false_{0}:
-  push 0
+  mov eax, 0
 cmp_end_{0}:
 '''
 
@@ -187,10 +192,10 @@ a_true_{0}:
   jne r_true_{0}
   jmp r_false_{0}
 r_true_{0}:
-  push 1
+  mov eax, 1
   jmp r_end_{0}
 r_false_{0}:
-  push 0
+  mov eax, 0
 r_end_{0}:
 ''',
   'or': '''
@@ -205,10 +210,10 @@ a_false_{0}:
   je r_false_{0}
   jmp r_true_{0}
 r_true_{0}:
-  push 1
+  mov eax, 1
   jmp r_end_{0}
 r_false_{0}:
-  push 0
+  mov eax, 0
 r_end_{0}:
 ''',
   'not': '''
@@ -218,10 +223,10 @@ r_end_{0}:
   je r_true_{0}
   jmp r_false_{0}
 r_true_{0}:
-  push 1
+  mov eax, 1
   jmp r_end_{0}
 r_false_{0}:
-  push 0
+  mov eax, 0
 r_end_{0}:
 ''',
 }
@@ -296,7 +301,7 @@ FUNCTION_CALL = '''
   ; function call
   call function_{0}
   add esp, {1}
-  push eax                     ; push return value
+  ;push eax                     ; push return value
 '''
 
 ### built-in functions
