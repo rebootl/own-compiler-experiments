@@ -119,6 +119,14 @@ BINARIES = {
   idiv ebx
   ;push eax
 ''',
+  'mod': '''
+  ; modulus stack top
+  pop ebx
+  pop eax
+  cdq
+  idiv ebx
+  mov eax, edx
+''',
 }
 
 CHECK_OVERFLOW = '''
