@@ -1,2 +1,10 @@
 print(not(1))
+print(not(0))
+
+
+print(not(35))
+print(not(-1))
+print(not(-33))
+
+
 exit(0)
