@@ -397,11 +397,28 @@ print_int:            ; print unsigned 32 bit integer
   mov    ecx, 1
   cmp    eax, 0         ; check if digit count is zero
   je     print_int_loop2
+  ;pop    eax            ; restore eax -> not needed ?
+
+  ; check 1st bit from left for sign
+  ; if set, print minus sign
+  mov    ebx, eax
+  shr    ebx, 31        ; shift right 31 bits
+  jz     print_digit_count ; skip if positive
+  push   eax            ; save eax
+  push 45               ; ascii minus sign
+  call   printchar
+  add    esp, 4         ; clear stack
   pop    eax            ; restore eax
 
+  not    eax            ; negate eax
+  inc    eax            ; add 1
+
+print_digit_count:
   mov    ecx, 10        ; digit count to produce
                         ; 10 digits in a 32 bit integer
                         ; max 4'294'967'295
+                        ; 2'147'483'647 for signed integer
+                        ; -2'147'483'648 for signed integer
 print_int_loop:
   call   dividebyten    ; divide binary by 10, digit is
                         ; remainder in edx rest in eax

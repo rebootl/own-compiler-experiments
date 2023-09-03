@@ -1,0 +1,9 @@
+
+
+println( mul(2, -2) )
+
+println( mul(-1, -1) )
+
+println( mul(-1, 300) )
+
+println( mul(-5, 3) )

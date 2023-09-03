@@ -1,0 +1,19 @@
+
+
+print( div( 10, 2 ) )
+
+print( div( 1, 2 ) )
+
+print( div( 3, 2 ) )
+
+print( div( -10, 2 ) )
+
+print( div( 12, -2 ) )
+print( div( 15, 2 ) )
+
+print( div( -10, -2 ) )
+
+print( div( 0, 2 ) )
+
+; -> exit code -8
+;print( div( 2, 0 ) )

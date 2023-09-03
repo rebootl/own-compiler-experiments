@@ -1,0 +1,8 @@
+println( sub(-3, 1) )
+
+println( sub(-3, -5) )
+println( sub(3, -5) )
+
+println( sub( add(-2, -2), sub(3, -1) ) )
+
+exit(0)

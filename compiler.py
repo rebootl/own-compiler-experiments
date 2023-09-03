@@ -244,6 +244,11 @@ def eval(expr, asm, depth = 0):
       asm += assembly.LITERAL.format(expr)
       return asm
 
+    # negative numbers
+    if expr.startswith('-') and expr[1:].isdigit():
+      asm += assembly.LITERAL.format(expr)
+      return asm
+
   [ kw, args ] = expr
 
   if kw == "var":
