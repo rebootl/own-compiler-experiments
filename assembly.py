@@ -87,6 +87,13 @@ UNARIES = {
   not    eax            ; negate eax
   inc    eax            ; add 1
 ''',
+  'abs': '''
+  ; absolute value stack top
+  pop eax
+  cdq                   ; convert to double word
+  xor eax, edx          ; xor eax with edx
+  sub eax, edx          ; subtract edx from eax
+''',
 }
 
 BINARIES = {

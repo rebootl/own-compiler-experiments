@@ -25,7 +25,7 @@ CASES = [
   [ 'programs/13.3-div.src', '501-5-6750', 0 ],
   [ 'programs/13.4-neg.src', '-1085-50', 0 ],
   [ 'programs/13.5-mod.src', '012050120-2-200-1-1', 0 ],
-  #[ 'programs/13.6-abs.src', '0123456789', 0 ],
+  [ 'programs/13.6-abs.src', '10103450350', 0 ],
   [ 'programs/14-collapse-comments.src', '6\n5\n', 0 ],
   [ 'programs/15-vars.src', '15\n9', 0 ],
   [ 'programs/16-vars-set.src', '20', 0 ],

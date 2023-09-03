@@ -1,22 +1,8 @@
 
 
-print( mod( 10, 5 ) )   ; 0
-
-print( mod( 10, 3 ) )   ; 1
-print( mod( 10, 4 ) )   ; 2
-
-print( mod( 5, 5 ) )    ; 0
-print( mod( 5, 7 ) )    ; 5
-
-print( mod( 10, -2 ) )  ; 0
-print( mod( 10, -3 ) )  ; 1
-
-print( mod( 10, -4 ) )  ; 2
-print( mod( 10, -5 ) )  ; 0
-
-print( mod( -10, 4 ) )  ; -2
-print( mod( -10, -4 ) ) ; -2
-print( mod( -10, 2 ) )  ; 0
-print( mod( -10, -2 ) ) ; 0
-print( mod( -10, 3 ) )  ; -1
-print( mod( -10, -3 ) ) ; -1
+print( abs( 10 ) )
+print( abs( -10 ) )
+print( abs( -3 ) )
+print( abs( -450 ) )
+print( abs( 35 ) )
+print( abs( 0 ) )
