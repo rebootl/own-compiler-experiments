@@ -407,6 +407,11 @@ def eval(expr, asm, depth = 0):
 
     asm += assembly.PRIMARIES[kw].format(4 + stack_pos * 4)
 
+  elif kw in assembly.UNARIES:
+    check_arguments(args, 1, kw)
+
+    asm += assembly.UNARIES[kw]
+
   elif kw in assembly.BINARIES:
     check_arguments(args, 2, kw)
 

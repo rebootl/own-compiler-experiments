@@ -1,0 +1,11 @@
+
+
+print( neg( 10 ) )
+
+print( neg( -8 ) )
+
+print( neg( -5 ) )
+
+print( mul( -1, 5 ) )
+
+print( neg( 0 ) )

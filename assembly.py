@@ -81,9 +81,12 @@ PRIMARIES = {
 }
 
 UNARIES = {
-# these are binary ops
-#  'neg': '''  neg eax
-#''',
+  'neg': '''
+  ; negate stack top
+  pop eax
+  not    eax            ; negate eax
+  inc    eax            ; add 1
+''',
 }
 
 BINARIES = {

@@ -23,6 +23,7 @@ CASES = [
   [ 'programs/13.1-mul.src', '4\n75\n', 0 ],
   [ 'programs/13.2-mul-neg.src', '-4\n1\n-300\n-15\n', 0 ],
   [ 'programs/13.3-div.src', '501-5-6750', 0 ],
+  [ 'programs/13.4-negate.src', '-1085-50', 0 ],
   [ 'programs/14-collapse-comments.src', '6\n5\n', 0 ],
   [ 'programs/15-vars.src', '15\n9', 0 ],
   [ 'programs/16-vars-set.src', '20', 0 ],
