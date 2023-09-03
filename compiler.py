@@ -357,11 +357,14 @@ def eval(expr, asm, depth = 0):
 
       STACK_FRAMES[-1]['params'].append(param)
 
-    asm += assembly.FUNCTION_START.format(args[0])
+    fn_asm = ""
+    fn_asm += assembly.FUNCTION_START.format(args[0])
 
-    asm = eval_block(args[2], asm, depth)
+    fn_asm = eval_block(args[2], fn_asm, 0)
 
-    asm += assembly.FUNCTION_END.format(args[0])
+    fn_asm += assembly.FUNCTION_END.format(args[0])
+
+    FUNCTIONS[args[0]] = fn_asm
 
     STACK_FRAMES.pop()
 
@@ -431,6 +434,9 @@ def eval(expr, asm, depth = 0):
   elif kw in FUNCTIONS:
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
 
+  else:
+    sys.exit("Error: unknown keyword '" + kw + "'")
+
   return asm
 
 
@@ -460,8 +466,13 @@ def main():
     #print(expr)
     main_asm = eval(expr, main_asm)
 
+  fns_asm = ""
+  for fn in FUNCTIONS:
+    fns_asm += FUNCTIONS[fn]
+
   # combine main assembly code with header, built-in functions and footer
   out = assembly.HEAD + assembly.EXIT + assembly.PRINTCHAR + assembly.PRINT \
+    + fns_asm \
     + assembly.START \
     + main_asm + assembly.DEFAULT_EXIT
 

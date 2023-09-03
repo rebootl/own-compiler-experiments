@@ -283,7 +283,7 @@ WHILE_CONTINUE = '''
 
 FUNCTION_START = '''
   ; function start
-  jmp function_end_{0}
+  ;jmp function_end_{0}
 function_{0}:
   push ebp
   mov ebp, esp
