@@ -51,6 +51,7 @@ CASES = [
   [ 'programs/35-function-recursion.src', '109876543210', 0 ],
   [ 'programs/36-function-recursion-fib.src', '01123581321345589', 0 ],
   [ 'programs/37-function-recursion-fac.src', '3628800', 0 ],
+  [ 'programs/38-print-string.src', 'Hello World!', 0 ],
 ]
 
 for case in CASES:

@@ -375,6 +375,20 @@ def eval(expr, asm, depth = 0):
 
     return asm
 
+  if kw == 'prints':
+    check_arguments(args, 1, 'prints')
+    arg = args[0]
+    if arg.startswith("'") and arg.endswith("'"):
+      # push string onto stack
+      for char in reversed(arg[1:-1]):
+        asm += assembly.PUSH_CHAR.format(ord(char))
+      asm += assembly.PRIMARIES[kw]
+      #asm += assembly.CLEAR_STACK.format(len(arg) * 4)
+    else:
+      sys.exit("Error: prints only accepts strings")
+
+    return asm
+
   for arg in args:
     asm = eval(arg, asm, depth + 1)
     asm += assembly.PUSH_RESULT

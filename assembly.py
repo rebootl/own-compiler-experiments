@@ -8,6 +8,11 @@ PUSH_RESULT = '''
   push eax
 '''
 
+PUSH_CHAR = '''
+  ; push char
+  push {}
+'''
+
 LITERAL = '''
   ; get literal
   mov eax, {}
@@ -52,6 +57,17 @@ PRIMARIES = {
   ; print stack top
   call print_int
   add esp, 4      ; clear stack
+''',
+  'prints': '''
+  ; print stack top
+  call print_string
+  ; clear stack from chars
+clear_stack_char:
+  pop eax
+  cmp eax, 0
+  je clear_stack_end
+  jmp clear_stack_char
+clear_stack_end:
 ''',
   #'var': None,
   'set': UPDATE_LOCAL_VARIABLE,
@@ -469,6 +485,30 @@ print_int_loop2:
   dec    ecx
   jne    print_int_loop2
 
+  ; epilogue
+  mov esp, ebp
+  pop ebp
+  ret
+
+print_string:
+  push ebp            ; save base pointer
+  mov ebp, esp        ; set base pointer
+
+  mov ecx, 8
+
+print_string_loop:
+  mov eax, [ebp + ecx]    ; read 1st argument
+  cmp eax, 0          ; check for null terminator
+  je print_string_end ; if null terminator, end
+  push ecx            ; save ecx
+  push eax            ; save eax
+  call printchar      ; print byte
+  add esp, 4          ; clear stack
+  pop ecx             ; restore ecx
+  add ecx, 4          ; increment pointer
+  jmp print_string_loop
+
+print_string_end:
   ; epilogue
   mov esp, ebp
   pop ebp
