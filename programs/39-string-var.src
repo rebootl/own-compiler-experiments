@@ -1,0 +1,6 @@
+
+
+
+var(s, 'My 1st string.')
+
+prints(s)

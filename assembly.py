@@ -3,6 +3,15 @@
 # 32-bit x86 nasm assembly
 #
 
+DATA_STRING = '''
+  {0} db "{1}", 0
+'''
+
+PUSH_STR_REF = '''
+  ; push string reference
+  push {0}
+'''
+
 PUSH_RESULT = '''
   ; push result
   push eax
@@ -61,13 +70,14 @@ PRIMARIES = {
   'prints': '''
   ; print stack top
   call print_string
+  add esp, 4      ; clear stack
   ; clear stack from chars
-clear_stack_char:
-  pop eax
-  cmp eax, 0
-  je clear_stack_end
-  jmp clear_stack_char
-clear_stack_end:
+;clear_stack_char:
+;  pop eax
+;  cmp eax, 0
+;  je clear_stack_end
+;  jmp clear_stack_char
+;clear_stack_end:
 ''',
   #'var': None,
   'set': UPDATE_LOCAL_VARIABLE,
@@ -340,6 +350,10 @@ FUNCTION_CALL = '''
 
 ### built-in functions
 
+DATA = '''
+section .data
+'''
+
 HEAD = '''global _start
 
 section .text
@@ -494,10 +508,10 @@ print_string:
   push ebp            ; save base pointer
   mov ebp, esp        ; set base pointer
 
-  mov ecx, 8
+  mov ecx, [ebp + 8]    ; read 1st argument
 
 print_string_loop:
-  mov eax, [ebp + ecx]    ; read 1st argument
+  mov eax, [ecx]        ; read 1st argument
   cmp eax, 0          ; check for null terminator
   je print_string_end ; if null terminator, end
   push ecx            ; save ecx
@@ -505,7 +519,7 @@ print_string_loop:
   call printchar      ; print byte
   add esp, 4          ; clear stack
   pop ecx             ; restore ecx
-  add ecx, 4          ; increment pointer
+  add ecx, 1          ; increment pointer
   jmp print_string_loop
 
 print_string_end:

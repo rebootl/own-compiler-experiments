@@ -159,6 +159,8 @@ LOOP_IDS = []
 
 FUNCTIONS = {}
 
+LITERALS = []
+
 def get_unique_count():
   global UNIQUE_COUNTER
   UNIQUE_COUNTER += 1
@@ -380,10 +382,20 @@ def eval(expr, asm, depth = 0):
     arg = args[0]
     if arg.startswith("'") and arg.endswith("'"):
       # push string onto stack
-      for char in reversed(arg[1:-1]):
-        asm += assembly.PUSH_CHAR.format(ord(char))
-      asm += assembly.PRIMARIES[kw]
+      #for char in reversed(arg[1:-1]):
+      #  asm += assembly.PUSH_CHAR.format(ord(char))
+      #asm += assembly.PRIMARIES[kw]
       #asm += assembly.CLEAR_STACK.format(len(arg) * 4)
+
+      # emit literal to .data section
+      str_id = 'string_' + str(get_unique_count())
+      LITERALS.append(assembly.DATA_STRING.format(
+        str_id,
+        arg[1:-1]
+      ))
+      asm += assembly.PUSH_STR_REF.format(str_id)
+      asm += assembly.PRIMARIES[kw]
+      # -> clear stack
     else:
       sys.exit("Error: prints only accepts strings")
 
@@ -495,7 +507,8 @@ def main():
     fns_asm += FUNCTIONS[fn]
 
   # combine main assembly code with header, built-in functions and footer
-  out = assembly.HEAD + assembly.EXIT + assembly.PRINTCHAR + assembly.PRINT \
+  out = assembly.DATA + ''.join(LITERALS) + '\n' \
+    + assembly.HEAD + assembly.EXIT + assembly.PRINTCHAR + assembly.PRINT \
     + fns_asm \
     + assembly.START \
     + main_asm + assembly.DEFAULT_EXIT
