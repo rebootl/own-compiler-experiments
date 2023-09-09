@@ -6,8 +6,9 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-nasm -f elf32 "$1" -o out.o
-ld -m elf_i386 -o out out.o
+nasm -f elf32 -g "$1" -o out.o
+#ld -m elf_i386 -o out out.o
+gcc -static -m32 -o out out.o extensions.o
 ./out
 
 #echo -e "Exit code: $?"

@@ -66,4 +66,3 @@ _start:
   jmp print
   mov eax, 10
   jmp exit
-
