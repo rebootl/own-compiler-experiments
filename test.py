@@ -63,7 +63,8 @@ for case in CASES:
   # -> check errors
   os.system('./compiler.py ' + case[0])
   os.system('nasm -f elf32 out.asm -o out.o')
-  os.system('ld -m elf_i386 -o out out.o')
+  #os.system('ld -m elf_i386 -o out out.o')
+  os.system('gcc -m32 -o out out.o')
 
   # run program
   p = subprocess.Popen('./out', stdout=subprocess.PIPE, stderr=subprocess.PIPE)

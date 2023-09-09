@@ -11,6 +11,8 @@ OUTFILE = 'out.asm'
 
 COMMENT_CHAR = ';'
 
+#START_LABEL = '_start'
+START_LABEL = 'main'
 
 def split_expressions(program):
 
@@ -508,9 +510,10 @@ def main():
 
   # combine main assembly code with header, built-in functions and footer
   out = assembly.DATA + ''.join(LITERALS) + '\n' \
-    + assembly.HEAD + assembly.EXIT + assembly.PRINTCHAR + assembly.PRINT \
+    + assembly.HEAD.format(START_LABEL) \
+    + assembly.EXIT + assembly.PRINTCHAR + assembly.PRINT \
     + fns_asm \
-    + assembly.START \
+    + assembly.START.format(START_LABEL) \
     + main_asm + assembly.DEFAULT_EXIT
 
   # write to output file

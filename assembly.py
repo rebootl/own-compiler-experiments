@@ -354,13 +354,13 @@ DATA = '''
 section .data
 '''
 
-HEAD = '''global _start
+HEAD = '''global {}
 
 section .text
 '''
 
 START = '''
-_start:
+{}:
   push ebp
   mov ebp, esp
 
