@@ -1,21 +1,21 @@
-# comment
-5
-inc(1)
+; comment
 
-print(
+;inc(1)
+
+print_i(
   add(
-    inc(1),
-    add(2, dec(3))
+    1,
+    add(2, 3)
   )
 )
 println()
 
-# comment
-print(sub(
+; comment
+print_i(sub(
   6,
   3
 ))
 println()
 
-# exit ok
+; exit ok
 exit(0)

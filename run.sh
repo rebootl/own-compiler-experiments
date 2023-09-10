@@ -8,7 +8,8 @@ fi
 ./compiler.py "$1"
 
 nasm -f elf32 out.asm -o out.o
-ld -m elf_i386 -o out out.o
+#ld -m elf_i386 -o out out.o
+gcc -no-pie -m32 -o out out.o extends/extensions.o
 ./out
 
 #echo -e "Exit code: $?"
