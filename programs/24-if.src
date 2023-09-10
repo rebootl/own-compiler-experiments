@@ -8,15 +8,15 @@ if(5, {
 
   set(a, add(a, 2))
 
-  print(a)
+  print_i(a)
 
-  if(1, { print(0) })
+  if(1, { print_i(0) })
 
 })
 
 ; a = 3
 if( gt(3, a), {
-  print(0)
+  print_i(0)
 })
 
-print(a)
+print_i(a)

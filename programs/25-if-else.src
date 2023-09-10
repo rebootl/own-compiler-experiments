@@ -3,25 +3,25 @@ var(a, 3)
 
 if(1, {
 
-  print(1)
+  print_i(1)
   set(a, 4)
 
   if(1, {
 
     var(a, 5)
-    print(2)
-    print(a)
+    print_i(2)
+    print_i(a)
 
-    block({ print(4) })
+    block({ print_i(4) })
 
-  }, { print(3) })
+  }, { print_i(3) })
 
-}, { print(0) })
+}, { print_i(0) })
 
 if(0, {
-  print(5)
+  print_i(5)
 }, {
-  print(6)
+  print_i(6)
 })
 
-print(a)
+print_i(a)

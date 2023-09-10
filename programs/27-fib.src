@@ -7,7 +7,7 @@ var(b, 1)
 while(lt(b, 100), {
 
   var(sum, add(a, b))
-  print(sum)
+  print_i(sum)
   ;println()
 
   set(a, b)

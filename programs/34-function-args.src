@@ -3,16 +3,16 @@ var(a, 10)
 
 function(add2, [a, b], {
 
-  ;print(a)
+  ;print_i(a)
   ;println()
-  ;print(b)
+  ;print_i(b)
   ;println()
 
   return( add(a, b) )
 
 })
 
-;print(a)
+;print_i(a)
 
 var(n1, add2(a, 5))
 
@@ -20,14 +20,14 @@ var(n2, add2(a, 10))
 
 var(n3, add2(a, 15))
 
-print(n1)
+print_i(n1)
 println()
 
-print(n2)
+print_i(n2)
 println()
 
-print(n3)
+print_i(n3)
 println()
 
-print( add2(2, 3) )
-print(a)
+print_i( add2(2, 3) )
+print_i(a)

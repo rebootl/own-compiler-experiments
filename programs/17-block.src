@@ -10,16 +10,16 @@ block({
 
   set(b, add(b, 5))
 
-  ;print(add(a, b))
+  ;print_i(add(a, b))
 
   block({
     ;set(a, 20)
     set(b, add(b, 5))
-    ;print(add(a, b))
+    ;print_i(add(a, b))
   })
 
   inc(a)
 })
 
 
-print(add(a, b))
+print_i(add(a, b))

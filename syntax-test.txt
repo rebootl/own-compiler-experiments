@@ -1,0 +1,42 @@
+//var(s, 'My 1st string.')
+
+//prints(s)
+
+fac(n: Int) = (
+  n < 0 -> Undef,
+
+  n == 0 -> 1,
+  True -> n * fac(n - 1)
+)
+
+fib(n: Int) = (
+  n < 0 -> Undef,
+
+  n == 0 -> 0,
+  n == 1 -> 1,
+  True -> fib(n - 1) + fib(n - 2)
+)
+
+min(a: Int, b: Int) = (
+  a < b -> a,
+  True -> b
+)
+
+print_list(l: List) = (
+  l == [] -> Undef,
+  True -> {
+    print(head(l))
+    print_list(tail(l))
+  }
+)
+
+print_list([1 .. 10])
+
+print(l: List) = {
+  print_list(l)
+  print('\n')
+}
+
+add(x: Int, y: Int) = x + y
+
+print(fac(5))

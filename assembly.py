@@ -50,6 +50,23 @@ GET_LOCAL_VARIABLE = '''
   mov eax, [eax - {0}]
 '''
 
+CALL_EXTENSION = {
+  'print_i': '''
+  ; call print extension
+  call print_i
+  add esp, 4      ; clear stack
+''',
+  'print': '''
+  ; call print extension
+  call print
+  add esp, 4      ; clear stack
+''',
+  'println': '''
+  ; call println extension
+  call println
+''',
+}
+
 PRIMARIES = {
   'println': '''
   ; print newline
@@ -65,6 +82,11 @@ PRIMARIES = {
   'print': '''
   ; print stack top
   call print_int
+  add esp, 4      ; clear stack
+''',
+  'print_i': '''
+  ; print stack top
+  call print_i
   add esp, 4      ; clear stack
 ''',
   'prints': '''
@@ -354,7 +376,8 @@ DATA = '''
 section .data
 '''
 
-HEAD = '''global {}
+HEAD = '''extern print_i, println, println_i
+global {}
 
 section .text
 '''

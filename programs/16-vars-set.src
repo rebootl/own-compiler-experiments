@@ -6,7 +6,7 @@ set(b, add(a, 5))
 
 set(b, add(b, 5))
 
-print(add(2, add(a, b)))
+print_i(add(2, add(a, b)))
 
-;print(a)
-;print(b)
+;print_i(a)
+;print_i(b)

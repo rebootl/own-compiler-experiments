@@ -1,9 +1,9 @@
 
 
-println( mul(2, 2) )
+println_i( mul(2, 2) )
 
 ;println()
 
-println( mul(5, mul(3, 5) ))
+println_i( mul(5, mul(3, 5) ))
 
 ;println()

@@ -1,25 +1,25 @@
 
 
 
-print(ge(2, 2))
-print(ge(1, 5))
-print(ge(3, 2))
-print(ge(2, 1))
+print_i(ge(2, 2))
+print_i(ge(1, 5))
+print_i(ge(3, 2))
+print_i(ge(2, 1))
 
 
-print(le(2, 2))
-print(le(1, 5))
-print(le(3, 2))
-print(le(2, 1))
-
-println()
-print(ge(-2, 1))
-print(ge(2, -1))
-print(ge(-2, -2))
-print(ge(-5, -6))
+print_i(le(2, 2))
+print_i(le(1, 5))
+print_i(le(3, 2))
+print_i(le(2, 1))
 
 println()
-print(le(-2, 4))
-print(le(2, -1))
-print(le(-2, -2))
-print(le(-6, -7))
+print_i(ge(-2, 1))
+print_i(ge(2, -1))
+print_i(ge(-2, -2))
+print_i(ge(-5, -6))
+
+println()
+print_i(le(-2, 4))
+print_i(le(2, -1))
+print_i(le(-2, -2))
+print_i(le(-6, -7))

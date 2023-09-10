@@ -12,13 +12,13 @@ function( fac, [n], {
 
 })
 
-print( fac(10) )
+print_i( fac(10) )
 
 
 ;var(a, 0)
 ;
 ;while( lt(a, 12) ):
 ;
-;  print( fib(a) )
+;  print_i( fib(a) )
 ;
 ;  inc(a)

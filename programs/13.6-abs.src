@@ -1,8 +1,8 @@
 
 
-print( abs( 10 ) )
-print( abs( -10 ) )
-print( abs( -3 ) )
-print( abs( -450 ) )
-print( abs( 35 ) )
-print( abs( 0 ) )
+print_i( abs( 10 ) )
+print_i( abs( -10 ) )
+print_i( abs( -3 ) )
+print_i( abs( -450 ) )
+print_i( abs( 35 ) )
+print_i( abs( 0 ) )

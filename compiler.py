@@ -414,14 +414,23 @@ def eval(expr, asm, depth = 0):
 
   elif kw == "print":
     check_arguments(args, 1, 'print')
-    asm += assembly.PRIMARIES[kw].format(args[0])
+    asm += assembly.CALL_EXTENSION[kw].format(args[0])
+
+  elif kw == "print_i":
+    check_arguments(args, 1, 'print_i')
+    asm += assembly.CALL_EXTENSION[kw]
+
+  elif kw == "println_i":
+    check_arguments(args, 1, 'println_i')
+    asm += assembly.CALL_EXTENSION["print_i"]
+    asm += assembly.CALL_EXTENSION["println"]
 
   elif kw == "println":
     if len(args) == 0:
-      asm += assembly.PRIMARIES[kw]
+      asm += assembly.CALL_EXTENSION[kw]
     else:
-      asm += assembly.PRIMARIES["print"].format(args[0])
-      asm += assembly.PRIMARIES[kw]
+      asm += assembly.CALL_EXTENSION["print"]
+      asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "return":
     asm += assembly.PRIMARIES[kw]

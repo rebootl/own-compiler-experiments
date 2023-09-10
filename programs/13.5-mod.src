@@ -1,22 +1,22 @@
 
 
-print( mod( 10, 5 ) )   ; 0
+print_i( mod( 10, 5 ) )   ; 0
 
-print( mod( 10, 3 ) )   ; 1
-print( mod( 10, 4 ) )   ; 2
+print_i( mod( 10, 3 ) )   ; 1
+print_i( mod( 10, 4 ) )   ; 2
 
-print( mod( 5, 5 ) )    ; 0
-print( mod( 5, 7 ) )    ; 5
+print_i( mod( 5, 5 ) )    ; 0
+print_i( mod( 5, 7 ) )    ; 5
 
-print( mod( 10, -2 ) )  ; 0
-print( mod( 10, -3 ) )  ; 1
+print_i( mod( 10, -2 ) )  ; 0
+print_i( mod( 10, -3 ) )  ; 1
 
-print( mod( 10, -4 ) )  ; 2
-print( mod( 10, -5 ) )  ; 0
+print_i( mod( 10, -4 ) )  ; 2
+print_i( mod( 10, -5 ) )  ; 0
 
-print( mod( -10, 4 ) )  ; -2
-print( mod( -10, -4 ) ) ; -2
-print( mod( -10, 2 ) )  ; 0
-print( mod( -10, -2 ) ) ; 0
-print( mod( -10, 3 ) )  ; -1
-print( mod( -10, -3 ) ) ; -1
+print_i( mod( -10, 4 ) )  ; -2
+print_i( mod( -10, -4 ) ) ; -2
+print_i( mod( -10, 2 ) )  ; 0
+print_i( mod( -10, -2 ) ) ; 0
+print_i( mod( -10, 3 ) )  ; -1
+print_i( mod( -10, -3 ) ) ; -1

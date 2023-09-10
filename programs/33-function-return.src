@@ -9,17 +9,17 @@ function(f, [], {
   ;var(a, get_param(0))
 
   var(b, 30)
-  print(b)
+  print_i(b)
 
   return(b)
 
 })
 
-print(a)
+print_i(a)
 
-print( f() )
+print_i( f() )
 
-print(a)
+print_i(a)
 
 ;consume( 1 )
 f()

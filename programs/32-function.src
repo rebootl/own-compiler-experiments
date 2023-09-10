@@ -7,12 +7,12 @@ function(f, [], {
   ;var(a, get_param(0))
 
   var(b, 30)
-  print(b)
+  print_i(b)
 
 })
 
-print(a)
+print_i(a)
 
 f()
 
-print(a)
+print_i(a)

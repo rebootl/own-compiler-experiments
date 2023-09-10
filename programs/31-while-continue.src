@@ -11,8 +11,8 @@ while( gt(a, 0), {
     continue()
   })
 
-  print(a)
+  print_i(a)
 
 })
 
-print(a)
+print_i(a)

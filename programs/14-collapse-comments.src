@@ -2,7 +2,7 @@
 ;5
 ;2
 
-print(
+print_i(
   add(
     2,
     add(2, 2)
@@ -12,7 +12,7 @@ println()
 
 ; comment
 
-println(add(
+println_i(add(
   sub(5, 2),          ; inline comment
   sub(3, 1)
 ))

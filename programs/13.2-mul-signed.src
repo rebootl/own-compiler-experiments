@@ -1,9 +1,9 @@
 
 
-println( mul(2, -2) )
+println_i( mul(2, -2) )
 
-println( mul(-1, -1) )
+println_i( mul(-1, -1) )
 
-println( mul(-1, 300) )
+println_i( mul(-1, 300) )
 
-println( mul(-5, 3) )
+println_i( mul(-5, 3) )

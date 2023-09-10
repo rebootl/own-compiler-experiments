@@ -64,7 +64,7 @@ for case in CASES:
   os.system('./compiler.py ' + case[0])
   os.system('nasm -f elf32 out.asm -o out.o')
   #os.system('ld -m elf_i386 -o out out.o')
-  os.system('gcc -m32 -o out out.o')
+  os.system('gcc -m32 -o out out.o extends/extensions.o')
 
   # run program
   p = subprocess.Popen('./out', stdout=subprocess.PIPE, stderr=subprocess.PIPE)

@@ -3,10 +3,10 @@ var(b, add(a, 6))
 
 inc(a)
 
-print(add(a, b))
+print_i(add(a, b))
 println()
 
 dec(b)
 
-;print(a)
-print(b)
+;print_i(a)
+print_i(b)

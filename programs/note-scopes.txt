@@ -22,7 +22,7 @@ block_1_end:
 
 inc(a)
 
-print(add(a, b))
+print_i(add(a, b))
 
 
 

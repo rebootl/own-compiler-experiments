@@ -1,2 +1,2 @@
-print(add(2, 2))
+print_i(add(2, 2))
 exit(0)

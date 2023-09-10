@@ -5,7 +5,7 @@ block_0:
 
   call block_1
 
-  print
+  print_i
 
   return
 

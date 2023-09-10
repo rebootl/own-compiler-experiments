@@ -1,10 +1,10 @@
-print(not(1))
-print(not(0))
+print_i(not(1))
+print_i(not(0))
 
 
-print(not(35))
-print(not(-1))
-print(not(-33))
+print_i(not(35))
+print_i(not(-1))
+print_i(not(-33))
 
 
 exit(0)

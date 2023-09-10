@@ -1,1 +1,1 @@
-print(inc(55))
+print_i(inc(55))

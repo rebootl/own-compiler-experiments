@@ -1,11 +1,11 @@
 
 
-print( neg( 10 ) )
+print_i( neg( 10 ) )
 
-print( neg( -8 ) )
+print_i( neg( -8 ) )
 
-print( neg( -5 ) )
+print_i( neg( -5 ) )
 
-print( mul( -1, 5 ) )
+print_i( mul( -1, 5 ) )
 
-print( neg( 0 ) )
+print_i( neg( 0 ) )

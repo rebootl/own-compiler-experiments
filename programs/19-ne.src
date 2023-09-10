@@ -1,16 +1,16 @@
 
 
 
-print(ne(1, 1))
+print_i(ne(1, 1))
 
-print(ne(1, 5))
+print_i(ne(1, 5))
 
-print(ne(0, 0))
+print_i(ne(0, 0))
 
-print(ne(2, add(1, 1)))
+print_i(ne(2, add(1, 1)))
 
 
 
-print(ne(-3, -3))
+print_i(ne(-3, -3))
 
-print(ne(-3, 0))
+print_i(ne(-3, 0))

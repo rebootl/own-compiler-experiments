@@ -1,8 +1,8 @@
-println(10)
+println_i(10)
 
-print(65)
+print_i(65)
 
-println(15)
-println(12)
+println_i(15)
+println_i(12)
 
-println(15)
+println_i(15)

@@ -1,19 +1,19 @@
 
 
-print( div( 10, 2 ) )
+print_i( div( 10, 2 ) )
 
-print( div( 1, 2 ) )
+print_i( div( 1, 2 ) )
 
-print( div( 3, 2 ) )
+print_i( div( 3, 2 ) )
 
-print( div( -10, 2 ) )
+print_i( div( -10, 2 ) )
 
-print( div( 12, -2 ) )
-print( div( 15, 2 ) )
+print_i( div( 12, -2 ) )
+print_i( div( 15, 2 ) )
 
-print( div( -10, -2 ) )
+print_i( div( -10, -2 ) )
 
-print( div( 0, 2 ) )
+print_i( div( 0, 2 ) )
 
 ; -> exit code -8
-;print( div( 2, 0 ) )
+;print_i( div( 2, 0 ) )

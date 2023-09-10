@@ -14,4 +14,4 @@ while(gt(a, 1), {
   set(r, mul(r, a))
 })
 
-print(r)
+print_i(r)

@@ -11,10 +11,10 @@ function ( fib, [n], {
   })
 
   ;var(n1, fib( sub(n, 1) ))
-  ;print(n1)
+  ;print_i(n1)
   ;println()
   ;var(n2, fib( sub(n, 2) ))
-  ;print(n2)
+  ;print_i(n2)
   ;println()
 
 
@@ -31,7 +31,7 @@ var(a, 0)
 
 while( lt(a, 12), {
 
-  print( fib(a) )
+  print_i( fib(a) )
 
   inc(a)
 

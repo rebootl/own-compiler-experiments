@@ -11,7 +11,7 @@ while(gt(a, 1), {
     break()
   })
 
-  print(a)
+  print_i(a)
 })
 
-;print(a)
+;print_i(a)

@@ -2,16 +2,16 @@
 
 sub( 3, 5 )
 
-print( check_overflow() )
+print_i( check_overflow() )
 
 add( 2147483647, 1 )
 
-print( check_overflow() )
+print_i( check_overflow() )
 
 add( -1, 10 )
 
-print( check_overflow() )
+print_i( check_overflow() )
 
 sub( -2147483648, 1 )
 
-print( check_overflow() )
+print_i( check_overflow() )

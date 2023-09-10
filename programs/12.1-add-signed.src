@@ -1,9 +1,9 @@
-print(add(2, 2))
+print_i(add(2, 2))
 
-print(add(-2, 2))
+print_i(add(-2, 2))
 
-print(add(-2, -2))
+print_i(add(-2, -2))
 
-print(add(-8, 15))
+print_i(add(-8, 15))
 
 exit(0)
