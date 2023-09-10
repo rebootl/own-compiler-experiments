@@ -414,8 +414,9 @@ def eval(expr, asm, depth = 0):
 
   if kw == "exit":
     if len(args) == 0:
-      args = [ "0" ]
-    asm += assembly.PRIMARIES[kw].format(args[0])
+      asm += assembly.LITERAL.format(0)
+      asm += assembly.PUSH_RESULT
+    asm += assembly.PRIMARIES[kw]
 
   elif kw == "print":
     check_arguments(args, 1, 'print')
