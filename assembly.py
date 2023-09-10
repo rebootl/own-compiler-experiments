@@ -73,7 +73,6 @@ PRIMARIES = {
   pop eax
   jmp exit
 ''',
-  #'var': None,
   'set': UPDATE_LOCAL_VARIABLE,
   'inc': '''
   ; increment stack top
@@ -89,15 +88,10 @@ PRIMARIES = {
 ''',
   'return': '''
   ; return
-  ;pop eax                   ; why do we pop here??
   mov esp, ebp
   pop ebp
   ret
 ''',
-#  'consume': '''
-#  ; consume stack top
-#  pop eax
-#''',
 }
 
 UNARIES = {
@@ -321,7 +315,6 @@ WHILE_CONTINUE = '''
 
 FUNCTION_START = '''
   ; function start
-  ;jmp function_end_{0}
 function_{0}:
   push ebp
   mov ebp, esp
@@ -339,12 +332,12 @@ FUNCTION_CALL = '''
   ; function call
   call function_{0}
   add esp, {1}
-  ;push eax                     ; push return value
+
 '''
 
 ### built-in functions
 
-HEAD = '''extern print_i, println, println_i, print
+HEAD = '''extern print_i, println, print
 global {}
 '''
 
@@ -361,26 +354,6 @@ START = '''
   push ebp
   mov ebp, esp
 
-  ;call block_0
-'''
-
-BLOCK_START = '''
-block_{}:
-  ; block start
-  push ebp
-  mov ebp, esp
-'''
-
-BLOCK_END = '''
-  ; block end
-  mov esp, ebp
-  pop ebp
-  ret
-'''
-
-ALLOCATE_LOCAL_VARIABLES = '''
-  ; allocate space for local variables
-  ;sub esp, {}
 '''
 
 EXIT = '''

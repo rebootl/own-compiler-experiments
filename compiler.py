@@ -388,12 +388,6 @@ def eval(expr, asm, depth = 0):
     check_arguments(args, 1, 'print')
     arg = args[0]
     if arg.startswith("'") and arg.endswith("'"):
-      # push string onto stack
-      #for char in reversed(arg[1:-1]):
-      #  asm += assembly.PUSH_CHAR.format(ord(char))
-      #asm += assembly.PRIMARIES[kw]
-      #asm += assembly.CLEAR_STACK.format(len(arg) * 4)
-
       # emit literal to .data section
       str_id = 'string_' + str(get_unique_count())
       LITERALS.append(assembly.DATA_STRING.format(
@@ -402,7 +396,7 @@ def eval(expr, asm, depth = 0):
       ))
       asm += assembly.PUSH_STR_REF.format(str_id)
       asm += assembly.CALL_EXTENSION[kw]
-      # -> clear stack
+
     else:
       sys.exit("Error: prints only accepts strings")
 

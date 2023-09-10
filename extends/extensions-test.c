@@ -13,8 +13,8 @@ int main(void) {
   print_i(42); // prints 42
   printf("\n");
 
-  println_i(43); // prints 42\n
-  println_i(0); // prints 0\n
+  //println_i(43); // prints 42\n
+  //println_i(0); // prints 0\n
 
   print("Hello"); // prints Hello
 

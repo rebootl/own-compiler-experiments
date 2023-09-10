@@ -2,7 +2,7 @@
 #define CONCAT_H
 
 void print_i(int n);
-void println_i(int n);
+//void println_i(int n);
 void print(char *s);
 void println();
 

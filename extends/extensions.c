@@ -9,15 +9,16 @@
 
 /* print functions */
 
+// fflush is needed, otherwise the output is not printed
+
 void print_i(int n) {
   printf("%d", n);
   fflush(stdout);
 }
 
-void println_i(int n) {
+/*void println_i(int n) {
   printf("%d\n", n);
-  fflush(stdout);
-}
+}*/
 
 void print(char *s) {
   printf("%s", s);
