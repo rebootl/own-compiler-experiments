@@ -253,6 +253,11 @@ def eval(expr, asm, depth = 0):
       asm += assembly.LITERAL.format(expr)
       return asm
 
+    if expr.startswith("'") and expr.endswith("'"):
+      # handled in print, var, set below
+      return asm
+
+  #print(expr)
   [ kw, args ] = expr
 
   if kw == "var":
@@ -379,8 +384,8 @@ def eval(expr, asm, depth = 0):
 
     return asm
 
-  if kw == 'prints':
-    check_arguments(args, 1, 'prints')
+  if kw == 'print':
+    check_arguments(args, 1, 'print')
     arg = args[0]
     if arg.startswith("'") and arg.endswith("'"):
       # push string onto stack
@@ -396,7 +401,7 @@ def eval(expr, asm, depth = 0):
         arg[1:-1]
       ))
       asm += assembly.PUSH_STR_REF.format(str_id)
-      asm += assembly.PRIMARIES[kw]
+      asm += assembly.CALL_EXTENSION[kw]
       # -> clear stack
     else:
       sys.exit("Error: prints only accepts strings")
@@ -518,9 +523,10 @@ def main():
     fns_asm += FUNCTIONS[fn]
 
   # combine main assembly code with header, built-in functions and footer
-  out = assembly.DATA + ''.join(LITERALS) + '\n' \
-    + assembly.HEAD.format(START_LABEL) \
-    + assembly.EXIT + assembly.PRINTCHAR + assembly.PRINT \
+  out = assembly.HEAD.format(START_LABEL) \
+    + assembly.DATA + ''.join(LITERALS) + '\n' \
+    + assembly.TEXT \
+    + assembly.EXIT \
     + fns_asm \
     + assembly.START.format(START_LABEL) \
     + main_asm + assembly.DEFAULT_EXIT
