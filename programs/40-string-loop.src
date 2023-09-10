@@ -1,0 +1,11 @@
+
+
+var(s, 'A')
+var(c, 0)
+
+while(lt(c, 5), {
+  print(s)
+  inc(c)
+})
+
+free_str(s)

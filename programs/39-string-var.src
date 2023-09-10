@@ -5,4 +5,8 @@ var(s, 'My 1st string.')
 
 print(s)
 
+print(s)
+
+print('Foo')
+
 free_str(s)

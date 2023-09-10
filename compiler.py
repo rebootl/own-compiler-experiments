@@ -254,7 +254,11 @@ def eval(expr, asm, depth = 0):
       return asm
 
     if expr.startswith("'") and expr.endswith("'"):
-      # handled in print, var, set below
+      # add literal to text section/literals
+      str_id = 'string_' + str(get_unique_count())
+      LITERALS.append(assembly.DATA_STRING.format(str_id, expr[1:-1]))
+      asm += assembly.LITERAL.format(str_id)
+      #asm += assembly.PUSH_STR_REF.format(str_id)
       return asm
 
     sys.exit("Error: unknown variable or literal: " + expr)
@@ -272,21 +276,20 @@ def eval(expr, asm, depth = 0):
     if args[0] in STACK_FRAMES[-1]['vars'][-1]:
       sys.exit("Redeclaration Error: '" + args[0] + "'")
 
-    #print(args[1])
+    # evaluate the argument
+    asm = eval(args[1], asm, depth + 1)
+    asm += assembly.PUSH_RESULT
+
     if type(args[1]) == str and args[1].startswith("'") and args[1].endswith("'"):
-      # add literal to text section/literals
-      str_id = 'string_' + str(get_unique_count())
-      LITERALS.append(assembly.DATA_STRING.format(str_id, args[1][1:-1]))
       # allocate string
-      asm += assembly.PUSH_STR_REF.format(str_id)
+      #asm += assembly.PUSH_STR_REF.format(str_id)
       asm += assembly.CALL_EXTENSION["allocate_str"]
 
       asm += assembly.PUSH_RESULT
-    else:
+    #else:
       # this pushes the value onto the stack in asm
       # we leave it there as a local variable
-      asm = eval(args[1], asm, depth + 1)
-      asm += assembly.PUSH_RESULT
+      #asm += assembly.PUSH_RESULT
 
     # store variable in comp.
     STACK_FRAMES[-1]['vars'][-1].append(args[0])
@@ -399,24 +402,27 @@ def eval(expr, asm, depth = 0):
 
   if kw == 'print':
     check_arguments(args, 1, 'print')
-    arg = args[0]
-    if arg.startswith("'") and arg.endswith("'"):
+
+    asm = eval(args[0], asm, depth + 1)
+    asm += assembly.PUSH_RESULT
+
+    #if arg.startswith("'") and arg.endswith("'"):
       # emit literal to .data section
-      str_id = 'string_' + str(get_unique_count())
-      LITERALS.append(assembly.DATA_STRING.format(str_id, arg[1:-1]))
-      asm += assembly.PUSH_STR_REF.format(str_id)
-      asm += assembly.CALL_EXTENSION[kw]
+      #str_id = 'string_' + str(get_unique_count())
+      #LITERALS.append(assembly.DATA_STRING.format(str_id, arg[1:-1]))
+      #asm += assembly.PUSH_STR_REF.format(str_id)
+    asm += assembly.CALL_EXTENSION[kw]
 
-    elif arg in STACK_FRAMES[-1]['vars'][-1]:
-      stack_pos = find_variable(args[0], STACK_FRAMES[-1]['vars'])
+    #elif arg in STACK_FRAMES[-1]['vars'][-1]:
+    #  stack_pos = find_variable(args[0], STACK_FRAMES[-1]['vars'])
+    #
+    #  asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+    #  asm += assembly.PUSH_RESULT
+    #  asm += assembly.CALL_EXTENSION[kw]
 
-      asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
-      asm += assembly.PUSH_RESULT
-      asm += assembly.CALL_EXTENSION[kw]
-
-    else:
-      sys.exit("Error variable not found: '" + args[0] + "'")
-      sys.exit("Error: prints only accepts strings")
+    #else:
+    #  sys.exit("Error variable not found: '" + args[0] + "'")
+      #sys.exit("Error: prints only accepts strings")
 
     return asm
 
