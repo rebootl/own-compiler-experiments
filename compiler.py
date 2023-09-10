@@ -257,6 +257,8 @@ def eval(expr, asm, depth = 0):
       # handled in print, var, set below
       return asm
 
+    sys.exit("Error: unknown variable or literal: " + expr)
+
   #print(expr)
   [ kw, args ] = expr
 
@@ -270,10 +272,21 @@ def eval(expr, asm, depth = 0):
     if args[0] in STACK_FRAMES[-1]['vars'][-1]:
       sys.exit("Redeclaration Error: '" + args[0] + "'")
 
-    # this pushes the value onto the stack in asm
-    # we leave it there as a local variable
-    asm = eval(args[1], asm, depth + 1)
-    asm += assembly.PUSH_RESULT
+    #print(args[1])
+    if type(args[1]) == str and args[1].startswith("'") and args[1].endswith("'"):
+      # add literal to text section/literals
+      str_id = 'string_' + str(get_unique_count())
+      LITERALS.append(assembly.DATA_STRING.format(str_id, args[1][1:-1]))
+      # allocate string
+      asm += assembly.PUSH_STR_REF.format(str_id)
+      asm += assembly.CALL_EXTENSION["allocate_str"]
+
+      asm += assembly.PUSH_RESULT
+    else:
+      # this pushes the value onto the stack in asm
+      # we leave it there as a local variable
+      asm = eval(args[1], asm, depth + 1)
+      asm += assembly.PUSH_RESULT
 
     # store variable in comp.
     STACK_FRAMES[-1]['vars'][-1].append(args[0])
@@ -390,14 +403,19 @@ def eval(expr, asm, depth = 0):
     if arg.startswith("'") and arg.endswith("'"):
       # emit literal to .data section
       str_id = 'string_' + str(get_unique_count())
-      LITERALS.append(assembly.DATA_STRING.format(
-        str_id,
-        arg[1:-1]
-      ))
+      LITERALS.append(assembly.DATA_STRING.format(str_id, arg[1:-1]))
       asm += assembly.PUSH_STR_REF.format(str_id)
       asm += assembly.CALL_EXTENSION[kw]
 
+    elif arg in STACK_FRAMES[-1]['vars'][-1]:
+      stack_pos = find_variable(args[0], STACK_FRAMES[-1]['vars'])
+
+      asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+      asm += assembly.PUSH_RESULT
+      asm += assembly.CALL_EXTENSION[kw]
+
     else:
+      sys.exit("Error variable not found: '" + args[0] + "'")
       sys.exit("Error: prints only accepts strings")
 
     return asm
@@ -412,9 +430,12 @@ def eval(expr, asm, depth = 0):
       asm += assembly.PUSH_RESULT
     asm += assembly.PRIMARIES[kw]
 
-  elif kw == "print":
-    check_arguments(args, 1, 'print')
-    asm += assembly.CALL_EXTENSION[kw].format(args[0])
+  #elif kw == "print":
+  #  check_arguments(args, 1, 'print')
+  #  asm += assembly.CALL_EXTENSION[kw].format(args[0])
+  elif kw == "free_str":
+    check_arguments(args, 1, 'free_str')
+    asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "print_i":
     check_arguments(args, 1, 'print_i')

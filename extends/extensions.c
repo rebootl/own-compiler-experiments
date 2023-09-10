@@ -16,9 +16,11 @@ void print_i(int n) {
   fflush(stdout);
 }
 
-/*void println_i(int n) {
+// (not used atm)
+void println_i(int n) {
   printf("%d\n", n);
-}*/
+  fflush(stdout);
+}
 
 void print(char *s) {
   printf("%s", s);
@@ -28,6 +30,20 @@ void print(char *s) {
 void println() {
   printf("\n");
   fflush(stdout);
+}
+
+char *allocate_str(char *s) {
+  char *result = malloc(strlen(s) + 1); //+1 for the zero-terminator
+  if (result == NULL) {
+      printf("malloc failed\n");
+      exit(1);
+  }
+  strcpy(result, s);
+  return result;
+}
+
+void free_str(char *s) {
+  free(s);
 }
 
 /* concat, string concatenation

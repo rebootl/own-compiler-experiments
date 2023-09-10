@@ -65,6 +65,16 @@ CALL_EXTENSION = {
   ; call println extension
   call println
 ''',
+  'allocate_str': '''
+  ; call allocate_str extension
+  call allocate_str
+  add esp, 4      ; clear stack
+''',
+  'free_str': '''
+  ; call free_str extension
+  call free_str
+  add esp, 4      ; clear stack
+''',
 }
 
 PRIMARIES = {
@@ -337,7 +347,7 @@ FUNCTION_CALL = '''
 
 ### built-in functions
 
-HEAD = '''extern print_i, println, print
+HEAD = '''extern print_i, println, print, allocate_str, free_str
 global {}
 '''
 

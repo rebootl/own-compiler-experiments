@@ -18,11 +18,15 @@ int main(void) {
 
   print("Hello"); // prints Hello
 
-  println("Hello"); // prints Hello\n
-  println(""); // prints \n
+  //println("Hello"); // prints Hello\n
+  println(); // prints \n
+
+  char *s = allocate_str("My String.");
+  print(s); // prints My String.
+  println(); // prints \n
+  free_str(s);
 
   /* test concat, string concatenation */
-
   char *s1 = "Hello";
   char *s2 = "World";
   char *s3 = concat(s1, s2);

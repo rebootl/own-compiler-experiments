@@ -3,4 +3,6 @@
 
 var(s, 'My 1st string.')
 
-print_is(s)
+print(s)
+
+free_str(s)
