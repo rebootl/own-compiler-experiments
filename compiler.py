@@ -11,7 +11,7 @@ OUTFILE = 'out.asm'
 
 COMMENT_CHAR = ';'
 
-#START_LABEL = '_start'
+# for ld linker use '_start'
 START_LABEL = 'main'
 
 def split_expressions(program):
@@ -224,7 +224,17 @@ def eval(expr, asm, depth = 0):
 
   """
 
-  #print(expr)
+  # first we check if the expression is a string,
+  # if it is, it can be:
+  #
+  # 1. a SYMBOL of a variable or a parameter
+  #             these are allocated on the stack, so we find
+  #             the stack position and load the value into the
+  #             return register
+  # 2. a DIGIT, currently this can be a positive or negative integer
+  #             we put the value into the return register
+  # 3. a STRING, a string literal, we add the string to the text section
+  #             and put the address into the return register
 
   if type(expr) == str:
 
@@ -242,29 +252,35 @@ def eval(expr, asm, depth = 0):
 
     if stack_pos is not None:
       asm += assembly.GET_PARAMETER.format(8 + stack_pos * 4)
-      return asm
 
-    if expr.isdigit():
+    elif expr.isdigit():
       asm += assembly.LITERAL.format(expr)
-      return asm
 
     # negative numbers
-    if expr.startswith('-') and expr[1:].isdigit():
+    elif expr.startswith('-') and expr[1:].isdigit():
       asm += assembly.LITERAL.format(expr)
-      return asm
 
-    if expr.startswith("'") and expr.endswith("'"):
+    elif expr.startswith("'") and expr.endswith("'"):
       # add literal to text section/literals
       str_id = 'string_' + str(get_unique_count())
       LITERALS.append(assembly.DATA_STRING.format(str_id, expr[1:-1]))
       asm += assembly.LITERAL.format(str_id)
-      #asm += assembly.PUSH_STR_REF.format(str_id)
-      return asm
 
-    sys.exit("Error: unknown variable or literal: " + expr)
+    else:
+      sys.exit("Error: unknown variable or literal: " + expr)
 
-  #print(expr)
+    return asm
+
+  # at this point we know we have an expression
+
   [ kw, args ] = expr
+
+  # first we handle cases, where the arguments need some special handling
+  # e.g. var takes a variable name and an expression, but if we parse the
+  # variable name now it would result in an error, because it is not yet
+  # defined
+  # -> idea: we could use a string for the variable names and then parse them
+  # regularly, (but this would be a bit ugly <-- this is what copilot thinks)
 
   if kw == "var":
     check_arguments(args, 2, 'var')
@@ -276,20 +292,16 @@ def eval(expr, asm, depth = 0):
     if args[0] in STACK_FRAMES[-1]['vars'][-1]:
       sys.exit("Redeclaration Error: '" + args[0] + "'")
 
-    # evaluate the argument
+    # evaluate the 2nd argument
     asm = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
+    # if the value is a string, we want to allocate it (in the heap)
     if type(args[1]) == str and args[1].startswith("'") and args[1].endswith("'"):
-      # allocate string
-      #asm += assembly.PUSH_STR_REF.format(str_id)
       asm += assembly.CALL_EXTENSION["allocate_str"]
-
+      # the result is the address of the allocated string
+      # we store it in the variable
       asm += assembly.PUSH_RESULT
-    #else:
-      # this pushes the value onto the stack in asm
-      # we leave it there as a local variable
-      #asm += assembly.PUSH_RESULT
 
     # store variable in comp.
     STACK_FRAMES[-1]['vars'][-1].append(args[0])
@@ -315,7 +327,6 @@ def eval(expr, asm, depth = 0):
 
   if kw == 'block':
     asm = eval_block(args[0], asm, depth)
-
     return asm
 
   if kw == 'if':
@@ -400,31 +411,14 @@ def eval(expr, asm, depth = 0):
 
     return asm
 
-  if kw == 'print':
-    check_arguments(args, 1, 'print')
+  #if kw == 'print':
+  #  check_arguments(args, 1, 'print')
 
-    asm = eval(args[0], asm, depth + 1)
-    asm += assembly.PUSH_RESULT
+  #  asm = eval(args[0], asm, depth + 1)
+  #  asm += assembly.PUSH_RESULT
+  #  asm += assembly.CALL_EXTENSION[kw]
 
-    #if arg.startswith("'") and arg.endswith("'"):
-      # emit literal to .data section
-      #str_id = 'string_' + str(get_unique_count())
-      #LITERALS.append(assembly.DATA_STRING.format(str_id, arg[1:-1]))
-      #asm += assembly.PUSH_STR_REF.format(str_id)
-    asm += assembly.CALL_EXTENSION[kw]
-
-    #elif arg in STACK_FRAMES[-1]['vars'][-1]:
-    #  stack_pos = find_variable(args[0], STACK_FRAMES[-1]['vars'])
-    #
-    #  asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
-    #  asm += assembly.PUSH_RESULT
-    #  asm += assembly.CALL_EXTENSION[kw]
-
-    #else:
-    #  sys.exit("Error variable not found: '" + args[0] + "'")
-      #sys.exit("Error: prints only accepts strings")
-
-    return asm
+  #  return asm
 
   for arg in args:
     asm = eval(arg, asm, depth + 1)
@@ -436,9 +430,10 @@ def eval(expr, asm, depth = 0):
       asm += assembly.PUSH_RESULT
     asm += assembly.PRIMARIES[kw]
 
-  #elif kw == "print":
-  #  check_arguments(args, 1, 'print')
-  #  asm += assembly.CALL_EXTENSION[kw].format(args[0])
+  elif kw == "print":
+    check_arguments(args, 1, 'print')
+    asm += assembly.CALL_EXTENSION[kw]
+
   elif kw == "free_str":
     check_arguments(args, 1, 'free_str')
     asm += assembly.CALL_EXTENSION[kw]
@@ -484,7 +479,6 @@ def eval(expr, asm, depth = 0):
   elif kw in assembly.COMPARISONS:
     check_arguments(args, 2, kw)
 
-    # this pushes the value onto the stack in asm
     asm += assembly.COMPARISONS[kw].format(get_unique_count())
 
   elif kw in assembly.LOGICALS:
