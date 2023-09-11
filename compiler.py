@@ -411,15 +411,6 @@ def eval(expr, asm, depth = 0):
 
     return asm
 
-  #if kw == 'print':
-  #  check_arguments(args, 1, 'print')
-
-  #  asm = eval(args[0], asm, depth + 1)
-  #  asm += assembly.PUSH_RESULT
-  #  asm += assembly.CALL_EXTENSION[kw]
-
-  #  return asm
-
   for arg in args:
     asm = eval(arg, asm, depth + 1)
     asm += assembly.PUSH_RESULT
@@ -531,19 +522,15 @@ def main():
   # evaluate program
   main_asm = ''
   for expr in parsed_expressions:
-    #print(expr)
     main_asm = eval(expr, main_asm)
-
-  fns_asm = ""
-  for fn in FUNCTIONS:
-    fns_asm += FUNCTIONS[fn]
 
   # combine main assembly code with header, built-in functions and footer
   out = assembly.HEAD.format(START_LABEL) \
-    + assembly.DATA + ''.join(LITERALS) + '\n' \
+    + assembly.DATA \
+    + ''.join(LITERALS) \
     + assembly.TEXT \
     + assembly.EXIT \
-    + fns_asm \
+    + ''.join(FUNCTIONS.values()) \
     + assembly.START.format(START_LABEL) \
     + main_asm + assembly.DEFAULT_EXIT
 

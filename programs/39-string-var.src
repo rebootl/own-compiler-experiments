@@ -5,8 +5,13 @@ var(s, 'My 1st string.')
 
 print(s)
 
-print(s)
+;print(s)
+
+var(b, s)
 
 print('Foo')
 
+print(b)
+
 free_str(s)
+;free_str(b) -> error -6
