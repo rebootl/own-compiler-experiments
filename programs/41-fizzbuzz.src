@@ -1,0 +1,27 @@
+
+
+function( fizzbuzz, [n], {
+
+  if( and( eq(0, mod(n, 3)), eq(0, mod(n, 5))), {
+    println('fizzbuzz')
+    return()
+  })
+
+  if( eq(0, mod(n, 3)), {
+    println('fizz')
+    return()
+  })
+
+  if( eq(0, mod(n, 5)), {
+    println('buzz')
+    return()
+  })
+  println_i(n)
+
+})
+
+var(i, 1)
+while( le(i, 15), {
+  fizzbuzz(i)
+  inc(i)
+})

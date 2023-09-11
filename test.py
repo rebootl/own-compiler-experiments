@@ -54,6 +54,7 @@ CASES = [
   [ 'programs/38-print-string.src', 'Hello World!', 0 ],
   [ 'programs/39-string-var.src', 'My 1st string.FooMy 1st string.', 0 ],
   [ 'programs/40-string-loop.src', 'AAAAA', 0 ],
+  [ 'programs/41-fizzbuzz.src', '1\n2\nfizz\n4\nbuzz\nfizz\n7\n8\nfizz\nbuzz\n11\nfizz\n13\n14\nfizzbuzz\n', 0 ],
 ]
 
 for case in CASES:
