@@ -46,6 +46,16 @@ void free_str(char *s) {
   free(s);
 }
 
+char *int_to_str(int n) {
+  char *result = malloc(12); // 12 is the max length of an int
+  if (result == NULL) {
+      printf("malloc failed\n");
+      exit(1);
+  }
+  sprintf(result, "%d", n);
+  return result;
+}
+
 /* concat, string concatenation
 
   s1: memory address of first string

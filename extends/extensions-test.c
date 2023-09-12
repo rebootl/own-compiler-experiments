@@ -26,6 +26,10 @@ int main(void) {
   println(); // prints \n
   free_str(s);
 
+  char *si = int_to_str(42);
+  print(si); // prints 42
+  println(); // prints \n
+
   /* test concat, string concatenation */
   char *s1 = "Hello";
   char *s2 = "World";

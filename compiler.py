@@ -445,6 +445,10 @@ def eval(expr, asm, depth = 0):
       asm += assembly.CALL_EXTENSION["print"]
       asm += assembly.CALL_EXTENSION[kw]
 
+  elif kw == "int_to_str":
+    check_arguments(args, 1, 'int_to_str')
+    asm += assembly.CALL_EXTENSION[kw]
+
   elif kw == "return":
     asm += assembly.PRIMARIES[kw]
 

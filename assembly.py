@@ -75,6 +75,11 @@ CALL_EXTENSION = {
   call free_str
   add esp, 4      ; clear stack
 ''',
+  'int_to_str': '''
+  ; call int_to_str extension
+  call int_to_str
+  add esp, 4      ; clear stack
+''',
 }
 
 PRIMARIES = {
@@ -347,7 +352,7 @@ FUNCTION_CALL = '''
 
 ### built-in functions
 
-HEAD = '''extern print_i, println, print, allocate_str, free_str
+HEAD = '''extern print_i, println, print, allocate_str, free_str, int_to_str
 global {}
 '''
 

@@ -9,6 +9,8 @@ void println();
 char *allocate_str(char *s);
 void free_str(char *s);
 
+char *int_to_str(int n);
+
 char *concat(char *s1, char *s2);
 
 #endif
