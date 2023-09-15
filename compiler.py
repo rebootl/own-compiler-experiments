@@ -155,6 +155,20 @@ STACK_FRAMES = [ {
       'vars': [ [] ],   # blocks
 } ]
 
+
+BUILTINS = {
+  'var': {
+    'args': [ 'SYMBOL', [ 'SYMBOL', 'LITERAL', 'INT', 'STRING' ] ],
+    'return': 'UNDEF',
+  },
+  'set': {
+    'args': [ 'SYMBOL', [ 'SYMBOL', 'LITERAL', 'INT', 'STRING' ] ],
+    'return': 'UNDEF',
+  },
+
+}
+
+
 UNIQUE_COUNTER = 0
 
 LOOP_IDS = []
@@ -178,7 +192,7 @@ def find_variable(name, stack_frame):
   c = 0
   for block in stack_frame:
     for var in block:
-      if var == name:
+      if var[0] == name:
         r = c
       c += 1
   return r
@@ -199,7 +213,7 @@ def eval_block(block, asm, depth):
 
   block_exprs = split_expressions(block.strip()[1:-1])
   for expr in block_exprs:
-    asm = eval(parse(expr), asm, depth + 1)
+    [ asm, _type ] = eval(parse(expr), asm, depth + 1)
 
   for var in STACK_FRAMES[-1]['vars'][-1]:
     asm += assembly.POP_LOCAL_VARIABLE
@@ -238,38 +252,39 @@ def eval(expr, asm, depth = 0):
 
   if type(expr) == str:
 
-    if expr == '': return asm
+    if expr == '': return [ asm, 'UNDEF' ]
 
     # check for variable
     stack_pos = find_variable(expr, STACK_FRAMES[-1]['vars'])
 
     if stack_pos is not None:
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
-      return asm
+      return [ asm, 'SYMBOL' ]
 
     # check for parameter
     stack_pos = find_parameter(expr, STACK_FRAMES[-1]['params'])
 
     if stack_pos is not None:
       asm += assembly.GET_PARAMETER.format(8 + stack_pos * 4)
+      return [ asm, 'SYMBOL' ]
 
-    elif expr.isdigit():
+    if expr.isdigit():
       asm += assembly.LITERAL.format(expr)
+      return [ asm, 'INT' ]
 
     # negative numbers
-    elif expr.startswith('-') and expr[1:].isdigit():
+    if expr.startswith('-') and expr[1:].isdigit():
       asm += assembly.LITERAL.format(expr)
+      return [ asm, 'INT' ]
 
-    elif expr.startswith("'") and expr.endswith("'"):
+    if expr.startswith("'") and expr.endswith("'"):
       # add literal to text section/literals
       str_id = 'string_' + str(get_unique_count())
       LITERALS.append(assembly.DATA_STRING.format(str_id, expr[1:-1]))
       asm += assembly.LITERAL.format(str_id)
+      return [ asm, 'STRING' ]
 
-    else:
-      sys.exit("Error: unknown variable or literal: " + expr)
-
-    return asm
+    sys.exit("Error: unknown variable or literal: " + expr)
 
   # at this point we know we have an expression
 
@@ -283,17 +298,21 @@ def eval(expr, asm, depth = 0):
   # regularly, (but this would be a bit ugly <-- this is what copilot thinks)
 
   if kw == "var":
+    # -> find the type of to 2nd argument
+    #_type = infer_type(args[1])
+
     check_arguments(args, 2, 'var')
 
     # check that variable name starts with a letter
     if not args[0][0].isalpha():
       sys.exit("Error: variable name must start with a letter")
 
-    if args[0] in STACK_FRAMES[-1]['vars'][-1]:
+    # check redeclaration
+    if find_variable(args[0], STACK_FRAMES[-1]['vars'][-1]) is not None:
       sys.exit("Redeclaration Error: '" + args[0] + "'")
 
     # evaluate the 2nd argument
-    asm = eval(args[1], asm, depth + 1)
+    [ asm, _type ] = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
     # if the value is a string, we want to allocate it (in the heap)
@@ -303,10 +322,10 @@ def eval(expr, asm, depth = 0):
       # we store it in the variable
       asm += assembly.PUSH_RESULT
 
-    # store variable in comp.
-    STACK_FRAMES[-1]['vars'][-1].append(args[0])
+    # store variable in compiler stack
+    STACK_FRAMES[-1]['vars'][-1].append([ args[0], 'TYPE' ])
 
-    return asm
+    return [ asm, 'UNDEF' ]
 
   if kw == 'set':
     check_arguments(args, 2, 'set')
@@ -316,25 +335,25 @@ def eval(expr, asm, depth = 0):
       sys.exit("Error setting undeclared variable: '" + args[0] + "'")
 
     # this pushes the value onto the stack in asm
-    asm = eval(args[1], asm, depth + 1)
+    [ asm, _type ] = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
     # this will consume the value on the stack top
     # and update the variable in the correct stack location
     asm += assembly.PRIMARIES[kw].format(4 + stack_pos * 4)
 
-    return asm
+    return [ asm, 'UNDEF' ]
 
   if kw == 'block':
     asm = eval_block(args[0], asm, depth)
-    return asm
+    return [ asm, 'BLOCK' ]
 
   if kw == 'if':
     # get id for block
     id = get_unique_count()
 
     # eval condition
-    asm = eval(args[0], asm, depth + 1)
+    [ asm, _type ] = eval(args[0], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
     asm += assembly.IF_START.format(id)
@@ -351,7 +370,7 @@ def eval(expr, asm, depth = 0):
 
     asm += assembly.IF_END.format(id)
 
-    return asm
+    return [ asm, 'BLOCK' ]
 
   if kw == 'while':
     # get id for block
@@ -360,7 +379,7 @@ def eval(expr, asm, depth = 0):
     asm += assembly.WHILE_START.format(id)
 
     # eval condition
-    asm = eval(args[0], asm, depth + 1)
+    [ asm, _type ] = eval(args[0], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
     # emit condition evaluation
@@ -372,7 +391,7 @@ def eval(expr, asm, depth = 0):
 
     asm += assembly.WHILE_END.format(id)
 
-    return asm
+    return [ asm, 'BLOCK' ]
 
   if kw == 'function':
     check_arguments(args, 3, 'function')
@@ -409,10 +428,10 @@ def eval(expr, asm, depth = 0):
 
     STACK_FRAMES.pop()
 
-    return asm
+    return [ asm, 'UNDEF' ]
 
   for arg in args:
-    asm = eval(arg, asm, depth + 1)
+    [ asm, _type ] = eval(arg, asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
   if kw == "exit":
@@ -500,7 +519,7 @@ def eval(expr, asm, depth = 0):
   else:
     sys.exit("Error: unknown keyword '" + kw + "'")
 
-  return asm
+  return [ asm, '' ]
 
 
 def main():
@@ -526,7 +545,7 @@ def main():
   # evaluate program
   main_asm = ''
   for expr in parsed_expressions:
-    main_asm = eval(expr, main_asm)
+    [ main_asm, _type ] = eval(expr, main_asm)
 
   # combine main assembly code with header, built-in functions and footer
   out = assembly.HEAD.format(START_LABEL) \
