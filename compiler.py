@@ -298,9 +298,6 @@ def eval(expr, asm, depth = 0):
   # regularly, (but this would be a bit ugly <-- this is what copilot thinks)
 
   if kw == "var":
-    # -> find the type of to 2nd argument
-    #_type = infer_type(args[1])
-
     check_arguments(args, 2, 'var')
 
     # check that variable name starts with a letter
@@ -315,15 +312,18 @@ def eval(expr, asm, depth = 0):
     [ asm, _type ] = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
+    if _type not in BUILTINS['var']['args'][1]:
+      sys.exit("Error: invalid type: '" + _type + "'" + " for variable: '" + args[0] + "'")
+
     # if the value is a string, we want to allocate it (in the heap)
-    if type(args[1]) == str and args[1].startswith("'") and args[1].endswith("'"):
+    if _type == 'STRING':
       asm += assembly.CALL_EXTENSION["allocate_str"]
       # the result is the address of the allocated string
       # we store it in the variable
       asm += assembly.PUSH_RESULT
 
     # store variable in compiler stack
-    STACK_FRAMES[-1]['vars'][-1].append([ args[0], 'TYPE' ])
+    STACK_FRAMES[-1]['vars'][-1].append([ args[0], _type ])
 
     return [ asm, 'UNDEF' ]
 
@@ -434,6 +434,8 @@ def eval(expr, asm, depth = 0):
     [ asm, _type ] = eval(arg, asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
+  rtype = 'UNDEF'
+
   if kw == "exit":
     if len(args) == 0:
       asm += assembly.LITERAL.format(0)
@@ -467,6 +469,7 @@ def eval(expr, asm, depth = 0):
   elif kw == "int_to_str":
     check_arguments(args, 1, 'int_to_str')
     asm += assembly.CALL_EXTENSION[kw]
+    rtype = 'STRING'
 
   elif kw == "return":
     asm += assembly.PRIMARIES[kw]
@@ -484,16 +487,19 @@ def eval(expr, asm, depth = 0):
     check_arguments(args, 1, kw)
 
     asm += assembly.UNARIES[kw]
+    rtype = 'INT'
 
   elif kw in assembly.BINARIES:
     check_arguments(args, 2, kw)
 
     asm += assembly.BINARIES[kw]
+    rtype = 'INT'
 
   elif kw in assembly.COMPARISONS:
     check_arguments(args, 2, kw)
 
     asm += assembly.COMPARISONS[kw].format(get_unique_count())
+    rtype = 'INT'
 
   elif kw in assembly.LOGICALS:
     if kw == 'not':
@@ -502,10 +508,12 @@ def eval(expr, asm, depth = 0):
       check_arguments(args, 2, kw)
 
     asm += assembly.LOGICALS[kw].format(get_unique_count())
+    rtype = 'INT'
 
   elif kw == 'check_overflow':
     id = get_unique_count()
     asm += assembly.CHECK_OVERFLOW.format(id)
+    rtype = 'INT'
 
   elif kw == 'break':
     asm += assembly.WHILE_BREAK.format(LOOP_IDS[-1])
@@ -516,10 +524,13 @@ def eval(expr, asm, depth = 0):
   elif kw in FUNCTIONS:
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
 
+    # -> this should be function return type later
+    rtype = 'INT'
+
   else:
     sys.exit("Error: unknown keyword '" + kw + "'")
 
-  return [ asm, '' ]
+  return [ asm, rtype ]
 
 
 def main():
