@@ -1,0 +1,19 @@
+
+
+
+var(s, 'My 1st string literal.')
+
+print(s)
+
+;print(s)
+
+;var(b, s)
+
+var(b, 'My 2nd string literal. longer.')
+
+print('Foo')
+
+print(b)
+
+;free_str(s)
+;free_str(b) -> error -6

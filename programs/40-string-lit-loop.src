@@ -8,4 +8,4 @@ while(lt(c, 5), {
   inc(c)
 })
 
-free_str(s)
+;free_str(s)

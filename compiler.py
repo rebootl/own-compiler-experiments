@@ -158,11 +158,11 @@ STACK_FRAMES = [ {
 
 BUILTINS = {
   'var': {
-    'args': [ 'SYMBOL', [ 'SYMBOL', 'LITERAL', 'INT', 'STRING' ] ],
+    'args': [ 'SYMBOL', [ 'SYMBOL', 'INT', 'STRING', 'STRING_LIT' ] ],
     'return': 'UNDEF',
   },
   'set': {
-    'args': [ 'SYMBOL', [ 'SYMBOL', 'LITERAL', 'INT', 'STRING' ] ],
+    'args': [ 'SYMBOL', [ 'SYMBOL', 'INT', 'STRING', 'STRING_LIT' ] ],
     'return': 'UNDEF',
   },
 
@@ -189,13 +189,15 @@ def find_variable(name, stack_frame):
   # we need to find the first occurrence, from the end (top) of the stack
   # but we want to return the index from the start (bottom)
   r = None
+  _type = None
   c = 0
   for block in stack_frame:
     for var in block:
       if var[0] == name:
         r = c
+        _type = var[1]
       c += 1
-  return r
+  return [ r, _type ]
 
 def find_parameter(name, stack_frame):
 
@@ -255,11 +257,11 @@ def eval(expr, asm, depth = 0):
     if expr == '': return [ asm, 'UNDEF' ]
 
     # check for variable
-    stack_pos = find_variable(expr, STACK_FRAMES[-1]['vars'])
+    [ stack_pos, vtype ] = find_variable(expr, STACK_FRAMES[-1]['vars'])
 
     if stack_pos is not None:
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
-      return [ asm, 'SYMBOL' ]
+      return [ asm, vtype ]
 
     # check for parameter
     stack_pos = find_parameter(expr, STACK_FRAMES[-1]['params'])
@@ -282,7 +284,7 @@ def eval(expr, asm, depth = 0):
       str_id = 'string_' + str(get_unique_count())
       LITERALS.append(assembly.DATA_STRING.format(str_id, expr[1:-1]))
       asm += assembly.LITERAL.format(str_id)
-      return [ asm, 'STRING' ]
+      return [ asm, 'STRING_LIT' ]
 
     sys.exit("Error: unknown variable or literal: " + expr)
 
@@ -305,7 +307,8 @@ def eval(expr, asm, depth = 0):
       sys.exit("Error: variable name must start with a letter")
 
     # check redeclaration
-    if find_variable(args[0], STACK_FRAMES[-1]['vars'][-1]) is not None:
+    [ stack_pos, vtype ] = find_variable(args[0], STACK_FRAMES[-1]['vars'][-1])
+    if stack_pos is not None:
       sys.exit("Redeclaration Error: '" + args[0] + "'")
 
     # evaluate the 2nd argument
@@ -316,11 +319,12 @@ def eval(expr, asm, depth = 0):
       sys.exit("Error: invalid type: '" + _type + "'" + " for variable: '" + args[0] + "'")
 
     # if the value is a string, we want to allocate it (in the heap)
-    if _type == 'STRING':
-      asm += assembly.CALL_EXTENSION["allocate_str"]
+    # => why ?
+    #if _type == 'STRING':
+    #  asm += assembly.CALL_EXTENSION["allocate_str"]
       # the result is the address of the allocated string
       # we store it in the variable
-      asm += assembly.PUSH_RESULT
+    #  asm += assembly.PUSH_RESULT
 
     # store variable in compiler stack
     STACK_FRAMES[-1]['vars'][-1].append([ args[0], _type ])
@@ -330,13 +334,17 @@ def eval(expr, asm, depth = 0):
   if kw == 'set':
     check_arguments(args, 2, 'set')
 
-    stack_pos = find_variable(args[0], STACK_FRAMES[-1]['vars'])
+    [ stack_pos, vtype ] = find_variable(args[0], STACK_FRAMES[-1]['vars'])
     if stack_pos is None:
       sys.exit("Error setting undeclared variable: '" + args[0] + "'")
 
     # this pushes the value onto the stack in asm
     [ asm, _type ] = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
+
+    if _type != vtype:
+      sys.exit("Error: Type mismatch variable: '" + args[0] + "'" + " expected: '" \
+        + vtype + "'" + " got: '" + _type + "'")
 
     # this will consume the value on the stack top
     # and update the variable in the correct stack location
@@ -477,7 +485,7 @@ def eval(expr, asm, depth = 0):
   elif kw == 'inc' or kw == 'dec':
     check_arguments(args, 1, 'inc/dec')
 
-    stack_pos = find_variable(args[0], STACK_FRAMES[-1]['vars'])
+    [ stack_pos, _type ] = find_variable(args[0], STACK_FRAMES[-1]['vars'])
     if stack_pos is None:
       sys.exit("Error in inc/dec: variable '" + args[0] + "' not found")
 
