@@ -616,8 +616,7 @@ def eval(expr, asm, depth = 0):
     check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'])
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
 
-    # -> this should be function return type later
-    rtype = 'INT'
+    rtype = FUNCTIONS[kw]['return_type']
 
   else:
     sys.exit("Error: unknown keyword '" + kw + "'")
