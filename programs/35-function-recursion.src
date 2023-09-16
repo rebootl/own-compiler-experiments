@@ -2,7 +2,7 @@
 
 
 
-function(r, [a], {
+function(r, [a], INT, {
 
   if( eq(a, 0), {
     return(0)

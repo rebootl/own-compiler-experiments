@@ -166,6 +166,8 @@ FUNCTIONS = {}
 
 LITERALS = []
 
+TYPES = [ 'UNDEF', 'INT', 'STRING_LIT', 'STRING' ]
+
 def get_unique_count():
   global UNIQUE_COUNTER
   UNIQUE_COUNTER += 1
@@ -413,11 +415,14 @@ def eval(expr, asm, depth = 0):
     return [ asm, 'BLOCK' ]
 
   if kw == 'function':
-    check_arguments(args, 3, 'function')
+    check_arguments(args, 4, 'function')
 
     # check that function name starts with a letter
     if not args[0][0].isalpha():
       sys.exit("Error: function name must start with a letter")
+
+    if args[2] not in TYPES:
+      sys.exit("Error: unknown type: '" + args[2] + "'" + " for function: '" + args[0] + "'")
 
     params = get_list_args(args[1])
 
@@ -425,8 +430,10 @@ def eval(expr, asm, depth = 0):
 
     # push a new frame onto the stack_frames
     STACK_FRAMES.append({
+      'name': args[0],
       'params': [],
       'vars': [],
+      'return_type': args[2]
     })
 
     # check that parameter names start with a letter
@@ -439,7 +446,7 @@ def eval(expr, asm, depth = 0):
     fn_asm = ""
     fn_asm += assembly.FUNCTION_START.format(args[0])
 
-    fn_asm = eval_block(args[2], fn_asm, 0)
+    fn_asm = eval_block(args[3], fn_asm, 0)
 
     fn_asm += assembly.FUNCTION_END.format(args[0])
 
@@ -447,7 +454,7 @@ def eval(expr, asm, depth = 0):
 
     STACK_FRAMES.pop()
 
-    return [ asm, 'UNDEF' ]
+    return [ asm, args[2] ]
 
   arg_types = []
   for i, arg in enumerate(args):
@@ -509,7 +516,28 @@ def eval(expr, asm, depth = 0):
     rtype = 'STRING'
 
   elif kw == "return":
-    # skip checking return type, can be any
+    rtype = STACK_FRAMES[-1]['return_type']
+    fname = STACK_FRAMES[-1]['name']
+
+    if rtype == 'UNDEF':
+      if len(args) != 0:
+        sys.exit("Error: return type UNDEF should not have any arguments:\n'" \
+          + "function: " + fname + ", arg: " + args[0] + "'")
+
+    if len(args) == 0:
+      if rtype != 'UNDEF':
+        sys.exit("Error: expected type " + rtype + " for return, got no arguments:\n'" \
+          + "function: " + fname + "'")
+
+    if len(args) == 1:
+      if arg_types[0] != rtype:
+        sys.exit("Error: expected type " + rtype + " for return, got " + arg_types[0] + ":\n'" \
+          + "function: " + fname + ", arg: " + args[0] + "'")
+
+    elif len(arg_types) > 1:
+      sys.exit("Error: return should have at most one argument:\n'" \
+        + "function: " + fname + ", arg: " + str(args) + "'")
+
     asm += assembly.PRIMARIES[kw]
 
   elif kw == 'inc' or kw == 'dec':

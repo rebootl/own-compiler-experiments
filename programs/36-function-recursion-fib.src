@@ -1,6 +1,6 @@
 
 
-function ( fib, [n], {
+function ( fib, [n], INT, {
 
   if ( eq(n, 0), {
     return(0)
