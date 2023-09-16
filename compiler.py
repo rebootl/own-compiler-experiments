@@ -158,20 +158,6 @@ STACK_FRAMES = [ {
       'vars': [ [] ],   # blocks
 } ]
 
-
-BUILTINS = {
-  'var': {
-    'args': [ 'SYMBOL', [ 'SYMBOL', 'INT', 'STRING', 'STRING_LIT' ] ],
-    'return': 'UNDEF',
-  },
-  'set': {
-    'args': [ 'SYMBOL', [ 'SYMBOL', 'INT', 'STRING', 'STRING_LIT' ] ],
-    'return': 'UNDEF',
-  },
-
-}
-
-
 UNIQUE_COUNTER = 0
 
 LOOP_IDS = []
@@ -214,6 +200,9 @@ def find_parameter(name, stack_frame):
 
 def eval_block(block, asm, depth):
 
+  if not block.startswith('{') or not block.endswith('}'):
+    sys.exit("Error: block does not start and end with curly braces: %s" % block)
+
   STACK_FRAMES[-1]['vars'].append([])
 
   block_exprs = split_expressions(block.strip()[1:-1])
@@ -233,6 +222,19 @@ def get_list_args(list_str):
 
   if r == ['']: return []
   return r
+
+
+def check_arg_types(kw, arg_types, expected_types):
+
+  if len(arg_types) != len(expected_types):
+    sys.exit("Error: expected %d arguments for %s, got %d" % (len(expected_types), kw, len(arg_types)))
+
+  for i, _type in enumerate(arg_types):
+    if type(expected_types[i]) == list:
+      if _type not in expected_types[i]:
+        sys.exit("Error: expected type %s for argument %d of %s, got %s" % (expected_types[i], i + 1, kw, _type))
+    elif _type != expected_types[i]:
+      sys.exit("Error: expected type %s for argument %d of %s, got %s" % (expected_types[i], i + 1, kw, _type))
 
 
 def eval(expr, asm, depth = 0):
@@ -318,7 +320,7 @@ def eval(expr, asm, depth = 0):
     [ asm, _type ] = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
-    if _type not in BUILTINS['var']['args'][1]:
+    if _type not in [ 'SYMBOL', 'INT', 'STRING', 'STRING_LIT' ]:
       sys.exit("Error: invalid type: '" + _type + "'" + " for variable: '" + args[0] + "'")
 
     # if the value is a string, we want to allocate it (in the heap)
@@ -367,6 +369,9 @@ def eval(expr, asm, depth = 0):
     [ asm, _type ] = eval(args[0], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
+    if _type != 'INT':
+      sys.exit("Error: if condition must be of type INT: '" + expr + "'")
+
     asm += assembly.IF_START.format(id)
 
     asm = eval_block(args[1], asm, depth)
@@ -392,6 +397,9 @@ def eval(expr, asm, depth = 0):
     # eval condition
     [ asm, _type ] = eval(args[0], asm, depth + 1)
     asm += assembly.PUSH_RESULT
+
+    if _type != 'INT':
+      sys.exit("Error: while condition must be of type INT: '" + expr + "'")
 
     # emit condition evaluation
     asm += assembly.WHILE_CONDITION_EVAL.format(id)
@@ -441,9 +449,13 @@ def eval(expr, asm, depth = 0):
 
     return [ asm, 'UNDEF' ]
 
-  for arg in args:
+  arg_types = []
+  for i, arg in enumerate(args):
     [ asm, _type ] = eval(arg, asm, depth + 1)
     asm += assembly.PUSH_RESULT
+
+    arg_types.append(_type)
+    #check_type(kw, i, _type)
 
   rtype = 'UNDEF'
 
@@ -451,22 +463,34 @@ def eval(expr, asm, depth = 0):
     if len(args) == 0:
       asm += assembly.LITERAL.format(0)
       asm += assembly.PUSH_RESULT
+    else:
+      check_arg_types(kw, arg_types, ['INT'])
     asm += assembly.PRIMARIES[kw]
 
   elif kw == "print":
-    check_arguments(args, 1, 'print')
+    #check_arguments(args, 1, 'print')
+    check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
     asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "free_str":
-    check_arguments(args, 1, 'free_str')
+    #check_arguments(args, 1, 'free_str')
+    check_arg_types(kw, arg_types, [ 'STRING' ])
     asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "print_i":
-    check_arguments(args, 1, 'print_i')
+    #check_arguments(args, 1, 'print_i')
+
+    # 35-function-recursion
+    # Error: expected type INT for argument 1 of print_i, got SYMBOL
+    #check_arg_types(kw, arg_types, [ 'INT' ])
     asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "println_i":
-    check_arguments(args, 1, 'println_i')
+    #check_arguments(args, 1, 'println_i')
+
+    # 35-function-recursion
+    # Error: expected type INT for argument 1 of print_i, got SYMBOL
+    #check_arg_types(kw, arg_types, [ 'INT' ])
     asm += assembly.CALL_EXTENSION["print_i"]
     asm += assembly.CALL_EXTENSION["println"]
 
@@ -474,19 +498,24 @@ def eval(expr, asm, depth = 0):
     if len(args) == 0:
       asm += assembly.CALL_EXTENSION[kw]
     else:
+      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
       asm += assembly.CALL_EXTENSION["print"]
       asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "int_to_str":
-    check_arguments(args, 1, 'int_to_str')
+    #check_arguments(args, 1, 'int_to_str')
+    check_arg_types(kw, arg_types, [ 'INT' ])
     asm += assembly.CALL_EXTENSION[kw]
     rtype = 'STRING'
 
   elif kw == "return":
+    # skip checking return type, can be any
     asm += assembly.PRIMARIES[kw]
 
   elif kw == 'inc' or kw == 'dec':
-    check_arguments(args, 1, 'inc/dec')
+    #check_arguments(args, 1, 'inc/dec')
+    # -> check that arg is a symbol
+    check_arg_types(kw, arg_types, [ 'INT' ])
 
     [ stack_pos, _type ] = find_variable(args[0], STACK_FRAMES[-1]['vars'])
     if stack_pos is None:
@@ -495,41 +524,49 @@ def eval(expr, asm, depth = 0):
     asm += assembly.PRIMARIES[kw].format(4 + stack_pos * 4)
 
   elif kw in assembly.UNARIES:
-    check_arguments(args, 1, kw)
+    #check_arguments(args, 1, kw)
+    check_arg_types(kw, arg_types, [ 'INT' ])
 
     asm += assembly.UNARIES[kw]
     rtype = 'INT'
 
   elif kw in assembly.BINARIES:
-    check_arguments(args, 2, kw)
+    #check_arguments(args, 2, kw)
+    #check_arg_types(kw, arg_types, [ 'INT', 'INT' ])
 
     asm += assembly.BINARIES[kw]
     rtype = 'INT'
 
   elif kw in assembly.COMPARISONS:
-    check_arguments(args, 2, kw)
+    #check_arguments(args, 2, kw)
+    #check_arg_types(kw, arg_types, [ 'INT', 'INT' ])
 
     asm += assembly.COMPARISONS[kw].format(get_unique_count())
     rtype = 'INT'
 
   elif kw in assembly.LOGICALS:
     if kw == 'not':
-      check_arguments(args, 1, kw)
+      #check_arguments(args, 1, kw)
+      check_arg_types(kw, arg_types, [ 'INT' ])
     else:
-      check_arguments(args, 2, kw)
+      #check_arguments(args, 2, kw)
+      check_arg_types(kw, arg_types, [ 'INT', 'INT' ])
 
     asm += assembly.LOGICALS[kw].format(get_unique_count())
     rtype = 'INT'
 
   elif kw == 'check_overflow':
+    check_arg_types(kw, arg_types, [])
     id = get_unique_count()
     asm += assembly.CHECK_OVERFLOW.format(id)
     rtype = 'INT'
 
   elif kw == 'break':
+    check_arg_types(kw, arg_types, [])
     asm += assembly.WHILE_BREAK.format(LOOP_IDS[-1])
 
   elif kw == 'continue':
+    check_arg_types(kw, arg_types, [])
     asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1])
 
   elif kw in FUNCTIONS:
