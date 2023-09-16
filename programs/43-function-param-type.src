@@ -1,0 +1,18 @@
+
+function(a, [n: INT, s: STRING_LIT], STRING_LIT, {
+
+  return(s)
+
+})
+
+
+function(b, [n: INT, s: STRING_LIT], INT, {
+
+  return(n)
+
+})
+
+
+print_i(b(123, 'ABC'))
+
+print(a(5, 'ABC'))

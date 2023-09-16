@@ -279,10 +279,15 @@ def eval(expr, asm, depth = 0):
 
     # check for parameter
     stack_pos = find_parameter(expr, STACK_FRAMES[-1]['params'])
+    #print(expr)
+    #print(stack_pos)
+    #print(STACK_FRAMES[-1])
 
     if stack_pos is not None:
+      _type = [ x for x in reversed(STACK_FRAMES[-1]['param_types']) ][stack_pos]
+
       asm += assembly.GET_PARAMETER.format(8 + stack_pos * 4)
-      return [ asm, 'SYMBOL' ]
+      return [ asm, _type ]
 
     if expr.isdigit():
       asm += assembly.LITERAL.format(expr)
@@ -446,6 +451,7 @@ def eval(expr, asm, depth = 0):
     STACK_FRAMES.append({
       'name': args[0],
       'params': [],
+      'param_types': types,
       'vars': [],
       'return_type': args[2]
     })
@@ -503,7 +509,7 @@ def eval(expr, asm, depth = 0):
 
     # 35-function-recursion
     # Error: expected type INT for argument 1 of print_i, got SYMBOL
-    #check_arg_types(kw, arg_types, [ 'INT' ])
+    check_arg_types(kw, arg_types, [ 'INT' ])
     asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "println_i":
@@ -511,7 +517,7 @@ def eval(expr, asm, depth = 0):
 
     # 35-function-recursion
     # Error: expected type INT for argument 1 of print_i, got SYMBOL
-    #check_arg_types(kw, arg_types, [ 'INT' ])
+    check_arg_types(kw, arg_types, [ 'INT' ])
     asm += assembly.CALL_EXTENSION["print_i"]
     asm += assembly.CALL_EXTENSION["println"]
 
@@ -574,24 +580,22 @@ def eval(expr, asm, depth = 0):
 
   elif kw in assembly.BINARIES:
     #check_arguments(args, 2, kw)
-    #check_arg_types(kw, arg_types, [ 'INT', 'INT' ])
+    check_arg_types(kw, arg_types, [ 'INT', 'INT' ])
 
     asm += assembly.BINARIES[kw]
     rtype = 'INT'
 
   elif kw in assembly.COMPARISONS:
     #check_arguments(args, 2, kw)
-    #check_arg_types(kw, arg_types, [ 'INT', 'INT' ])
+    check_arg_types(kw, arg_types, [ 'INT', 'INT' ])
 
     asm += assembly.COMPARISONS[kw].format(get_unique_count())
     rtype = 'INT'
 
   elif kw in assembly.LOGICALS:
     if kw == 'not':
-      #check_arguments(args, 1, kw)
       check_arg_types(kw, arg_types, [ 'INT' ])
     else:
-      #check_arguments(args, 2, kw)
       check_arg_types(kw, arg_types, [ 'INT', 'INT' ])
 
     asm += assembly.LOGICALS[kw].format(get_unique_count())
@@ -612,7 +616,6 @@ def eval(expr, asm, depth = 0):
     asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1])
 
   elif kw in FUNCTIONS:
-    #print(FUNCTIONS)
     check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'])
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
 
