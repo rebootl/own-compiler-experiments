@@ -9,7 +9,7 @@ print(s)
 
 ;var(b, s)
 
-var(b, 'My 2nd string literal. longer.')
+var(b, 'My 2nd string literal, longer.')
 
 print('Foo')
 

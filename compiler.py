@@ -73,6 +73,7 @@ def get_split_argstr(argstr):
   depth = 0
   block_depth = 0
   list_depth = 0
+  string_lit = False
 
   for c in argstr:
     if c == '(':
@@ -87,7 +88,9 @@ def get_split_argstr(argstr):
       list_depth += 1
     elif c == ']':
       list_depth -= 1
-    elif c == ',' and depth == 0 and block_depth == 0 and list_depth == 0:
+    elif c == "'":
+      string_lit = not string_lit
+    elif c == ',' and depth == 0 and block_depth == 0 and list_depth == 0 and not string_lit:
       split_argstr.append(arg.strip())
       arg = ''
       continue
