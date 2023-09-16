@@ -222,9 +222,16 @@ def get_list_args(list_str):
 
   r = [ x.strip() for x in list_str.strip()[1:-1].split(',') ]
 
-  if r == ['']: return []
-  return r
+  if r == ['']: return [ [], [] ]
 
+  args = []
+  types = []
+  for a in r:
+    [ arg, _type ] = a.split(':')
+    args.append(arg.strip())
+    types.append(_type.strip())
+
+  return [ args, types ]
 
 def check_arg_types(kw, arg_types, expected_types):
 
@@ -424,9 +431,16 @@ def eval(expr, asm, depth = 0):
     if args[2] not in TYPES:
       sys.exit("Error: unknown type: '" + args[2] + "'" + " for function: '" + args[0] + "'")
 
-    params = get_list_args(args[1])
-
-    FUNCTIONS[args[0]] = 1
+    [ params, types ] = get_list_args(args[1])
+    for t in types:
+      if t not in TYPES:
+        sys.exit("Error: unknown type: '" + t + "'" + " for function: '" + args[0] + "'")
+    #print(types)
+    FUNCTIONS[args[0]] = {
+      'param_types': types,
+      'return_type': args[2],
+      'asm': ''
+    }
 
     # push a new frame onto the stack_frames
     STACK_FRAMES.append({
@@ -450,7 +464,7 @@ def eval(expr, asm, depth = 0):
 
     fn_asm += assembly.FUNCTION_END.format(args[0])
 
-    FUNCTIONS[args[0]] = fn_asm
+    FUNCTIONS[args[0]]['asm'] = fn_asm
 
     STACK_FRAMES.pop()
 
@@ -598,6 +612,8 @@ def eval(expr, asm, depth = 0):
     asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1])
 
   elif kw in FUNCTIONS:
+    #print(FUNCTIONS)
+    check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'])
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
 
     # -> this should be function return type later
@@ -634,13 +650,17 @@ def main():
   for expr in parsed_expressions:
     [ main_asm, _type ] = eval(expr, main_asm)
 
+  fn_asm = ''
+  for fn in FUNCTIONS:
+    fn_asm += FUNCTIONS[fn]['asm']
+
   # combine main assembly code with header, built-in functions and footer
   out = assembly.HEAD.format(START_LABEL) \
     + assembly.DATA \
     + ''.join(LITERALS) \
     + assembly.TEXT \
     + assembly.EXIT \
-    + ''.join(FUNCTIONS.values()) \
+    + fn_asm \
     + assembly.START.format(START_LABEL) \
     + main_asm + assembly.DEFAULT_EXIT
 

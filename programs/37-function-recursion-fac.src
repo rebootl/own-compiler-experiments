@@ -1,5 +1,5 @@
 
-function( fac, [n], INT, {
+function( fac, [n: INT], INT, {
 
   if ( eq(n, 0), {
     return(1)

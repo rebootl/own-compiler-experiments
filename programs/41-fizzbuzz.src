@@ -1,6 +1,6 @@
 
 
-function( fizzbuzz, [n], UNDEF, {
+function( fizzbuzz, [n: INT], UNDEF, {
 
   if( and( eq(0, mod(n, 3)), eq(0, mod(n, 5))), {
     println('fizzbuzz')

@@ -1,7 +1,7 @@
 
 var(a, 10)
 
-function(add2, [a, b], INT, {
+function(add2, [a: INT, b: INT], INT, {
 
   ;print_i(a)
   ;println()
