@@ -152,18 +152,40 @@ def parse(expr):
 
   return [ kw, args ]
 
-
+# a list of stack frames used during compilation to keep track of parameters
+# and local variables
+# e.g.: [ {
+#   'name': <function name>,
+#   'params': [ [ <param name>, <param type> ], ... ],
+#   'vars': [ [ [ <var name>, <var type> ], ... ], ... ],
+#   'return_type': <return type>
+# } ]
+# during compilation, every function will push a new stack frame, and pop it
+# at the end of the function
+# to keep track of functions after their evaluation, we will use the FUNCTIONS
+# dictionary below
 STACK_FRAMES = [ {
-      'params': [],
-      'vars': [ [] ],   # blocks
+    'name': 'main',
+    'params': [],
+    'vars': [ [] ],   # blocks
+    'return_type': 'UNDEF'
 } ]
 
+# a simple unique counter
 UNIQUE_COUNTER = 0
 
+# a list of loop ids, we need these for break/continue
 LOOP_IDS = []
 
+# functions of the form:
+#   'fn': {
+#     'param_types': [ 'INT', 'INT', ... ]
+#     'return_type': 'INT',
+#     'asm': 'asm code'
+#    }
 FUNCTIONS = {}
 
+# assembly code of the literals that will go to the data section
 LITERALS = []
 
 TYPES = [ 'UNDEF', 'INT', 'STRING_LIT', 'STRING' ]
@@ -175,7 +197,7 @@ def get_unique_count():
 
 def find_variable(name, stack_frame):
 
-  """find the stack position of a variable"""
+  """find the stack position of a variable, also return its type"""
 
   # we need to find the first occurrence, from the end (top) of the stack
   # but we want to return the index from the start (bottom)
@@ -192,15 +214,23 @@ def find_variable(name, stack_frame):
 
 def find_parameter(name, stack_frame):
 
-  """find the stack position of a parameter"""
+  """find the stack position of a parameter, also return its type"""
 
   # we need to find the first occurrence, from the end (top) of the stack
   for i, param in enumerate(reversed(stack_frame)):
     if param[0] == name:
-      return i
-  return None
+      return [ i, param[1] ]
+  return [ None, None ]
 
 def eval_block(block, asm, depth):
+
+  """evaluate a block of expressions of the form:
+
+  '{ <expr> [, <expr>]* }'
+
+  it creates and destroys a new scope for local variables
+
+  """
 
   if not block.startswith('{') or not block.endswith('}'):
     sys.exit("Error: block does not start and end with curly braces: %s" % block)
@@ -218,22 +248,40 @@ def eval_block(block, asm, depth):
 
   return asm
 
-def get_list_args(list_str):
+def parse_param_str(param_str):
 
-  r = [ x.strip() for x in list_str.strip()[1:-1].split(',') ]
+  """parse a parameter string of the form:
 
-  if r == ['']: return [ [], [] ]
+  '[ <name>:<type> [, <name>:<type>]* ]'
 
-  args = []
-  types = []
-  for a in r:
-    [ arg, _type ] = a.split(':')
-    args.append(arg.strip())
-    types.append(_type.strip())
+  into a list of parameters, e.g.:
 
-  return [ args, types ]
+  [ [ "a", "INT" ], [ "b", "INT" ] ]
+
+  """
+
+  param_str = param_str.strip()[1:-1]
+
+  if param_str == '':
+    return []
+
+  params = []
+  for param in param_str.split(','):
+    [ name, _type ] = param.split(':')
+    params.append([ name.strip(), _type.strip() ])
+
+  return params
+
 
 def check_arg_types(kw, arg_types, expected_types):
+
+  """this just compares two lists of types, and exits with an error if they don't match,
+
+  e.g. check_arg_types('add', ['INT', 'INT'], ['INT', 'INT'])
+
+  kw is used for the error message only
+
+  """
 
   if len(arg_types) != len(expected_types):
     sys.exit("Error: expected %d arguments for %s, got %d" % (len(expected_types), kw, len(arg_types)))
@@ -254,8 +302,8 @@ def eval(expr, asm, depth = 0):
 
   """
 
-  # first we check if the expression is a string,
-  # if it is, it can be:
+  # 1) first we check if the expression is a string,
+  #    if it is, it can be:
   #
   # 1. a SYMBOL of a variable or a parameter
   #             these are allocated on the stack, so we find
@@ -271,18 +319,16 @@ def eval(expr, asm, depth = 0):
     if expr == '': return [ asm, 'UNDEF' ]
 
     # check for variable
-    [ stack_pos, vtype ] = find_variable(expr, STACK_FRAMES[-1]['vars'])
+    [ stack_pos, _type ] = find_variable(expr, STACK_FRAMES[-1]['vars'])
 
     if stack_pos is not None:
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
-      return [ asm, vtype ]
+      return [ asm, _type ]
 
     # check for parameter
-    stack_pos = find_parameter(expr, STACK_FRAMES[-1]['params'])
+    [ stack_pos, _type ] = find_parameter(expr, STACK_FRAMES[-1]['params'])
 
     if stack_pos is not None:
-      _type = [ x for x in reversed(STACK_FRAMES[-1]['param_types']) ][stack_pos]
-
       asm += assembly.GET_PARAMETER.format(8 + stack_pos * 4)
       return [ asm, _type ]
 
@@ -308,10 +354,10 @@ def eval(expr, asm, depth = 0):
 
   [ kw, args ] = expr
 
-  # first we handle cases, where the arguments need some special handling
-  # e.g. var takes a variable name and an expression, but if we parse the
-  # variable name now it would result in an error, because it is not yet
-  # defined
+  # 2) first we handle cases, where the arguments need some special handling
+  #    e.g. var takes a variable name and an expression, but if we parse the
+  #    variable name now it would result in an error, because it is not yet
+  #    defined
   # -> idea: we could use a string for the variable names and then parse them
   # regularly, (but this would be a bit ugly <-- this is what copilot thinks)
 
@@ -331,16 +377,8 @@ def eval(expr, asm, depth = 0):
     [ asm, _type ] = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
-    if _type not in [ 'SYMBOL', 'INT', 'STRING', 'STRING_LIT' ]:
+    if _type not in [ 'INT', 'STRING', 'STRING_LIT' ]:
       sys.exit("Error: invalid type: '" + _type + "'" + " for variable: '" + args[0] + "'")
-
-    # if the value is a string, we want to allocate it (in the heap)
-    # => why ?
-    #if _type == 'STRING':
-    #  asm += assembly.CALL_EXTENSION["allocate_str"]
-      # the result is the address of the allocated string
-      # we store it in the variable
-    #  asm += assembly.PUSH_RESULT
 
     # store variable in compiler stack
     STACK_FRAMES[-1]['vars'][-1].append([ args[0], _type ])
@@ -433,13 +471,13 @@ def eval(expr, asm, depth = 0):
     if args[2] not in TYPES:
       sys.exit("Error: unknown type: '" + args[2] + "'" + " for function: '" + args[0] + "'")
 
-    [ params, types ] = get_list_args(args[1])
-    for t in types:
-      if t not in TYPES:
-        sys.exit("Error: unknown type: '" + t + "'" + " for function: '" + args[0] + "'")
+    params = parse_param_str(args[1])
+    for param in params:
+      if param[1] not in TYPES:
+        sys.exit("Error: unknown type: '" + param[1] + "'" + " for parameter: '" + param[0] + "'")
 
     FUNCTIONS[args[0]] = {
-      'param_types': types,
+      'param_types': [ x[1] for x in params ],
       'return_type': args[2],
       'asm': ''
     }
@@ -448,14 +486,13 @@ def eval(expr, asm, depth = 0):
     STACK_FRAMES.append({
       'name': args[0],
       'params': [],
-      'param_types': types,
       'vars': [],
       'return_type': args[2]
     })
 
     # check that parameter names start with a letter
     for param in params:
-      if not param[0].isalpha():
+      if not param[0][0].isalpha():
         sys.exit("Error: parameter name must start with a letter")
 
       STACK_FRAMES[-1]['params'].append(param)
@@ -472,6 +509,9 @@ def eval(expr, asm, depth = 0):
     STACK_FRAMES.pop()
 
     return [ asm, args[2] ]
+
+  # 3) now we handle the remaining cases where all arguments
+  #    can be evaluated and pushed onto the stack
 
   arg_types = []
   for i, arg in enumerate(args):
