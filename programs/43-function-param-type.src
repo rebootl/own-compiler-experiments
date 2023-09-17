@@ -5,10 +5,15 @@ function(a, [n: INT, s: STRING_LIT], STRING_LIT, {
 
 })
 
-
 function(b, [n: INT, s: STRING_LIT], INT, {
 
   return(n)
+
+})
+
+function(c, [n: INT], INT, {
+
+  return( b(n, 'ABC') )
 
 })
 
@@ -16,3 +21,5 @@ function(b, [n: INT, s: STRING_LIT], INT, {
 print_i(b(123, 'ABC'))
 
 print(a(5, 'ABC'))
+
+print_i(c(456))
