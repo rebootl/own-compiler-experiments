@@ -279,9 +279,6 @@ def eval(expr, asm, depth = 0):
 
     # check for parameter
     stack_pos = find_parameter(expr, STACK_FRAMES[-1]['params'])
-    #print(expr)
-    #print(stack_pos)
-    #print(STACK_FRAMES[-1])
 
     if stack_pos is not None:
       _type = [ x for x in reversed(STACK_FRAMES[-1]['param_types']) ][stack_pos]
@@ -440,7 +437,7 @@ def eval(expr, asm, depth = 0):
     for t in types:
       if t not in TYPES:
         sys.exit("Error: unknown type: '" + t + "'" + " for function: '" + args[0] + "'")
-    #print(types)
+
     FUNCTIONS[args[0]] = {
       'param_types': types,
       'return_type': args[2],
@@ -482,7 +479,6 @@ def eval(expr, asm, depth = 0):
     asm += assembly.PUSH_RESULT
 
     arg_types.append(_type)
-    #check_type(kw, i, _type)
 
   rtype = 'UNDEF'
 
@@ -495,28 +491,18 @@ def eval(expr, asm, depth = 0):
     asm += assembly.PRIMARIES[kw]
 
   elif kw == "print":
-    #check_arguments(args, 1, 'print')
     check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
     asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "free_str":
-    #check_arguments(args, 1, 'free_str')
     check_arg_types(kw, arg_types, [ 'STRING' ])
     asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "print_i":
-    #check_arguments(args, 1, 'print_i')
-
-    # 35-function-recursion
-    # Error: expected type INT for argument 1 of print_i, got SYMBOL
     check_arg_types(kw, arg_types, [ 'INT' ])
     asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "println_i":
-    #check_arguments(args, 1, 'println_i')
-
-    # 35-function-recursion
-    # Error: expected type INT for argument 1 of print_i, got SYMBOL
     check_arg_types(kw, arg_types, [ 'INT' ])
     asm += assembly.CALL_EXTENSION["print_i"]
     asm += assembly.CALL_EXTENSION["println"]
@@ -530,7 +516,6 @@ def eval(expr, asm, depth = 0):
       asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "int_to_str":
-    #check_arguments(args, 1, 'int_to_str')
     check_arg_types(kw, arg_types, [ 'INT' ])
     asm += assembly.CALL_EXTENSION[kw]
     rtype = 'STRING'
@@ -561,8 +546,6 @@ def eval(expr, asm, depth = 0):
     asm += assembly.PRIMARIES[kw]
 
   elif kw == 'inc' or kw == 'dec':
-    #check_arguments(args, 1, 'inc/dec')
-    # -> check that arg is a symbol
     check_arg_types(kw, arg_types, [ 'INT' ])
 
     [ stack_pos, _type ] = find_variable(args[0], STACK_FRAMES[-1]['vars'])
@@ -572,21 +555,18 @@ def eval(expr, asm, depth = 0):
     asm += assembly.PRIMARIES[kw].format(4 + stack_pos * 4)
 
   elif kw in assembly.UNARIES:
-    #check_arguments(args, 1, kw)
     check_arg_types(kw, arg_types, [ 'INT' ])
 
     asm += assembly.UNARIES[kw]
     rtype = 'INT'
 
   elif kw in assembly.BINARIES:
-    #check_arguments(args, 2, kw)
     check_arg_types(kw, arg_types, [ 'INT', 'INT' ])
 
     asm += assembly.BINARIES[kw]
     rtype = 'INT'
 
   elif kw in assembly.COMPARISONS:
-    #check_arguments(args, 2, kw)
     check_arg_types(kw, arg_types, [ 'INT', 'INT' ])
 
     asm += assembly.COMPARISONS[kw].format(get_unique_count())
