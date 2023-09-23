@@ -12,5 +12,10 @@
 ;})
 
 var(s, int_to_str(123))
-print(s)
-free_str(s)
+print(int_to_str(123))
+;free_str(s)
+
+; -> move occurs here
+; s is invalidated ('UNDEF')
+;var(b, s)
+;print(s)

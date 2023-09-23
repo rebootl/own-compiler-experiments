@@ -294,6 +294,16 @@ def check_arg_types(kw, arg_types, expected_types):
       sys.exit("Error: expected type %s for argument %d of %s, got %s" % (expected_types[i], i + 1, kw, _type))
 
 
+# def free_block_varibles(block, asm):
+#   for var in block:
+#     asm += assembly.POP_LOCAL_VARIABLE
+#     # -> free block allocations
+#     if var[1] == 'STRING':
+#       [ stack_pos, _type ] = find_variable(var[0], STACK_FRAMES[-1]['vars'])
+#       asm += assembly.PUSH_STR_REF.format(4 + stack_pos * 4)
+#       asm += assembly.CALL_EXTENSION['free_str']
+
+
 def eval(expr, asm, depth = 0):
 
   """evaluate an expression of the form:
@@ -380,6 +390,17 @@ def eval(expr, asm, depth = 0):
     if _type not in [ 'INT', 'STRING', 'STRING_LIT' ]:
       sys.exit("Error: invalid type: '" + _type + "'" + " for variable: '" + args[0] + "'")
 
+    # -> if the 2nd argument is a variable and it is a string, we want to
+    # set it's type to 'UNDEF' (in order to avoid freeing it twice)
+    # this is equivalent to a move of ownership
+    #
+    # alternatively we could allocate a string on the heap and copy
+    # the value of the variable
+    if _type == 'STRING':
+      for var in STACK_FRAMES[-1]['vars'][-1]:
+        if var[0] == args[1]:
+          var[1] = 'UNDEF'
+
     # store variable in compiler stack
     STACK_FRAMES[-1]['vars'][-1].append([ args[0], _type ])
 
@@ -399,6 +420,12 @@ def eval(expr, asm, depth = 0):
     if _type != vtype:
       sys.exit("Error: Type mismatch variable: '" + args[0] + "'" + " expected: '" \
         + vtype + "'" + " got: '" + _type + "'")
+
+    # same as for var above
+    if _type == 'STRING':
+      for var in STACK_FRAMES[-1]['vars'][-1]:
+        if var[0] == args[1]:
+          var[1] = 'UNDEF'
 
     # this will consume the value on the stack top
     # and update the variable in the correct stack location
@@ -532,7 +559,14 @@ def eval(expr, asm, depth = 0):
 
   elif kw == "print":
     check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
-    asm += assembly.CALL_EXTENSION[kw]
+
+    # -> if the argument is a function call, that returns a string
+    #    we need to free the string after printing it
+    #print(args[0])
+    if arg_types[0] == 'STRING' and type(args[0]) == list:
+      asm += assembly.CALL_EXTENSION['print_free']
+    else:
+      asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "free_str":
     check_arg_types(kw, arg_types, [ 'STRING' ])
@@ -583,6 +617,15 @@ def eval(expr, asm, depth = 0):
       sys.exit("Error: return should have at most one argument:\n'" \
         + "function: " + fname + ", arg: " + str(args) + "'")
 
+    # -> variables that have memory allocated should be freed here
+    #    except for the return value
+    # for block in STACK_FRAMES[-1]['vars']:
+    #   for var in block:
+    #     if var[1] == 'STRING' and var[0] != args[0]:
+    #       [ stack_pos, _type ] = find_variable(var[0], STACK_FRAMES[-1]['vars'])
+    #       asm += assembly.PUSH_STR_REF.format(4 + stack_pos * 4)
+    #       asm += assembly.CALL_EXTENSION['free_str']
+
     asm += assembly.PRIMARIES[kw]
 
   elif kw == 'inc' or kw == 'dec':
@@ -630,14 +673,22 @@ def eval(expr, asm, depth = 0):
   elif kw == 'break':
     check_arg_types(kw, arg_types, [])
     asm += assembly.WHILE_BREAK.format(LOOP_IDS[-1])
+    # -> pop block variables
+    # for var in STACK_FRAMES[-1]['vars'][-1]:
+    #   asm += assembly.POP_LOCAL_VARIABLE
+    #   # -> free block allocations
+    #   if var[1] == 'STRING':
+    #     free_string_varible(var[0], asm)
 
   elif kw == 'continue':
     check_arg_types(kw, arg_types, [])
     asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1])
+    # -> free block allocations
 
   elif kw in FUNCTIONS:
     check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'])
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
+    # -> free stack frame allocations
 
     rtype = FUNCTIONS[kw]['return_type']
 

@@ -61,6 +61,12 @@ CALL_EXTENSION = {
   call print
   add esp, 4      ; clear stack
 ''',
+  'print_free': '''
+  ; call print extension
+  call print
+  call free_str
+  add esp, 4      ; clear stack
+''',
   'println': '''
   ; call println extension
   call println
