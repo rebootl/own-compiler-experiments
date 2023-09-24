@@ -1,0 +1,20 @@
+
+function(p, [s: STRING], STRING, {
+  ; parameter is not freed
+  return(s)
+})
+
+function(q, [], STRING, {
+  var(x, int_to_str(123))
+  var(y, int_to_str(123))
+  var(z, int_to_str(123))
+
+  return(x)
+})
+
+
+var(s, int_to_str(123))
+p(s)
+print(s)
+
+print(q())

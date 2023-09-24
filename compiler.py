@@ -14,6 +14,9 @@ COMMENT_CHAR = ';'
 # for ld linker use '_start'
 START_LABEL = 'main'
 
+def flatten(l):
+  return [item for sublist in l for item in sublist]
+
 def split_expressions(program):
 
   """split a program into a list of expressions,
@@ -201,16 +204,13 @@ def find_variable(name, stack_frame):
 
   # we need to find the first occurrence, from the end (top) of the stack
   # but we want to return the index from the start (bottom)
-  r = None
-  _type = None
-  c = 0
-  for block in stack_frame:
-    for var in block:
-      if var[0] == name:
-        r = c
-        _type = var[1]
-      c += 1
-  return [ r, _type ]
+
+  # [ <stack_position>, <type> ]
+  r = [ None, None ]
+  for i, var in enumerate(flatten(stack_frame)):
+    if var[0] == name:
+      r = [ i, var[1] ]
+  return r
 
 def find_parameter(name, stack_frame):
 
@@ -241,6 +241,9 @@ def eval_block(block, asm, depth):
   for expr in block_exprs:
     [ asm, _type ] = eval(parse(expr), asm, depth + 1)
 
+  # -> if the block was a function scope, we wouldn't actually have to pop
+  #    the variables here, because the stack frame takes care of that
+  #    but we want to free the memory of the variables in the block
   for var in STACK_FRAMES[-1]['vars'][-1]:
     asm += assembly.POP_LOCAL_VARIABLE
 
@@ -537,6 +540,37 @@ def eval(expr, asm, depth = 0):
 
     return [ asm, args[2] ]
 
+  if kw == "return":
+    rtype = STACK_FRAMES[-1]['return_type']
+    fname = STACK_FRAMES[-1]['name']
+
+    if (rtype == 'UNDEF' and len(args) != 0) or \
+       (rtype != 'UNDEF' and len(args) == 0) or \
+        len(args) > 1:
+      sys.exit("Error: Wrong number of arguments for return: '" + fname + "'")
+
+    # -> variables that have memory allocated should be freed here
+    #    except for the return value
+    # (this has to be done before the argument evaluation)
+    for i, var in enumerate(flatten(STACK_FRAMES[-1]['vars'])):
+      if var[1] == 'STRING' and var[0] != args[0]:
+        asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
+        asm += assembly.PUSH_RESULT
+        asm += assembly.CALL_EXTENSION['free_str']
+
+    if len(args) > 0:
+      [ asm, _type ] = eval(args[0], asm, depth + 1)
+      # we want to use eax as the return register, not the stack
+      #asm += assembly.PUSH_RESULT
+
+      if _type != rtype:
+        sys.exit("Error: expected type " + rtype + " for return, got " + _type + ":\n'" \
+          + "function: " + fname + ", arg: " + args[0] + "'")
+
+    asm += assembly.PRIMARIES[kw]
+
+    return [ asm, rtype ]
+
   # 3) now we handle the remaining cases where all arguments
   #    can be evaluated and pushed onto the stack
 
@@ -562,7 +596,7 @@ def eval(expr, asm, depth = 0):
 
     # -> if the argument is a function call, that returns a string
     #    we need to free the string after printing it
-    #print(args[0])
+    #    (because it has no other owner)
     if arg_types[0] == 'STRING' and type(args[0]) == list:
       asm += assembly.CALL_EXTENSION['print_free']
     else:
@@ -593,40 +627,6 @@ def eval(expr, asm, depth = 0):
     check_arg_types(kw, arg_types, [ 'INT' ])
     asm += assembly.CALL_EXTENSION[kw]
     rtype = 'STRING'
-
-  elif kw == "return":
-    rtype = STACK_FRAMES[-1]['return_type']
-    fname = STACK_FRAMES[-1]['name']
-
-    if rtype == 'UNDEF':
-      if len(args) != 0:
-        sys.exit("Error: return type UNDEF should not have any arguments:\n'" \
-          + "function: " + fname + ", arg: " + args[0] + "'")
-
-    if len(args) == 0:
-      if rtype != 'UNDEF':
-        sys.exit("Error: expected type " + rtype + " for return, got no arguments:\n'" \
-          + "function: " + fname + "'")
-
-    if len(args) == 1:
-      if arg_types[0] != rtype:
-        sys.exit("Error: expected type " + rtype + " for return, got " + arg_types[0] + ":\n'" \
-          + "function: " + fname + ", arg: " + args[0] + "'")
-
-    elif len(arg_types) > 1:
-      sys.exit("Error: return should have at most one argument:\n'" \
-        + "function: " + fname + ", arg: " + str(args) + "'")
-
-    # -> variables that have memory allocated should be freed here
-    #    except for the return value
-    # for block in STACK_FRAMES[-1]['vars']:
-    #   for var in block:
-    #     if var[1] == 'STRING' and var[0] != args[0]:
-    #       [ stack_pos, _type ] = find_variable(var[0], STACK_FRAMES[-1]['vars'])
-    #       asm += assembly.PUSH_STR_REF.format(4 + stack_pos * 4)
-    #       asm += assembly.CALL_EXTENSION['free_str']
-
-    asm += assembly.PRIMARIES[kw]
 
   elif kw == 'inc' or kw == 'dec':
     check_arg_types(kw, arg_types, [ 'INT' ])

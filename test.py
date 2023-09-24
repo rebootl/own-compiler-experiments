@@ -57,6 +57,7 @@ CASES = [
   [ 'programs/41-fizzbuzz.src', '1\n2\nfizz\n4\nbuzz\nfizz\n7\n8\nfizz\nbuzz\n11\nfizz\n13\n14\nfizzbuzz\n', 0 ],
   [ 'programs/42-int_to_str.src', '123', 0 ],
   [ 'programs/43-function-param-type.src', '123ABC456', 0 ],
+  [ 'programs/44-return_free.src', '123', 0 ],
 ]
 
 for case in CASES:
