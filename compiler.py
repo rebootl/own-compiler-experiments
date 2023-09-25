@@ -178,6 +178,9 @@ STACK_FRAMES = [ {
 UNIQUE_COUNTER = 0
 
 # a list of loop ids, we need these for break/continue
+# form: [ [ <loop id>, <position of the loop in the block stack> ], ... ]
+# the position in the block stack is used to free the variables,
+# when using break or continue
 LOOP_IDS = []
 
 # functions of the form:
@@ -306,6 +309,24 @@ def check_arg_types(kw, arg_types, expected_types):
 #       asm += assembly.PUSH_STR_REF.format(4 + stack_pos * 4)
 #       asm += assembly.CALL_EXTENSION['free_str']
 
+def free_at_loop_break(asm):
+  # -> this code is kind of terrible... we keep track of the position
+  #    of the loop block in the stack of blocks in the LOOP_IDS list,
+  #    when breaking we need to free all the variables in the block
+  #    and subsequent blocks
+  stack_position_start = len((flatten(STACK_FRAMES[-1]['vars'][:LOOP_IDS[-1][1]])))
+  stack_position_end = len((flatten(STACK_FRAMES[-1]['vars'])))
+  # free first
+  for i in range(stack_position_start, stack_position_end):
+    if flatten(STACK_FRAMES[-1]['vars'])[i][1] == 'STRING':
+      asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
+      asm += assembly.PUSH_RESULT
+      asm += assembly.CALL_EXTENSION['free_str']
+  # then pop
+  for i in range(stack_position_start, stack_position_end):
+    asm += assembly.POP_LOCAL_VARIABLE
+
+  return asm
 
 def eval(expr, asm, depth = 0):
 
@@ -382,9 +403,12 @@ def eval(expr, asm, depth = 0):
       sys.exit("Error: variable name must start with a letter")
 
     # check redeclaration
-    [ stack_pos, vtype ] = find_variable(args[0], STACK_FRAMES[-1]['vars'][-1])
-    if stack_pos is not None:
-      sys.exit("Redeclaration Error: '" + args[0] + "'")
+    for var in STACK_FRAMES[-1]['vars'][-1]:
+      if var[0] == args[0]:
+        sys.exit("Redeclaration Error: '" + args[0] + "'")
+    #[ stack_pos, vtype ] = find_variable(args[0], STACK_FRAMES[-1]['vars'][-1])
+    #if stack_pos is not None:
+    #  sys.exit("Redeclaration Error: '" + args[0] + "'")
 
     # evaluate the 2nd argument
     [ asm, _type ] = eval(args[1], asm, depth + 1)
@@ -483,7 +507,7 @@ def eval(expr, asm, depth = 0):
     # emit condition evaluation
     asm += assembly.WHILE_CONDITION_EVAL.format(id)
 
-    LOOP_IDS.append(id)
+    LOOP_IDS.append([ id, len(STACK_FRAMES[-1]['vars']) ])
     asm = eval_block(args[1], asm, depth)
     LOOP_IDS.pop()
 
@@ -672,18 +696,17 @@ def eval(expr, asm, depth = 0):
 
   elif kw == 'break':
     check_arg_types(kw, arg_types, [])
-    asm += assembly.WHILE_BREAK.format(LOOP_IDS[-1])
-    # -> pop block variables
-    # for var in STACK_FRAMES[-1]['vars'][-1]:
-    #   asm += assembly.POP_LOCAL_VARIABLE
-    #   # -> free block allocations
-    #   if var[1] == 'STRING':
-    #     free_string_varible(var[0], asm)
+
+    asm = free_at_loop_break(asm)
+
+    asm += assembly.WHILE_BREAK.format(LOOP_IDS[-1][0])
 
   elif kw == 'continue':
     check_arg_types(kw, arg_types, [])
-    asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1])
-    # -> free block allocations
+
+    asm = free_at_loop_break(asm)
+
+    asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1][0])
 
   elif kw in FUNCTIONS:
     check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'])

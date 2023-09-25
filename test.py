@@ -43,7 +43,7 @@ CASES = [
   [ 'programs/27-fib.src', '23581321345589144', 0 ],
   [ 'programs/28-fac.src', '3628800', 0 ],
   [ 'programs/29-fac-overflow.src', '', 99 ],
-  [ 'programs/30-while-break.src', '98765', 0 ],
+  [ 'programs/30-while-break.src', '9876510', 0 ],
   [ 'programs/31-while-continue.src', '9876540', 0 ],
   [ 'programs/32-function.src', '103010', 0 ],
   [ 'programs/33-function-return.src', '1030301030', 0 ],
