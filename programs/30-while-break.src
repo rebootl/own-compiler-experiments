@@ -18,6 +18,6 @@ while(gt(a, 1), {
   print_i(a)
 })
 
-; -> this is useful  to test if the freeing of the stack works
+; -> this is useful to test if the freeing of the stack works
 var(b, 10)
 print_i(b)
