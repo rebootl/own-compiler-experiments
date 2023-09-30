@@ -93,6 +93,8 @@ def get_split_argstr(argstr):
       list_depth -= 1
     elif c == "'":
       string_lit = not string_lit
+    elif string_lit and c == '\n':
+      c = '\\n'
     elif c == ',' and depth == 0 and block_depth == 0 and list_depth == 0 and not string_lit:
       split_argstr.append(arg.strip())
       arg = ''
@@ -388,6 +390,7 @@ def eval(expr, asm, depth = 0):
       # add literal to text section/literals
       str_id = 'string_' + str(get_unique_count())
       LITERALS.append(assembly.DATA_STRING.format(str_id, expr[1:-1]))
+      #print(LITERALS)
       asm += assembly.LITERAL.format(str_id)
       return [ asm, 'STRING_LIT' ]
 

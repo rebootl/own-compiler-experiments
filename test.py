@@ -59,6 +59,9 @@ CASES = [
   [ 'programs/43-function-param-type.src', '1235ABC4567', 0 ],
   [ 'programs/44-return_free.src', '123456', 0 ],
   [ 'programs/45-String.src', 'hello\nhello 2', 0 ],
+  [ 'programs/46-multiline-string.src', 'this\nis\na\nmultiline string literal\n\
+this\nis\na\nmultiline string\n\
+what\nhappens\\nhere\n', 0 ],
 ]
 
 for case in CASES:

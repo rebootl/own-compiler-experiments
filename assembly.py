@@ -4,7 +4,7 @@
 #
 
 DATA_STRING = '''
-  {0} db "{1}", 0
+  {0} db `{1}`, 0
 '''
 
 PUSH_STR_REF = '''

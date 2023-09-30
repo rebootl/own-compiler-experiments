@@ -1,0 +1,19 @@
+
+
+var(a, 'this
+is
+a
+multiline string literal')
+
+var(b, String('this
+is
+a
+multiline string'))
+
+var(c, 'what\nhappens\\nhere')
+
+println(a)
+
+println(b)
+
+println(c)
