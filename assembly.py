@@ -352,8 +352,12 @@ function_end_{0}:
 FUNCTION_CALL = '''
   ; function call
   call function_{0}
-  add esp, {1}
+  ;add esp, {1}
+'''
 
+ADD_ESP = '''
+  ; add esp
+  add esp, {0}
 '''
 
 ### built-in functions

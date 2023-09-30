@@ -247,6 +247,15 @@ def eval_block(block, asm, depth):
   # -> if the block was a function scope, we wouldn't actually have to pop
   #    the variables here, because the stack frame takes care of that
   #    but we want to free the memory of the variables in the block
+  #print(STACK_FRAMES[-1]['vars'][-1])
+  for i, var in enumerate(flatten(STACK_FRAMES[-1]['vars'])):
+    if var[1] == 'STRING':
+      asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
+      asm += assembly.PUSH_RESULT
+      asm += assembly.CALL_EXTENSION['free_str']
+
+    # -> this could be improved to use something like:
+    #    add esp, 4 * len(STACK_FRAMES[-1]['vars'][-1])
   for var in STACK_FRAMES[-1]['vars'][-1]:
     asm += assembly.POP_LOCAL_VARIABLE
 
@@ -599,7 +608,7 @@ def eval(expr, asm, depth = 0):
   #    can be evaluated and pushed onto the stack
 
   arg_types = []
-  for i, arg in enumerate(args):
+  for arg in args:
     [ asm, _type ] = eval(arg, asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
@@ -613,6 +622,10 @@ def eval(expr, asm, depth = 0):
       asm += assembly.PUSH_RESULT
     else:
       check_arg_types(kw, arg_types, ['INT'])
+
+    # -> free all allocated variables
+    # -> ommitting this for now because it is not really necessary
+
     asm += assembly.PRIMARIES[kw]
 
   elif kw == "print":
@@ -711,7 +724,15 @@ def eval(expr, asm, depth = 0):
   elif kw in FUNCTIONS:
     check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'])
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
-    # -> free stack frame allocations
+    # -> if the argument is a function call, that returns a string
+    #    we need to free the string after the function call
+    #    because it has no other owner
+    for i, arg in enumerate(reversed(args)):
+      if arg_types[i] == 'STRING' and type(arg) == list:
+        asm += assembly.CALL_EXTENSION['free_str']
+        # (this adds 4 to esp already)
+      else:
+        asm += assembly.ADD_ESP.format(4)
 
     rtype = FUNCTIONS[kw]['return_type']
 
@@ -749,6 +770,9 @@ def main():
   fn_asm = ''
   for fn in FUNCTIONS:
     fn_asm += FUNCTIONS[fn]['asm']
+
+  # -> free all allocated variables at the end of the program
+  # -> ommitting this for now because it is not really necessary
 
   # combine main assembly code with header, built-in functions and footer
   out = assembly.HEAD.format(START_LABEL) \
