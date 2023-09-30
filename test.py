@@ -51,13 +51,14 @@ CASES = [
   [ 'programs/35-function-recursion.src', '109876543210', 0 ],
   [ 'programs/36-function-recursion-fib.src', '01123581321345589', 0 ],
   [ 'programs/37-function-recursion-fac.src', '3628800', 0 ],
-  [ 'programs/38-print-string.src', 'Hello World!', 0 ],
+  [ 'programs/38-print-string-lit.src', 'Hello World!', 0 ],
   [ 'programs/39-string-lit-var.src', 'My 1st string literal.FooMy 2nd string literal, longer.', 0 ],
   [ 'programs/40-string-lit-loop.src', 'AAAAA', 0 ],
   [ 'programs/41-fizzbuzz.src', '1\n2\nfizz\n4\nbuzz\nfizz\n7\n8\nfizz\nbuzz\n11\nfizz\n13\n14\nfizzbuzz\n', 0 ],
-  [ 'programs/42-int_to_str.src', '123', 0 ],
+  [ 'programs/42-Int2Str.src', '123', 0 ],
   [ 'programs/43-function-param-type.src', '1235ABC4567', 0 ],
   [ 'programs/44-return_free.src', '123456', 0 ],
+  [ 'programs/45-String.src', 'hello\nhello 2', 0 ],
 ]
 
 for case in CASES:

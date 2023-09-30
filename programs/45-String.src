@@ -1,0 +1,18 @@
+
+function(p, [s: STRING], STRING, {
+  ; parameter is not freed
+  return(s)
+})
+
+function(q, [], STRING, {
+
+  var(x, String('hello 2'))
+
+  return(x)
+})
+
+var(s, String('hello'))
+p(s)
+println(s)
+
+print(q())

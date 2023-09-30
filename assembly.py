@@ -71,11 +71,6 @@ CALL_EXTENSION = {
   ; call println extension
   call println
 ''',
-  'allocate_str': '''
-  ; call allocate_str extension
-  call allocate_str
-  add esp, 4      ; clear stack
-''',
   'free_str': '''
   ; call free_str extension
   call free_str
@@ -84,6 +79,11 @@ CALL_EXTENSION = {
   'Int2Str': '''
   ; call int_to_str extension
   call int_to_str
+  add esp, 4      ; clear stack
+''',
+  'String': '''
+  ; call string extension
+  call allocate_str
   add esp, 4      ; clear stack
 ''',
 }

@@ -665,6 +665,11 @@ def eval(expr, asm, depth = 0):
     asm += assembly.CALL_EXTENSION[kw]
     rtype = 'STRING'
 
+  elif kw == "String":
+    check_arg_types(kw, arg_types, [ 'STRING_LIT' ])
+    asm += assembly.CALL_EXTENSION[kw]
+    rtype = 'STRING'
+
   elif kw == 'inc' or kw == 'dec':
     check_arg_types(kw, arg_types, [ 'INT' ])
 
