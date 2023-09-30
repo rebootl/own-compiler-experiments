@@ -1,0 +1,17 @@
+
+
+var(a, 'hello')
+
+var(b, 'world')
+
+var(c, Concat(a, b))
+
+var(d, String(a))
+
+var(e, Concat(d, b))
+
+println(Concat('hello', Int2Str(1)))
+
+println(c)
+println(e)
+;println(f)

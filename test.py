@@ -62,6 +62,7 @@ CASES = [
   [ 'programs/46-multiline-string.src', 'this\nis\na\nmultiline string literal\n\
 this\nis\na\nmultiline string\n\
 what\nhappens\\nhere\n', 0 ],
+  [ 'programs/47-Concat.src', 'hello1\nhelloworld\nhelloworld\n', 0 ],
 ]
 
 for case in CASES:

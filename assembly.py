@@ -3,6 +3,11 @@
 # 32-bit x86 nasm assembly
 #
 
+CLEAR_STACK = '''
+  ; add esp
+  add esp, {0}
+'''
+
 DATA_STRING = '''
   {0} db `{1}`, 0
 '''
@@ -86,6 +91,11 @@ CALL_EXTENSION = {
   call allocate_str
   add esp, 4      ; clear stack
 ''',
+  'Concat': '''
+  ; call concat extension
+  call concat
+  add esp, 8      ; clear stack
+''',
 }
 
 PRIMARIES = {
@@ -134,37 +144,37 @@ UNARIES = {
 BINARIES = {
   'add': '''
   ; add stack top
-  pop ebx
   pop eax
+  pop ebx
   add eax, ebx
   ;push eax
 ''',
   'sub': '''
   ; subtract stack top
-  pop ebx
   pop eax
+  pop ebx
   sub eax, ebx
   ;push eax
 ''',
   'mul': '''
   ; multiply stack top
-  pop ebx
   pop eax
+  pop ebx
   imul eax, ebx
   ;push eax
 ''',
   'div': '''
   ; divide stack top
-  pop ebx
   pop eax
+  pop ebx
   cdq
   idiv ebx
   ;push eax
 ''',
   'mod': '''
   ; modulus stack top
-  pop ebx
   pop eax
+  pop ebx
   cdq
   idiv ebx
   mov eax, edx
@@ -184,8 +194,8 @@ overflow_end_{0}:
 '''
 
 CMP_START = '''
-  pop ebx
   pop eax
+  pop ebx
   cmp eax, ebx
 '''
 
@@ -235,8 +245,8 @@ COMPARISONS = {
 LOGICALS = {
   'and': '''
   ; logical and
-  pop ebx
   pop eax
+  pop ebx
   cmp eax, 0
   jne a_true_{0}
   jmp r_false_{0}
@@ -253,8 +263,8 @@ r_end_{0}:
 ''',
   'or': '''
   ; logical or
-  pop ebx
   pop eax
+  pop ebx
   cmp eax, 0
   je a_false_{0}
   jmp r_true_{0}
@@ -355,14 +365,9 @@ FUNCTION_CALL = '''
   ;add esp, {1}
 '''
 
-ADD_ESP = '''
-  ; add esp
-  add esp, {0}
-'''
-
 ### built-in functions
 
-HEAD = '''extern print_i, println, print, allocate_str, free_str, int_to_str
+HEAD = '''extern print_i, println, print, allocate_str, free_str, int_to_str, concat
 global {}
 '''
 

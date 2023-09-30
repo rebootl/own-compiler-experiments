@@ -222,7 +222,7 @@ def find_parameter(name, stack_frame):
   """find the stack position of a parameter, also return its type"""
 
   # we need to find the first occurrence, from the end (top) of the stack
-  for i, param in enumerate(reversed(stack_frame)):
+  for i, param in enumerate(stack_frame):
     if param[0] == name:
       return [ i, param[1] ]
   return [ None, None ]
@@ -611,7 +611,7 @@ def eval(expr, asm, depth = 0):
   #    can be evaluated and pushed onto the stack
 
   arg_types = []
-  for arg in args:
+  for arg in reversed(args):
     [ asm, _type ] = eval(arg, asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
@@ -660,7 +660,10 @@ def eval(expr, asm, depth = 0):
       asm += assembly.CALL_EXTENSION[kw]
     else:
       check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
-      asm += assembly.CALL_EXTENSION["print"]
+      if arg_types[0] == 'STRING' and type(args[0]) == list:
+        asm += assembly.CALL_EXTENSION['print_free']
+      else:
+        asm += assembly.CALL_EXTENSION["print"]
       asm += assembly.CALL_EXTENSION[kw]
 
   elif kw == "Int2Str":
@@ -670,6 +673,11 @@ def eval(expr, asm, depth = 0):
 
   elif kw == "String":
     check_arg_types(kw, arg_types, [ 'STRING_LIT' ])
+    asm += assembly.CALL_EXTENSION[kw]
+    rtype = 'STRING'
+
+  elif kw == "Concat":
+    check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], [ 'STRING_LIT', 'STRING' ] ])
     asm += assembly.CALL_EXTENSION[kw]
     rtype = 'STRING'
 
@@ -730,17 +738,17 @@ def eval(expr, asm, depth = 0):
     asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1][0])
 
   elif kw in FUNCTIONS:
-    check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'])
+    check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'][::-1])
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
     # -> if the argument is a function call, that returns a string
     #    we need to free the string after the function call
     #    because it has no other owner
-    for i, arg in enumerate(reversed(args)):
+    for i, arg in enumerate(args):
       if arg_types[i] == 'STRING' and type(arg) == list:
         asm += assembly.CALL_EXTENSION['free_str']
         # (this adds 4 to esp already)
       else:
-        asm += assembly.ADD_ESP.format(4)
+        asm += assembly.CLEAR_STACK.format(4)
 
     rtype = FUNCTIONS[kw]['return_type']
 
