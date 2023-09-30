@@ -631,55 +631,59 @@ def eval(expr, asm, depth = 0):
 
     asm += assembly.PRIMARIES[kw]
 
-  elif kw == "print":
-    check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
+  elif kw in assembly.CALL_EXTENSION:
+    if kw == "println":
+      #if len(args) == 0:
+      #  asm += assembly.CALL_EXTENSION[kw]
+      if len(args) > 0:
+        check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
+        asm += assembly.CALL_EXTENSION['print']
+
+      #asm += assembly.CALL_EXTENSION[kw]
+
+    elif kw == "print":
+      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
+      #asm += assembly.CALL_EXTENSION[kw]
+
+    # -> check
+    elif kw == "free_str":
+      check_arg_types(kw, arg_types, [ 'STRING' ])
+      #asm += assembly.CALL_EXTENSION[kw]
+
+    elif kw == "print_i":
+      check_arg_types(kw, arg_types, [ 'INT' ])
+      #asm += assembly.CALL_EXTENSION[kw]
+
+    elif kw == "println_i":
+      check_arg_types(kw, arg_types, [ 'INT' ])
+      #asm += assembly.CALL_EXTENSION[kw]
+
+    elif kw == "Int2Str":
+      check_arg_types(kw, arg_types, [ 'INT' ])
+      #asm += assembly.CALL_EXTENSION[kw]
+      rtype = 'STRING'
+
+    elif kw == "String":
+      check_arg_types(kw, arg_types, [ 'STRING_LIT' ])
+      #asm += assembly.CALL_EXTENSION[kw]
+      rtype = 'STRING'
+
+    elif kw == "Concat":
+      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], [ 'STRING_LIT', 'STRING' ] ])
+      #asm += assembly.CALL_EXTENSION[kw]
+      rtype = 'STRING'
+
+    asm += assembly.CALL_EXTENSION[kw]
 
     # -> if the argument is a function call, that returns a string
     #    we need to free the string after printing it
     #    (because it has no other owner)
-    if arg_types[0] == 'STRING' and type(args[0]) == list:
-      asm += assembly.CALL_EXTENSION['print_free']
-    else:
-      asm += assembly.CALL_EXTENSION[kw]
-
-  elif kw == "free_str":
-    check_arg_types(kw, arg_types, [ 'STRING' ])
-    asm += assembly.CALL_EXTENSION[kw]
-
-  elif kw == "print_i":
-    check_arg_types(kw, arg_types, [ 'INT' ])
-    asm += assembly.CALL_EXTENSION[kw]
-
-  elif kw == "println_i":
-    check_arg_types(kw, arg_types, [ 'INT' ])
-    asm += assembly.CALL_EXTENSION["print_i"]
-    asm += assembly.CALL_EXTENSION["println"]
-
-  elif kw == "println":
-    if len(args) == 0:
-      asm += assembly.CALL_EXTENSION[kw]
-    else:
-      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
-      if arg_types[0] == 'STRING' and type(args[0]) == list:
-        asm += assembly.CALL_EXTENSION['print_free']
+    for i, arg in enumerate(args):
+      if arg_types[i] == 'STRING' and type(arg) == list:
+        asm += assembly.CALL_EXTENSION['free_str']
+        #asm += assembly.CLEAR_STACK.format(4)
       else:
-        asm += assembly.CALL_EXTENSION["print"]
-      asm += assembly.CALL_EXTENSION[kw]
-
-  elif kw == "Int2Str":
-    check_arg_types(kw, arg_types, [ 'INT' ])
-    asm += assembly.CALL_EXTENSION[kw]
-    rtype = 'STRING'
-
-  elif kw == "String":
-    check_arg_types(kw, arg_types, [ 'STRING_LIT' ])
-    asm += assembly.CALL_EXTENSION[kw]
-    rtype = 'STRING'
-
-  elif kw == "Concat":
-    check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], [ 'STRING_LIT', 'STRING' ] ])
-    asm += assembly.CALL_EXTENSION[kw]
-    rtype = 'STRING'
+        asm += assembly.CLEAR_STACK.format(4)
 
   elif kw == 'inc' or kw == 'dec':
     check_arg_types(kw, arg_types, [ 'INT' ])

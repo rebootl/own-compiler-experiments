@@ -59,22 +59,28 @@ CALL_EXTENSION = {
   'print_i': '''
   ; call print extension
   call print_i
-  add esp, 4      ; clear stack
+  ;add esp, 4      ; clear stack
 ''',
   'print': '''
   ; call print extension
   call print
-  add esp, 4      ; clear stack
+  ;add esp, 4      ; clear stack
 ''',
-  'print_free': '''
-  ; call print extension
-  call print
-  call free_str
-  add esp, 4      ; clear stack
-''',
+#  'print_free': '''
+#  ; call print extension
+#  call print
+#  call free_str
+#  add esp, 4      ; clear stack
+#''',
   'println': '''
   ; call println extension
   call println
+''',
+  'println_i': '''
+  ; call print_i/println extension
+  call print_i
+  call println
+  ;add esp, 4      ; clear stack
 ''',
   'free_str': '''
   ; call free_str extension
@@ -84,17 +90,17 @@ CALL_EXTENSION = {
   'Int2Str': '''
   ; call int_to_str extension
   call int_to_str
-  add esp, 4      ; clear stack
+  ;add esp, 4      ; clear stack
 ''',
   'String': '''
   ; call string extension
   call allocate_str
-  add esp, 4      ; clear stack
+  ;add esp, 4      ; clear stack
 ''',
   'Concat': '''
   ; call concat extension
   call concat
-  add esp, 8      ; clear stack
+  ;add esp, 8      ; clear stack
 ''',
 }
 
