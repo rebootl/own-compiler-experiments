@@ -5,14 +5,14 @@ function(p, [s: STRING], STRING, {
 })
 
 function(q, [], STRING, {
-  var(x, int_to_str(123))
-  var(y, int_to_str(456))
-  var(z, int_to_str(789))
+  var(x, Int2Str(123))
+  var(y, Int2Str(456))
+  var(z, Int2Str(789))
 
   return(y)
 })
 
-var(s, int_to_str(123))
+var(s, Int2Str(123))
 p(s)
 print(s)
 

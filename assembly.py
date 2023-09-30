@@ -81,7 +81,7 @@ CALL_EXTENSION = {
   call free_str
   add esp, 4      ; clear stack
 ''',
-  'int_to_str': '''
+  'Int2Str': '''
   ; call int_to_str extension
   call int_to_str
   add esp, 4      ; clear stack

@@ -660,7 +660,7 @@ def eval(expr, asm, depth = 0):
       asm += assembly.CALL_EXTENSION["print"]
       asm += assembly.CALL_EXTENSION[kw]
 
-  elif kw == "int_to_str":
+  elif kw == "Int2Str":
     check_arg_types(kw, arg_types, [ 'INT' ])
     asm += assembly.CALL_EXTENSION[kw]
     rtype = 'STRING'

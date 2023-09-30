@@ -1,18 +1,18 @@
 
 ; -> e.g. leaks memory !!!
 ;while(1, {
-;  print(int_to_str(123))
+;  print(Int2Str(123))
 ;})
 
 ; -> better use this:
 ;while(1, {
-;  var(s, int_to_str(123))
+;  var(s, Int2Str(123))
 ;  print(s)
 ;  free_str(s)
 ;})
 
-var(s, int_to_str(123))
-print(int_to_str(123))
+var(s, Int2Str(123))
+print(Int2Str(123))
 ;free_str(s)
 
 ; -> move occurs here
