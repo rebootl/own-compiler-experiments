@@ -84,8 +84,10 @@ CALL_EXTENSION = {
 ''',
   'free_str': '''
   ; call free_str extension
+  mov ebx, eax
   call free_str
   add esp, 4      ; clear stack
+  mov eax, ebx
 ''',
   'Int2Str': '''
   ; call int_to_str extension

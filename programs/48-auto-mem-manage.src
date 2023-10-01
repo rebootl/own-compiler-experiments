@@ -1,0 +1,20 @@
+
+
+function(a, [s: STRING], INT, {
+  return(1)
+})
+
+function(b, [s: STRING], STRING, {
+  return(String('565656'))
+})
+
+
+; this string should get freed
+print_i( a(String('494949')) )
+
+print( b( b(String('494949')) ) )
+
+; this is not freed, however it's also not very useful
+; -> how to handle this?
+; -> maybe not allow functions that allocate memory on "level 0"
+String('abc')
