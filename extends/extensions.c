@@ -85,7 +85,7 @@ char *substr(char *s, int begin, int end) {
   }*/
   int start;
   if (begin < 0) {
-    start = strlen(s) + begin - 1;
+    start = strlen(s) + begin;
   } else if (begin > strlen(s)) {
     start = strlen(s);
   } else {
@@ -93,7 +93,7 @@ char *substr(char *s, int begin, int end) {
   }
   int stop;
   if (end < 0) {
-    stop = strlen(s) + end - 1;
+    stop = strlen(s) + end;
   } else if (end > strlen(s)) {
     stop = strlen(s) - 1;
   } else {

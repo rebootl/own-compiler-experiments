@@ -41,7 +41,7 @@ int main(void) {
   char *s5 = substr(s3, 4, 6);
   printf("%s\n", s5); // prints oWo
   char *s6 = substr(s3, 2, -2); // negative indices count from the end
-  printf("%s\n", s6); // prints lloWor
+  printf("%s\n", s6); // prints lloWorl
 
   char *s7 = substr(s2, 0, 0);
   printf("%s\n", s7); // prints W
