@@ -310,11 +310,12 @@ def check_arg_types(kw, arg_types, expected_types):
       sys.exit("Error: expected type %s for argument %d of %s, got %s" % (expected_types[i], i + 1, kw, _type))
 
 
-def free_at_loop_break(asm):
+def free_at_loop_break():
   # -> this code is kind of terrible... we keep track of the position
   #    of the loop block in the stack of blocks in the LOOP_IDS list,
   #    when breaking we need to free all the variables in the block
   #    and subsequent blocks
+  asm = ''
   stack_position_start = len((flatten(STACK_FRAMES[-1]['vars'][:LOOP_IDS[-1][1]])))
   stack_position_end = len((flatten(STACK_FRAMES[-1]['vars'])))
   # free first
@@ -327,6 +328,20 @@ def free_at_loop_break(asm):
   for i in range(stack_position_start, stack_position_end):
     asm += assembly.POP_LOCAL_VARIABLE
 
+  return asm
+
+def free_arguments(args, arg_types):
+  # if the argument is a function call, that returns a string
+  # we need to free the string after the function call
+  # because it has no other owner
+  asm = ''
+  for i, arg in enumerate(args):
+    if arg_types[i] == 'STRING' and type(arg) == list:
+      asm += assembly.CALL_EXTENSION['free_str']
+      # (this adds 4 to esp already, clearing the stack)
+    else:
+      # -> improve
+      asm += assembly.CLEAR_STACK.format(4)
   return asm
 
 def eval(expr, asm, depth = 0):
@@ -653,15 +668,7 @@ def eval(expr, asm, depth = 0):
 
     asm += assembly.CALL_EXTENSION[kw]
 
-    # if the argument is a function call, that returns a string
-    # we need to free the string after printing it
-    # (because it has no other owner)
-    for i, arg in enumerate(args):
-      if arg_types[i] == 'STRING' and type(arg) == list:
-        asm += assembly.CALL_EXTENSION['free_str']
-        # (this adds 4 to esp already, clearing the stack)
-      else:
-        asm += assembly.CLEAR_STACK.format(4)
+    asm += free_arguments(args, arg_types)
 
   elif kw == 'inc' or kw == 'dec':
     check_arg_types(kw, arg_types, [ 'INT' ])
@@ -708,29 +715,22 @@ def eval(expr, asm, depth = 0):
   elif kw == 'break':
     check_arg_types(kw, arg_types, [])
 
-    asm = free_at_loop_break(asm)
+    asm += free_at_loop_break()
 
     asm += assembly.WHILE_BREAK.format(LOOP_IDS[-1][0])
 
   elif kw == 'continue':
     check_arg_types(kw, arg_types, [])
 
-    asm = free_at_loop_break(asm)
+    asm += free_at_loop_break()
 
     asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1][0])
 
   elif kw in FUNCTIONS:
     check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'][::-1])
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
-    # if the argument is a function call, that returns a string
-    # we need to free the string after the function call
-    # because it has no other owner
-    for i, arg in enumerate(args):
-      if arg_types[i] == 'STRING' and type(arg) == list:
-        asm += assembly.CALL_EXTENSION['free_str']
-        # (this adds 4 to esp already, clearing the stack)
-      else:
-        asm += assembly.CLEAR_STACK.format(4)
+
+    asm += free_arguments(args, arg_types)
 
     rtype = FUNCTIONS[kw]['return_type']
 

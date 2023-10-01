@@ -5,6 +5,10 @@ function(a, [s: STRING], INT, {
 })
 
 function(b, [s: STRING], STRING, {
+
+  ; this should get freed, at the end of the function
+  var(t, String('eieiei'))
+
   return(String('565656'))
 })
 
