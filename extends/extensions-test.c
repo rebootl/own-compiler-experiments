@@ -51,6 +51,12 @@ int main(void) {
   char *s9 = substr(s3, -2, -1);
   printf("%s\n", s9); // prints ld
 
+  printf("%s\n", reverse(s3)); // prints dlroWolleH
+
+  printf("%s\n", uppercase(s1, 2, 3)); // prints HeLLo
+  char *s10 = uppercase(s3, 0, -1);
+  printf("%s\n", lowercase(s10, 0, 2)); // prints helLOWORLD
+
   printf("%d\n", len(s1)); // prints 5
   printf("%d\n", len(s3)); // prints 10
   printf("%d\n", len(s6)); // prints 6

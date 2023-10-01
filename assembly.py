@@ -108,6 +108,18 @@ CALL_EXTENSION = {
   ; call substr extension
   call substr
 ''',
+  'Reverse': '''
+  ; call reverse extension
+  call reverse
+''',
+  'Upper': '''
+  ; call upper extension
+  call uppercase
+''',
+  'Lower': '''
+  ; call lower extension
+  call lowercase
+''',
   'len': '''
   ; call len extension
   call len
@@ -384,7 +396,7 @@ FUNCTION_CALL = '''
 ### built-in functions
 
 HEAD = '''extern print_i, println, print, allocate_str, free_str, int_to_str, concat
-extern substr, len
+extern substr, len, reverse, uppercase, lowercase
 global {}
 '''
 

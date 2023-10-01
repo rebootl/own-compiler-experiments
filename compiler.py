@@ -670,6 +670,18 @@ def eval(expr, asm, depth = 0):
       check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ])
       rtype = 'STRING'
 
+    elif kw == "Reverse":
+      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
+      rtype = 'STRING'
+
+    elif kw == "Upper":
+      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ])
+      rtype = 'STRING'
+
+    elif kw == "Lower":
+      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ])
+      rtype = 'STRING'
+
     elif kw == "len":
       check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
       rtype = 'INT'

@@ -14,4 +14,11 @@ println(Substr(a, 1, -1))
 
 println(Substr(c, -2, -1))
 
+println(Reverse(c))
+
+var(e, Upper(c, 3, 7))
+println(e)
+
+println(Lower(e, 3, 4))
+
 println_i(len(Substr(b, 1, -1)))

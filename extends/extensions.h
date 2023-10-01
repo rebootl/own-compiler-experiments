@@ -12,7 +12,10 @@ void free_str(char *s);
 char *int_to_str(int n);
 
 char *concat(char *s1, char *s2);
-char *substr(char *s, int start, int end);
+char *substr(char *s, int begin, int end);
+char *reverse(char *s);
+char *uppercase(char *s, int begin, int end);
+char *lowercase(char *s, int begin, int end);
 int len(char *s);
 
 #endif

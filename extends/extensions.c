@@ -32,12 +32,18 @@ void println() {
   fflush(stdout);
 }
 
-char *allocate_str(char *s) {
-  char *result = malloc(strlen(s) + 1); //+1 for the zero-terminator
+void *_alloc(int size) {
+  void *result = malloc(size);
   if (result == NULL) {
       printf("malloc failed\n");
       exit(1);
   }
+  return result;
+}
+
+char *allocate_str(char *s) {
+  char *result = _alloc(strlen(s) + 1); //+1 for the zero-terminator
+
   strcpy(result, s);
   return result;
 }
@@ -47,11 +53,8 @@ void free_str(char *s) {
 }
 
 char *int_to_str(int n) {
-  char *result = malloc(12); // 12 is the max length of an int
-  if (result == NULL) {
-      printf("malloc failed\n");
-      exit(1);
-  }
+  char *result = _alloc(12); // 12 is the max length of an int
+
   sprintf(result, "%d", n);
   return result;
 }
@@ -68,14 +71,31 @@ char *int_to_str(int n) {
 
 */
 char *concat(char *s1, char *s2) {
-  char *result = malloc(strlen(s1) + strlen(s2) + 1); //+1 for the zero-terminator
-  if (result == NULL) {
-      printf("malloc failed\n");
-      exit(1);
-  }
+  char *result = _alloc(strlen(s1) + strlen(s2) + 1); //+1 for the zero-terminator
+
   strcpy(result, s1);
   strcat(result, s2);
   return result;
+}
+
+int _get_start_index(int start, char *s) {
+  if (start < 0) {
+    return strlen(s) + start;
+  } else if (start > strlen(s)) {
+    return strlen(s);
+  } else {
+    return start;
+  }
+}
+
+int _get_stop_index(int stop, char *s) {
+  if (stop < 0) {
+    return strlen(s) + stop;
+  } else if (stop > strlen(s)) {
+    return strlen(s) - 1;
+  } else {
+    return stop;
+  }
 }
 
 char *substr(char *s, int begin, int end) {
@@ -83,31 +103,59 @@ char *substr(char *s, int begin, int end) {
     printf("invalid start or end index\n");
     exit(1);
   }*/
-  int start;
-  if (begin < 0) {
-    start = strlen(s) + begin;
-  } else if (begin > strlen(s)) {
-    start = strlen(s);
-  } else {
-    start = begin;
-  }
-  int stop;
-  if (end < 0) {
-    stop = strlen(s) + end;
-  } else if (end > strlen(s)) {
-    stop = strlen(s) - 1;
-  } else {
-    stop = end;
-  }
+  int start = _get_start_index(begin, s);
+  int stop = _get_stop_index(end, s);
 
-  char *result = malloc(stop - start + 2); //+1 for the zero-terminator
-  if (result == NULL) {
-      printf("malloc failed\n");
-      exit(1);
-  }
+  char *result = _alloc(stop - start + 2); //+1 for the zero-terminator
+
   strncpy(result, s + start, stop - start + 1);
   result[stop - start + 1] = '\0';
   return result;
+}
+
+char *reverse(char *s) {
+  char *result = _alloc(strlen(s) + 1); //+1 for the zero-terminator
+
+  int i;
+  for (i = 0; i < strlen(s); i++) {
+    result[i] = s[strlen(s) - i - 1];
+  }
+  result[strlen(s)] = '\0';
+  return result;
+}
+
+char *_case(char *s, int begin, int end, int upper) {
+  int start = _get_start_index(begin, s);
+  int stop = _get_stop_index(end, s);
+
+  char *result = _alloc(strlen(s) + 1); //+1 for the zero-terminator
+
+  strcpy(result, s);
+  for (int i = start; i <= stop; i++) {
+    if (upper) {
+      if (s[i] >= 'a' && s[i] <= 'z') {
+        result[i] = s[i] - 32;
+      } else {
+        result[i] = s[i];
+      }
+    } else {
+      if (s[i] >= 'A' && s[i] <= 'Z') {
+        result[i] = s[i] + 32;
+      } else {
+        result[i] = s[i];
+      }
+    }
+  }
+  result[strlen(s)] = '\0';
+  return result;
+}
+
+char *uppercase(char *s, int begin, int end) {
+  return _case(s, begin, end, 1);
+}
+
+char *lowercase(char *s, int begin, int end) {
+  return _case(s, begin, end, 0);
 }
 
 int len(char *s) {
