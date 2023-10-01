@@ -246,10 +246,9 @@ def eval_block(block, asm, depth):
   for expr in block_exprs:
     [ asm, _type ] = eval(parse(expr), asm, depth + 1)
 
-  # -> if the block was a function scope, we wouldn't actually have to pop
-  #    the variables here, because the stack frame takes care of that
-  #    but we want to free the memory of the variables in the block
-  #print(STACK_FRAMES[-1]['vars'][-1])
+  # if the block was a function scope, we wouldn't actually have to pop
+  # the variables here, because the stack frame takes care of that
+  # but we want to free the memory of the variables in the block
   for i, var in enumerate(flatten(STACK_FRAMES[-1]['vars'])):
     if var[1] == 'STRING':
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
@@ -310,15 +309,6 @@ def check_arg_types(kw, arg_types, expected_types):
     elif _type != expected_types[i]:
       sys.exit("Error: expected type %s for argument %d of %s, got %s" % (expected_types[i], i + 1, kw, _type))
 
-
-# def free_block_varibles(block, asm):
-#   for var in block:
-#     asm += assembly.POP_LOCAL_VARIABLE
-#     # -> free block allocations
-#     if var[1] == 'STRING':
-#       [ stack_pos, _type ] = find_variable(var[0], STACK_FRAMES[-1]['vars'])
-#       asm += assembly.PUSH_STR_REF.format(4 + stack_pos * 4)
-#       asm += assembly.CALL_EXTENSION['free_str']
 
 def free_at_loop_break(asm):
   # -> this code is kind of terrible... we keep track of the position
@@ -390,7 +380,7 @@ def eval(expr, asm, depth = 0):
       # add literal to text section/literals
       str_id = 'string_' + str(get_unique_count())
       LITERALS.append(assembly.DATA_STRING.format(str_id, expr[1:-1]))
-      #print(LITERALS)
+
       asm += assembly.LITERAL.format(str_id)
       return [ asm, 'STRING_LIT' ]
 
@@ -418,9 +408,6 @@ def eval(expr, asm, depth = 0):
     for var in STACK_FRAMES[-1]['vars'][-1]:
       if var[0] == args[0]:
         sys.exit("Redeclaration Error: '" + args[0] + "'")
-    #[ stack_pos, vtype ] = find_variable(args[0], STACK_FRAMES[-1]['vars'][-1])
-    #if stack_pos is not None:
-    #  sys.exit("Redeclaration Error: '" + args[0] + "'")
 
     # evaluate the 2nd argument
     [ asm, _type ] = eval(args[1], asm, depth + 1)
@@ -429,7 +416,7 @@ def eval(expr, asm, depth = 0):
     if _type not in [ 'INT', 'STRING', 'STRING_LIT' ]:
       sys.exit("Error: invalid type: '" + _type + "'" + " for variable: '" + args[0] + "'")
 
-    # -> if the 2nd argument is a variable and it is a string, we want to
+    # if the 2nd argument is a variable and it is a string, we want to
     # set it's type to 'UNDEF' (in order to avoid freeing it twice)
     # this is equivalent to a move of ownership
     #
@@ -585,8 +572,8 @@ def eval(expr, asm, depth = 0):
         len(args) > 1:
       sys.exit("Error: Wrong number of arguments for return: '" + fname + "'")
 
-    # -> variables that have memory allocated should be freed here
-    #    except for the return value
+    # variables that have memory allocated should be freed here
+    # except for the return value
     # (this has to be done before the argument evaluation)
     for i, var in enumerate(flatten(STACK_FRAMES[-1]['vars'])):
       if var[1] == 'STRING' and var[0] != args[0]:
@@ -633,55 +620,44 @@ def eval(expr, asm, depth = 0):
 
   elif kw in assembly.CALL_EXTENSION:
     if kw == "println":
-      #if len(args) == 0:
-      #  asm += assembly.CALL_EXTENSION[kw]
       if len(args) > 0:
         check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
         asm += assembly.CALL_EXTENSION['print']
 
-      #asm += assembly.CALL_EXTENSION[kw]
-
     elif kw == "print":
       check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
-      #asm += assembly.CALL_EXTENSION[kw]
 
     # -> check
     elif kw == "free_str":
       check_arg_types(kw, arg_types, [ 'STRING' ])
-      #asm += assembly.CALL_EXTENSION[kw]
 
     elif kw == "print_i":
       check_arg_types(kw, arg_types, [ 'INT' ])
-      #asm += assembly.CALL_EXTENSION[kw]
 
     elif kw == "println_i":
       check_arg_types(kw, arg_types, [ 'INT' ])
-      #asm += assembly.CALL_EXTENSION[kw]
 
     elif kw == "Int2Str":
       check_arg_types(kw, arg_types, [ 'INT' ])
-      #asm += assembly.CALL_EXTENSION[kw]
       rtype = 'STRING'
 
     elif kw == "String":
       check_arg_types(kw, arg_types, [ 'STRING_LIT' ])
-      #asm += assembly.CALL_EXTENSION[kw]
       rtype = 'STRING'
 
     elif kw == "Concat":
       check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], [ 'STRING_LIT', 'STRING' ] ])
-      #asm += assembly.CALL_EXTENSION[kw]
       rtype = 'STRING'
 
     asm += assembly.CALL_EXTENSION[kw]
 
-    # -> if the argument is a function call, that returns a string
-    #    we need to free the string after printing it
-    #    (because it has no other owner)
+    # if the argument is a function call, that returns a string
+    # we need to free the string after printing it
+    # (because it has no other owner)
     for i, arg in enumerate(args):
       if arg_types[i] == 'STRING' and type(arg) == list:
         asm += assembly.CALL_EXTENSION['free_str']
-        #asm += assembly.CLEAR_STACK.format(4)
+        # (this adds 4 to esp already, clearing the stack)
       else:
         asm += assembly.CLEAR_STACK.format(4)
 
@@ -744,13 +720,13 @@ def eval(expr, asm, depth = 0):
   elif kw in FUNCTIONS:
     check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'][::-1])
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
-    # -> if the argument is a function call, that returns a string
-    #    we need to free the string after the function call
-    #    because it has no other owner
+    # if the argument is a function call, that returns a string
+    # we need to free the string after the function call
+    # because it has no other owner
     for i, arg in enumerate(args):
       if arg_types[i] == 'STRING' and type(arg) == list:
         asm += assembly.CALL_EXTENSION['free_str']
-        # (this adds 4 to esp already)
+        # (this adds 4 to esp already, clearing the stack)
       else:
         asm += assembly.CLEAR_STACK.format(4)
 
