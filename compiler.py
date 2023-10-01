@@ -624,12 +624,14 @@ def eval(expr, asm, depth = 0):
         check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
         asm += assembly.CALL_EXTENSION['print']
 
-    elif kw == "print":
-      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
-
-    # -> check
     elif kw == "free_str":
       check_arg_types(kw, arg_types, [ 'STRING' ])
+      # we dont want to free twice
+      asm += assembly.CALL_EXTENSION[kw]
+      return [ asm, 'UNDEF' ]
+
+    elif kw == "print":
+      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
 
     elif kw == "print_i":
       check_arg_types(kw, arg_types, [ 'INT' ])
