@@ -1,5 +1,5 @@
-#ifndef CONCAT_H
-#define CONCAT_H
+#ifndef EXTENSIONS_H
+#define EXTENSIONS_H
 
 void print_i(int n);
 void println_i(int n);

@@ -65,6 +65,10 @@ int main(void) {
   free(s4);
   free(s5);
   free(s6);
+  free(s7);
+  free(s8);
+  free(s9);
+  free(s10);
 
   return 0;
 }
