@@ -43,6 +43,14 @@ int main(void) {
   char *s6 = substr(s3, 2, -2); // negative indices count from the end
   printf("%s\n", s6); // prints lloWor
 
+  char *s7 = substr(s2, 0, 0);
+  printf("%s\n", s7); // prints W
+  char *s8 = substr(s2, 2, 10);
+  printf("%s\n", s8); // prints rld
+
+  char *s9 = substr(s3, -2, -1);
+  printf("%s\n", s9); // prints ld
+
   printf("%d\n", len(s1)); // prints 5
   printf("%d\n", len(s3)); // prints 10
   printf("%d\n", len(s6)); // prints 6

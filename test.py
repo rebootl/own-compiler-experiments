@@ -64,6 +64,7 @@ this\nis\na\nmultiline string\n\
 what\nhappens\\nhere\n', 0 ],
   [ 'programs/47-Concat.src', 'hello1\nhelloworld\nhelloworld\n', 0 ],
   [ 'programs/48-auto-mem-manage.src', '1565656', 0 ],
+  [ 'programs/49-String-fns.src', 'hello', 0 ],
 ]
 
 for case in CASES:

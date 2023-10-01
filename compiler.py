@@ -302,7 +302,7 @@ def check_arg_types(kw, arg_types, expected_types):
   if len(arg_types) != len(expected_types):
     sys.exit("Error: expected %d arguments for %s, got %d" % (len(expected_types), kw, len(arg_types)))
 
-  for i, _type in enumerate(arg_types):
+  for i, _type in enumerate(reversed(arg_types)):
     if type(expected_types[i]) == list:
       if _type not in expected_types[i]:
         sys.exit("Error: expected type %s for argument %d of %s, got %s" % (expected_types[i], i + 1, kw, _type))
@@ -666,6 +666,14 @@ def eval(expr, asm, depth = 0):
       check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], [ 'STRING_LIT', 'STRING' ] ])
       rtype = 'STRING'
 
+    elif kw == "Substr":
+      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ])
+      rtype = 'STRING'
+
+    elif kw == "len":
+      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
+      rtype = 'INT'
+
     asm += assembly.CALL_EXTENSION[kw]
 
     asm += free_arguments(args, arg_types)
@@ -727,7 +735,7 @@ def eval(expr, asm, depth = 0):
     asm += assembly.WHILE_CONTINUE.format(LOOP_IDS[-1][0])
 
   elif kw in FUNCTIONS:
-    check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'][::-1])
+    check_arg_types(kw, arg_types, FUNCTIONS[kw]['param_types'])
     asm += assembly.FUNCTION_CALL.format(kw, len(args) * 4)
 
     asm += free_arguments(args, arg_types)

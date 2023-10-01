@@ -78,14 +78,24 @@ char *concat(char *s1, char *s2) {
   return result;
 }
 
-char *substr(char *s, int start, int end) {
-  if (start < 0 || end == 0) {
+char *substr(char *s, int begin, int end) {
+  /*if (begin < 0) {
     printf("invalid start or end index\n");
     exit(1);
+  }*/
+  int start;
+  if (begin < 0) {
+    start = strlen(s) + begin - 1;
+  } else if (begin > strlen(s)) {
+    start = strlen(s);
+  } else {
+    start = begin;
   }
   int stop;
   if (end < 0) {
     stop = strlen(s) + end - 1;
+  } else if (end > strlen(s)) {
+    stop = strlen(s) - 1;
   } else {
     stop = end;
   }

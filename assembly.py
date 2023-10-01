@@ -104,6 +104,14 @@ CALL_EXTENSION = {
   call concat
   ;add esp, 8      ; clear stack
 ''',
+  'Substr': '''
+  ; call substr extension
+  call substr
+''',
+  'len': '''
+  ; call len extension
+  call len
+''',
 }
 
 PRIMARIES = {
@@ -376,6 +384,7 @@ FUNCTION_CALL = '''
 ### built-in functions
 
 HEAD = '''extern print_i, println, print, allocate_str, free_str, int_to_str, concat
+extern substr, len
 global {}
 '''
 

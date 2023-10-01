@@ -1,0 +1,15 @@
+
+
+var(a, 'hello')
+
+var(b, 'world')
+
+var(c, Concat(a, b))
+
+var(d, String(a))
+
+println(Substr(c, 2, 8))
+
+println(Substr(a, 1, -1))
+
+println_i(len(Substr(b, 1, -1)))
