@@ -12,5 +12,7 @@ void free_str(char *s);
 char *int_to_str(int n);
 
 char *concat(char *s1, char *s2);
+char *substr(char *s, int start, int end);
+int len(char *s);
 
 #endif

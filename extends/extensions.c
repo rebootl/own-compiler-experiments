@@ -77,3 +77,29 @@ char *concat(char *s1, char *s2) {
   strcat(result, s2);
   return result;
 }
+
+char *substr(char *s, int start, int end) {
+  if (start < 0 || end == 0) {
+    printf("invalid start or end index\n");
+    exit(1);
+  }
+  int stop;
+  if (end < 0) {
+    stop = strlen(s) + end - 1;
+  } else {
+    stop = end;
+  }
+
+  char *result = malloc(stop - start + 2); //+1 for the zero-terminator
+  if (result == NULL) {
+      printf("malloc failed\n");
+      exit(1);
+  }
+  strncpy(result, s + start, stop - start + 1);
+  result[stop - start + 1] = '\0';
+  return result;
+}
+
+int len(char *s) {
+  return strlen(s);
+}

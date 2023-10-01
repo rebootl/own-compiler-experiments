@@ -35,7 +35,22 @@ int main(void) {
   char *s2 = "World";
   char *s3 = concat(s1, s2);
   printf("%s\n", s3); // prints HelloWorld
+
+  char *s4 = substr(s1, 1, 3);
+  printf("%s\n", s4); // prints ell
+  char *s5 = substr(s3, 4, 6);
+  printf("%s\n", s5); // prints oWo
+  char *s6 = substr(s3, 2, -2); // negative indices count from the end
+  printf("%s\n", s6); // prints lloWor
+
+  printf("%d\n", len(s1)); // prints 5
+  printf("%d\n", len(s3)); // prints 10
+  printf("%d\n", len(s6)); // prints 6
+
   free(s3);
+  free(s4);
+  free(s5);
+  free(s6);
 
   return 0;
 }
