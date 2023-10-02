@@ -1,5 +1,4 @@
 
-
 var(a, 'hello')
 
 var(b, 'world')
@@ -22,3 +21,10 @@ println(e)
 println(Lower(e, 3, 4))
 
 println_i(len(Substr(b, 1, -1)))
+
+set(d, Upper(d, 0, 0))
+var(g, String(d))
+set(g, Concat(g, 'Foo'))
+println(g)
+
+println(d)

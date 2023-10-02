@@ -424,6 +424,11 @@ def eval(expr, asm, depth = 0):
       if var[0] == args[0]:
         sys.exit("Redeclaration Error: '" + args[0] + "'")
 
+    # -> check that it's not a parameter already
+    for param in STACK_FRAMES[-1]['params']:
+      if param[0] == args[0]:
+        sys.exit("Redeclaration Error(parameter): '" + args[0] + "'")
+
     # evaluate the 2nd argument
     [ asm, _type ] = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
@@ -467,6 +472,11 @@ def eval(expr, asm, depth = 0):
       for var in STACK_FRAMES[-1]['vars'][-1]:
         if var[0] == args[1]:
           var[1] = 'UNDEF'
+
+      # -> if it's string we need to free the old value!!
+      asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+      asm += assembly.PUSH_RESULT
+      asm += assembly.CALL_EXTENSION['free_str']
 
     # this will consume the value on the stack top
     # and update the variable in the correct stack location
@@ -659,7 +669,7 @@ def eval(expr, asm, depth = 0):
       rtype = 'STRING'
 
     elif kw == "String":
-      check_arg_types(kw, arg_types, [ 'STRING_LIT' ])
+      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
       rtype = 'STRING'
 
     elif kw == "Concat":
