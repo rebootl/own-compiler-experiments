@@ -65,7 +65,7 @@ what\nhappens\\nhere\n', 0 ],
   [ 'programs/47-Concat.src', 'hello1\nhelloworld\nhelloworld\n', 0 ],
   [ 'programs/48-auto-mem-manage.src', '1565656', 0 ],
   [ 'programs/49-String-fns.src', 'lloworl\nello\nld\ndlrowolleh\nhelLOWORld\nhelloWORld\n4\n\
-HelloFoo\nHello\n', 0 ],
+HelloFoo\nHello\nhello world\n', 0 ],
 ]
 
 for case in CASES:

@@ -203,6 +203,65 @@ def get_unique_count():
   UNIQUE_COUNTER += 1
   return UNIQUE_COUNTER
 
+EXTENSIONS = {
+  'print': {
+    'name': 'print',
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
+  },
+  'println': {
+    'name': 'println',
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
+  },
+  'print_i': {
+    'name': 'print_i',
+    'arg_types': [ 'INT' ],
+  },
+  'println_i': {
+    'name': 'println_i',
+    'arg_types': [ 'INT' ],
+  },
+  'Int2Str': {
+    'name': 'int_to_str',
+    'arg_types': [ 'INT' ],
+    'return_type': 'STRING',
+  },
+  'String': {
+    'name': 'allocate_str',
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
+    'return_type': 'STRING',
+  },
+  'Concat': {
+    'name': 'concat',
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ], [ 'STRING_LIT', 'STRING' ] ],
+    'return_type': 'STRING',
+  },
+  'Substr': {
+    'name': 'substr',
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
+    'return_type': 'STRING',
+  },
+  'Reverse': {
+    'name': 'reverse',
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
+    'return_type': 'STRING',
+  },
+  'Upper': {
+    'name': 'uppercase',
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
+    'return_type': 'STRING',
+  },
+  'Lower': {
+    'name': 'lowercase',
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
+    'return_type': 'STRING',
+  },
+  'len': {
+    'name': 'len',
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
+    'return_type': 'INT',
+  },
+}
+
 def find_variable(name, stack_frame):
 
   """find the stack position of a variable, also return its type"""
@@ -253,7 +312,7 @@ def eval_block(block, asm, depth):
     if var[1] == 'STRING':
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
       asm += assembly.PUSH_RESULT
-      asm += assembly.CALL_EXTENSION['free_str']
+      asm += assembly.EXT_FREE_STR
 
     # -> this could be improved to use something like:
     #    add esp, 4 * len(STACK_FRAMES[-1]['vars'][-1])
@@ -323,7 +382,7 @@ def free_at_loop_break():
     if flatten(STACK_FRAMES[-1]['vars'])[i][1] == 'STRING':
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
       asm += assembly.PUSH_RESULT
-      asm += assembly.CALL_EXTENSION['free_str']
+      asm += assembly.EXT_FREE_STR
   # then pop
   for i in range(stack_position_start, stack_position_end):
     asm += assembly.POP_LOCAL_VARIABLE
@@ -337,7 +396,7 @@ def free_arguments(args, arg_types):
   asm = ''
   for i, arg in enumerate(args):
     if arg_types[i] == 'STRING' and type(arg) == list:
-      asm += assembly.CALL_EXTENSION['free_str']
+      asm += assembly.EXT_FREE_STR
       # (this adds 4 to esp already, clearing the stack)
     else:
       # -> improve
@@ -476,7 +535,7 @@ def eval(expr, asm, depth = 0):
       # -> if it's string we need to free the old value!!
       asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
       asm += assembly.PUSH_RESULT
-      asm += assembly.CALL_EXTENSION['free_str']
+      asm += assembly.EXT_FREE_STR
 
     # this will consume the value on the stack top
     # and update the variable in the correct stack location
@@ -604,7 +663,7 @@ def eval(expr, asm, depth = 0):
       if var[1] == 'STRING' and var[0] != args[0]:
         asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
         asm += assembly.PUSH_RESULT
-        asm += assembly.CALL_EXTENSION['free_str']
+        asm += assembly.EXT_FREE_STR
 
     if len(args) > 0:
       [ asm, _type ] = eval(args[0], asm, depth + 1)
@@ -643,62 +702,25 @@ def eval(expr, asm, depth = 0):
 
     asm += assembly.PRIMARIES[kw]
 
-  elif kw in assembly.CALL_EXTENSION:
-    if kw == "println":
-      if len(args) > 0:
-        check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
-        asm += assembly.CALL_EXTENSION['print']
-
-    elif kw == "free_str":
-      check_arg_types(kw, arg_types, [ 'STRING' ])
-      # we dont want to free twice
-      asm += assembly.CALL_EXTENSION[kw]
-      return [ asm, 'UNDEF' ]
-
-    elif kw == "print":
+  elif kw == "println":
+    if len(args) > 0:
       check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
+      asm += assembly.CALL_EXTENSION.format(EXTENSIONS['print']['name'])
+      asm += free_arguments(args, arg_types)
+    asm += assembly.CALL_EXTENSION.format(EXTENSIONS['println']['name'])
 
-    elif kw == "print_i":
-      check_arg_types(kw, arg_types, [ 'INT' ])
-
-    elif kw == "println_i":
-      check_arg_types(kw, arg_types, [ 'INT' ])
-
-    elif kw == "Int2Str":
-      check_arg_types(kw, arg_types, [ 'INT' ])
-      rtype = 'STRING'
-
-    elif kw == "String":
-      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
-      rtype = 'STRING'
-
-    elif kw == "Concat":
-      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], [ 'STRING_LIT', 'STRING' ] ])
-      rtype = 'STRING'
-
-    elif kw == "Substr":
-      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ])
-      rtype = 'STRING'
-
-    elif kw == "Reverse":
-      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
-      rtype = 'STRING'
-
-    elif kw == "Upper":
-      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ])
-      rtype = 'STRING'
-
-    elif kw == "Lower":
-      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ])
-      rtype = 'STRING'
-
-    elif kw == "len":
-      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
-      rtype = 'INT'
-
-    asm += assembly.CALL_EXTENSION[kw]
-
+  elif kw == "println_i":
+    check_arg_types(kw, arg_types, [ 'INT' ])
+    asm += assembly.CALL_EXTENSION.format(EXTENSIONS['print_i']['name'])
+    asm += assembly.CALL_EXTENSION.format(EXTENSIONS['println']['name'])
     asm += free_arguments(args, arg_types)
+
+  elif kw in EXTENSIONS:
+    check_arg_types(kw, arg_types, EXTENSIONS[kw]['arg_types'])
+    asm += assembly.CALL_EXTENSION.format(EXTENSIONS[kw]['name'])
+    asm += free_arguments(args, arg_types)
+    if 'return_type' in EXTENSIONS[kw]:
+      rtype = EXTENSIONS[kw]['return_type']
 
   elif kw == 'inc' or kw == 'dec':
     check_arg_types(kw, arg_types, [ 'INT' ])

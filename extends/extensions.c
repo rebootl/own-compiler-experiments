@@ -158,6 +158,24 @@ char *lowercase(char *s, int begin, int end) {
   return _case(s, begin, end, 0);
 }
 
+char *trim(char *s) {
+  int start = 0;
+  int stop = strlen(s) - 1;
+
+  while (s[start] == ' ' || s[start] == '\t' || s[start] == '\n') {
+    start++;
+  }
+  while (s[stop] == ' ' || s[stop] == '\t' || s[stop] == '\n') {
+    stop--;
+  }
+
+  char *result = _alloc(stop - start + 2); //+1 for the zero-terminator
+
+  strncpy(result, s + start, stop - start + 1);
+  result[stop - start + 1] = '\0';
+  return result;
+}
+
 int len(char *s) {
   return strlen(s);
 }

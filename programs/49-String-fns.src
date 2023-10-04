@@ -28,3 +28,4 @@ set(g, Concat(g, 'Foo'))
 println(g)
 
 println(d)
+print('hello world\n')

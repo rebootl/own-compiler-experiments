@@ -24,6 +24,10 @@ int main(void) {
   char *s = allocate_str("My String.");
   print(s); // prints My String.
   println(); // prints \n
+
+  char *c = allocate_str(s);
+  print(c); // prints My String.
+  println(); // prints \n
   free_str(s);
 
   char *si = int_to_str(42);
