@@ -12,10 +12,10 @@ function ( fib, [n: INT], INT, {
 
   ;var(n1, fib( sub(n, 1) ))
   ;print_i(n1)
-  ;println()
+  ;print('\n')
   ;var(n2, fib( sub(n, 2) ))
   ;print_i(n2)
-  ;println()
+  ;print('\n')
 
 
   return( add(

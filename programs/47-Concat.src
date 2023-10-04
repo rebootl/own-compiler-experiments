@@ -10,8 +10,11 @@ var(d, String(a))
 
 var(e, Concat(d, b))
 
-println(Concat('hello', Int2Str(1)))
+print(Concat('hello', Int2Str(1)))
+print('\n')
 
-println(c)
-println(e)
-;println(f)
+print(c)
+print('\n')
+print(e)
+print('\n')
+;print(f)

@@ -1,9 +1,13 @@
 
 
-println_i( mul(2, -2) )
+print_i( mul(2, -2) )
+print('\n')
 
-println_i( mul(-1, -1) )
+print_i( mul(-1, -1) )
+print('\n')
 
-println_i( mul(-1, 300) )
+print_i( mul(-1, 300) )
+print('\n')
 
-println_i( mul(-5, 3) )
+print_i( mul(-5, 3) )
+print('\n')

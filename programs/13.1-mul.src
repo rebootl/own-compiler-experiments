@@ -1,9 +1,7 @@
 
 
-println_i( mul(2, 2) )
+print_i( mul(2, 2) )
+print('\n')
 
-;println()
-
-println_i( mul(5, mul(3, 5) ))
-
-;println()
+print_i( mul(5, mul(3, 5) ))
+print('\n')

@@ -4,9 +4,9 @@ var(a, 10)
 function(add2, [a: INT, b: INT], INT, {
 
   ;print_i(a)
-  ;println()
+  ;print('\n')
   ;print_i(b)
-  ;println()
+  ;print('\n')
 
   return( add(a, b) )
 
@@ -21,13 +21,13 @@ var(n2, add2(a, 10))
 var(n3, add2(a, 15))
 
 print_i(n1)
-println()
+print('\n')
 
 print_i(n2)
-println()
+print('\n')
 
 print_i(n3)
-println()
+print('\n')
 
 print_i( add2(2, 3) )
 print_i(a)

@@ -3,20 +3,21 @@
 function( fizzbuzz, [n: INT], UNDEF, {
 
   if( and( eq(0, mod(n, 3)), eq(0, mod(n, 5))), {
-    println('fizzbuzz')
+    print('fizzbuzz\n')
     return()
   })
 
   if( eq(0, mod(n, 3)), {
-    println('fizz')
+    print('fizz\n')
     return()
   })
 
   if( eq(0, mod(n, 5)), {
-    println('buzz')
+    print('buzz\n')
     return()
   })
-  println_i(n)
+  print_i(n)
+  print('\n')
 
 })
 

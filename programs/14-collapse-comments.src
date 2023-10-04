@@ -8,16 +8,15 @@ print_i(
     add(2, 2)
   )
 )
-println()
+print('\n')
 
 ; comment
 
-println_i(add(
+print_i(add(
   sub(5, 2),          ; inline comment
   sub(3, 1)
 ))
-
-;println()            ; inline comment
+print('\n')           ; inline comment
 
 ; exit ok
 exit(0)

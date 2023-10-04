@@ -17,20 +17,22 @@ void print_i(int n) {
 }
 
 // (not used atm)
+/*
 void println_i(int n) {
   printf("%d\n", n);
   fflush(stdout);
 }
-
+*/
 void print(char *s) {
   printf("%s", s);
   fflush(stdout);
 }
-
+/*
 void println() {
   printf("\n");
   fflush(stdout);
 }
+*/
 
 void *_alloc(int size) {
   void *result = malloc(size);

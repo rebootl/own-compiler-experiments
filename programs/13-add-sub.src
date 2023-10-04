@@ -1,5 +1,7 @@
 print_i( add(4, sub(3, 1)) )
-println()
+print('\n')
+
 print_i( sub( add(2, 2), sub(3, 1) ) )
-println()
+print('\n')
+
 exit(0)

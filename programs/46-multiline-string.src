@@ -12,8 +12,11 @@ multiline string'))
 
 var(c, 'what\nhappens\\nhere')
 
-println(a)
+print(a)
+print('\n')
 
-println(b)
+print(b)
+print('\n')
 
-println(c)
+print(c)
+print('\n')

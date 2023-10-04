@@ -19,20 +19,20 @@ int main(void) {
   print("Hello"); // prints Hello
 
   //println("Hello"); // prints Hello\n
-  println(); // prints \n
+  //println(); // prints \n
 
   char *s = allocate_str("My String.");
   print(s); // prints My String.
-  println(); // prints \n
+  //println(); // prints \n
 
   char *c = allocate_str(s);
   print(c); // prints My String.
-  println(); // prints \n
+  //println(); // prints \n
   free_str(s);
 
   char *si = int_to_str(42);
   print(si); // prints 42
-  println(); // prints \n
+  //println(); // prints \n
 
   /* test concat, string concatenation */
   char *s1 = "Hello";

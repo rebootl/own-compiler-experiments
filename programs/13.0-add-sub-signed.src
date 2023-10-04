@@ -1,8 +1,12 @@
-println_i( sub(-3, 1) )
+print_i( sub(-3, 1) )
+print('\n')
 
-println_i( sub(-3, -5) )
-println_i( sub(3, -5) )
+print_i( sub(-3, -5) )
+print('\n')
+print_i( sub(3, -5) )
+print('\n')
 
-println_i( sub( add(-2, -2), sub(3, -1) ) )
+print_i( sub( add(-2, -2), sub(3, -1) ) )
+print('\n')
 
 exit(0)

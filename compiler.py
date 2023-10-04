@@ -702,19 +702,6 @@ def eval(expr, asm, depth = 0):
 
     asm += assembly.PRIMARIES[kw]
 
-  elif kw == "println":
-    if len(args) > 0:
-      check_arg_types(kw, arg_types, [ [ 'STRING_LIT', 'STRING' ] ])
-      asm += assembly.CALL_EXTENSION.format(EXTENSIONS['print']['name'])
-      asm += free_arguments(args, arg_types)
-    asm += assembly.CALL_EXTENSION.format(EXTENSIONS['println']['name'])
-
-  elif kw == "println_i":
-    check_arg_types(kw, arg_types, [ 'INT' ])
-    asm += assembly.CALL_EXTENSION.format(EXTENSIONS['print_i']['name'])
-    asm += assembly.CALL_EXTENSION.format(EXTENSIONS['println']['name'])
-    asm += free_arguments(args, arg_types)
-
   elif kw in EXTENSIONS:
     check_arg_types(kw, arg_types, EXTENSIONS[kw]['arg_types'])
     asm += assembly.CALL_EXTENSION.format(EXTENSIONS[kw]['name'])

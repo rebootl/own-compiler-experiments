@@ -7,25 +7,34 @@ var(c, Concat(a, b))
 
 var(d, String(a))
 
-println(Substr(c, 2, 8))
+print(Substr(c, 2, 8))
+print('\n')
 
-println(Substr(a, 1, -1))
+print(Substr(a, 1, -1))
+print('\n')
 
-println(Substr(c, -2, -1))
+print(Substr(c, -2, -1))
+print('\n')
 
-println(Reverse(c))
+print(Reverse(c))
+print('\n')
 
 var(e, Upper(c, 3, 7))
-println(e)
+print(e)
+print('\n')
 
-println(Lower(e, 3, 4))
+print(Lower(e, 3, 4))
+print('\n')
 
-println_i(len(Substr(b, 1, -1)))
+print_i(len(Substr(b, 1, -1)))
+print('\n')
 
 set(d, Upper(d, 0, 0))
 var(g, String(d))
 set(g, Concat(g, 'Foo'))
-println(g)
+print(g)
+print('\n')
 
-println(d)
+print(d)
+print('\n')
 print('hello world\n')

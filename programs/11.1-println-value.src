@@ -1,8 +1,13 @@
-println_i(10)
+print_i(10)
+print('\n')
 
 print_i(65)
 
-println_i(15)
-println_i(12)
+print_i(15)
+print('\n')
 
-println_i(15)
+print_i(12)
+print('\n')
+
+print_i(15)
+print('\n')

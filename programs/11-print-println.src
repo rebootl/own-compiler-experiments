@@ -1,9 +1,9 @@
 print_i(55)
 
-println()
+print('\n')
 
 print_i(65)
 
-println()
+print('\n')
 
 exit(0)
