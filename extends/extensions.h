@@ -6,16 +6,16 @@ void print_i(int n);
 void print(char *s);
 //void println();
 
-char *allocate_str(char *s);
+char *String(char *s);
 void free_str(char *s);
 
-char *int_to_str(int n);
+char *Int2str(int n);
 
-char *concat(char *s1, char *s2);
-char *substr(char *s, int begin, int end);
-char *reverse(char *s);
-char *uppercase(char *s, int begin, int end);
-char *lowercase(char *s, int begin, int end);
+char *Concat(char *s1, char *s2);
+char *Substr(char *s, int begin, int end);
+char *Reverse(char *s);
+char *Upper(char *s, int begin, int end);
+char *Lower(char *s, int begin, int end);
 int len(char *s);
 
 #endif

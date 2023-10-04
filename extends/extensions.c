@@ -43,7 +43,9 @@ void *_alloc(int size) {
   return result;
 }
 
-char *allocate_str(char *s) {
+// allocate memory for a string, copy the string to the allocated memory
+// return the memory address of the allocated memory
+char *String(char *s) {
   char *result = _alloc(strlen(s) + 1); //+1 for the zero-terminator
 
   strcpy(result, s);
@@ -54,7 +56,7 @@ void free_str(char *s) {
   free(s);
 }
 
-char *int_to_str(int n) {
+char *Int2str(int n) {
   char *result = _alloc(12); // 12 is the max length of an int
 
   sprintf(result, "%d", n);
@@ -72,7 +74,7 @@ char *int_to_str(int n) {
   returns: memory address of concatenated string
 
 */
-char *concat(char *s1, char *s2) {
+char *Concat(char *s1, char *s2) {
   char *result = _alloc(strlen(s1) + strlen(s2) + 1); //+1 for the zero-terminator
 
   strcpy(result, s1);
@@ -100,7 +102,7 @@ int _get_stop_index(int stop, char *s) {
   }
 }
 
-char *substr(char *s, int begin, int end) {
+char *Substr(char *s, int begin, int end) {
   /*if (begin < 0) {
     printf("invalid start or end index\n");
     exit(1);
@@ -115,7 +117,7 @@ char *substr(char *s, int begin, int end) {
   return result;
 }
 
-char *reverse(char *s) {
+char *Reverse(char *s) {
   char *result = _alloc(strlen(s) + 1); //+1 for the zero-terminator
 
   int i;
@@ -152,15 +154,15 @@ char *_case(char *s, int begin, int end, int upper) {
   return result;
 }
 
-char *uppercase(char *s, int begin, int end) {
+char *Upper(char *s, int begin, int end) {
   return _case(s, begin, end, 1);
 }
 
-char *lowercase(char *s, int begin, int end) {
+char *Lower(char *s, int begin, int end) {
   return _case(s, begin, end, 0);
 }
 
-char *trim(char *s) {
+char *Trim(char *s) {
   int start = 0;
   int stop = strlen(s) - 1;
 

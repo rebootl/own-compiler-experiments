@@ -205,58 +205,40 @@ def get_unique_count():
 
 EXTENSIONS = {
   'print': {
-    'name': 'print',
-    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
-  },
-  'println': {
-    'name': 'println',
     'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
   },
   'print_i': {
-    'name': 'print_i',
     'arg_types': [ 'INT' ],
   },
-  'println_i': {
-    'name': 'println_i',
-    'arg_types': [ 'INT' ],
-  },
-  'Int2Str': {
-    'name': 'int_to_str',
+  'Int2str': {
     'arg_types': [ 'INT' ],
     'return_type': 'STRING',
   },
   'String': {
-    'name': 'allocate_str',
     'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
     'return_type': 'STRING',
   },
   'Concat': {
-    'name': 'concat',
     'arg_types': [ [ 'STRING_LIT', 'STRING' ], [ 'STRING_LIT', 'STRING' ] ],
     'return_type': 'STRING',
   },
   'Substr': {
-    'name': 'substr',
     'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
     'return_type': 'STRING',
   },
   'Reverse': {
-    'name': 'reverse',
     'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
     'return_type': 'STRING',
   },
   'Upper': {
-    'name': 'uppercase',
     'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
     'return_type': 'STRING',
   },
   'Lower': {
-    'name': 'lowercase',
     'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
     'return_type': 'STRING',
   },
   'len': {
-    'name': 'len',
     'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
     'return_type': 'INT',
   },
@@ -704,7 +686,7 @@ def eval(expr, asm, depth = 0):
 
   elif kw in EXTENSIONS:
     check_arg_types(kw, arg_types, EXTENSIONS[kw]['arg_types'])
-    asm += assembly.CALL_EXTENSION.format(EXTENSIONS[kw]['name'])
+    asm += assembly.CALL_EXTENSION.format(kw)
     asm += free_arguments(args, arg_types)
     if 'return_type' in EXTENSIONS[kw]:
       rtype = EXTENSIONS[kw]['return_type']

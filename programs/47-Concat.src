@@ -10,7 +10,7 @@ var(d, String(a))
 
 var(e, Concat(d, b))
 
-print(Concat('hello', Int2Str(1)))
+print(Concat('hello', Int2str(1)))
 print('\n')
 
 print(c)

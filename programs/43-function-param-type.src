@@ -22,4 +22,4 @@ print(a(5, 'ABC'))
 
 print_i(c(4567))
 
-d(Int2Str(222))
+d(Int2str(222))

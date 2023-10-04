@@ -8,8 +8,8 @@ while(gt(a, 1), {
   dec(a)
 
   var(b, 8)
-  var(c, Int2Str(123))
-  ;var(c, Int2Str(123))
+  var(c, Int2str(123))
+  ;var(c, Int2str(123))
 
   if(lt(a, 5), {
     break()
