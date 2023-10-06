@@ -13,7 +13,7 @@ char *Int2str(int n);
 
 char *Concat(char *s1, char *s2);
 char *Substr(char *s, int begin, int end);
-char *Reverse(char *s);
+char *Revstr(char *s);
 char *Upper(char *s, int begin, int end);
 char *Lower(char *s, int begin, int end);
 int len(char *s);

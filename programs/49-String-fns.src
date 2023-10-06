@@ -16,7 +16,7 @@ print('\n')
 print(Substr(c, -2, -1))
 print('\n')
 
-print(Reverse(c))
+print(Revstr(c))
 print('\n')
 
 var(e, Upper(c, 3, 7))

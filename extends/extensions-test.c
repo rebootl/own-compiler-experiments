@@ -72,7 +72,7 @@ int main(void) {
   char *s9 = Substr(s3, -2, -1);
   assert_equal_str(s9, "ld", "Substr");
 
-  assert_equal_str(Reverse(s3), "dlroWolleH", "Reverse");
+  assert_equal_str(Revstr(s3), "dlroWolleH", "Revstr");
 
   assert_equal_str(Upper(s1, 2, 3), "HeLLo", "Upper");
   char *s10 = Upper(s3, 0, -1);

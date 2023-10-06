@@ -117,7 +117,7 @@ char *Substr(char *s, int begin, int end) {
   return result;
 }
 
-char *Reverse(char *s) {
+char *Revstr(char *s) {
   char *result = _alloc(strlen(s) + 1); //+1 for the zero-terminator
 
   int i;

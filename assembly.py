@@ -396,7 +396,7 @@ FUNCTION_CALL = '''
 ### built-in functions
 
 HEAD = '''extern print_i, println, print, allocate_str, String, Int2str, Concat
-extern Substr, Reverse, Upper, Lower, len, free_str
+extern Substr, Revstr, Upper, Lower, len, free_str
 global {}
 '''
 

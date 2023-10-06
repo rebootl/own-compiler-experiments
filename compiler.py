@@ -226,7 +226,7 @@ EXTENSIONS = {
     'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
     'return_type': 'STRING',
   },
-  'Reverse': {
+  'Revstr': {
     'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
     'return_type': 'STRING',
   },
