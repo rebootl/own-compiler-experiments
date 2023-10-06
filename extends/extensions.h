@@ -46,5 +46,6 @@ void  free_array(Array *a);
 void print_array(Array *a);
 
 int shift(Array *a);
+int unshift(Array *a, int n, type t);
 
 #endif

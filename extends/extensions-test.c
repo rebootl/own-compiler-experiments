@@ -113,6 +113,9 @@ int main(void) {
   assert_equal_int(shift(a), 42, "Array shift");
   print_array(a);
 
+  unshift(a, 42, INT);
+  print_array(a);
+
   free_array(a);
 
   return 0;
