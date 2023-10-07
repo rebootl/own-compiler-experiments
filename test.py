@@ -66,6 +66,7 @@ what\nhappens\\nhere\n', 0 ],
   [ 'programs/48-auto-mem-manage.src', '1565656', 0 ],
   [ 'programs/49-String-fns.src', 'lloworl\nello\nld\ndlrowolleh\nhelLOWORld\nhelloWORld\n4\n\
 HelloFoo\nHello\nhello world\n', 0 ],
+  [ 'programs/50-Array.src', '12345', 0 ],
 ]
 
 for case in CASES:

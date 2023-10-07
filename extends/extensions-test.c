@@ -44,9 +44,9 @@ int main(void) {
   char *s = String("My String.");
   assert_equal_str(s, "My String.", "String");
 
-  char *c = String(s);
-  assert_equal_str(c, "My String.", "String copy");
-  free_str(s);
+  char *sc = String(s);
+  assert_equal_str(sc, "My String.", "String copy");
+  free_str(sc);
 
   char *si = Int2str(42);
   assert_equal_str(si, "42", "Int2str");
@@ -82,6 +82,10 @@ int main(void) {
   assert_equal_int(len(s4), 3, "len");
   assert_equal_int(len(s7), 1, "len");
 
+  //print(s3); // prints HelloWorld
+  char *s11 = append(s3, " World");
+  assert_equal_str(s11, "HelloWorld World", "append");
+
   Array *a = Array_new(5);
 
   put(a, 0, 42, INT);
@@ -115,6 +119,39 @@ int main(void) {
 
   unshift(a, 42, INT);
   print_array(a);
+
+  Array *c = Slice(a, 1, 3);
+  print_array(c);
+
+  insert(a, 4, 43, INT);
+  print_array(a);
+
+  remove_at(a, 3);
+  print_array(a);
+
+  Array *d = Copy(a);
+  print_array(d);
+
+  reverse(d);
+  print_array(d);
+
+  shift(d);
+  print_array(d);
+  sort(d);
+  print_array(d);
+
+  Array *e = Array_new(5);
+  put(e, 0, addr("pe"), STRING);
+  put(e, 1, addr("De"), STRING);
+  put(e, 2, addr("al"), STRING);
+  put(e, 3, addr("be"), STRING);
+  put(e, 4, addr("Ar"), STRING);
+  print_array(e);
+  sort(e);
+  print_array(e);
+
+  //stringify(e, " ");
+  //assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 45 ]", "Array to string");
 
   free_array(a);
 

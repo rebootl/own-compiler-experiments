@@ -43,6 +43,15 @@ void *_alloc(int size) {
   return result;
 }
 
+void *_realloc(void *p, int size) {
+  void *result = realloc(p, size);
+  if (result == NULL) {
+      printf("realloc failed\n");
+      exit(1);
+  }
+  return result;
+}
+
 // allocate memory for a string, copy the string to the allocated memory
 // return the memory address of the allocated memory
 char *String(char *s) {
@@ -82,21 +91,21 @@ char *Concat(char *s1, char *s2) {
   return result;
 }
 
-int _get_start_index(int start, char *s) {
+int _get_start_index(int start, int len) {
   if (start < 0) {
-    return strlen(s) + start;
-  } else if (start > strlen(s)) {
-    return strlen(s);
+    return len + start;
+  } else if (start > len) {
+    return len;
   } else {
     return start;
   }
 }
 
-int _get_stop_index(int stop, char *s) {
+int _get_stop_index(int stop, int len) {
   if (stop < 0) {
-    return strlen(s) + stop;
-  } else if (stop > strlen(s)) {
-    return strlen(s) - 1;
+    return len + stop;
+  } else if (stop > len) {
+    return len - 1;
   } else {
     return stop;
   }
@@ -107,8 +116,8 @@ char *Substr(char *s, int begin, int end) {
     printf("invalid start or end index\n");
     exit(1);
   }*/
-  int start = _get_start_index(begin, s);
-  int stop = _get_stop_index(end, s);
+  int start = _get_start_index(begin, strlen(s));
+  int stop = _get_stop_index(end, strlen(s));
 
   char *result = _alloc(stop - start + 2); //+1 for the zero-terminator
 
@@ -129,8 +138,8 @@ char *Revstr(char *s) {
 }
 
 char *_case(char *s, int begin, int end, int upper) {
-  int start = _get_start_index(begin, s);
-  int stop = _get_stop_index(end, s);
+  int start = _get_start_index(begin, strlen(s));
+  int stop = _get_stop_index(end, strlen(s));
 
   char *result = _alloc(strlen(s) + 1); //+1 for the zero-terminator
 
@@ -180,6 +189,14 @@ char *Trim(char *s) {
   return result;
 }
 */
+
+char *append(char *s, char *s2) {
+  char *r = (char *)_realloc(s, strlen(s) + strlen(s2) + 1);
+
+  //strcpy(r, s);
+  strcat(r, s2);
+  return r;
+}
 
 int len(char *s) {
   return strlen(s);
@@ -237,15 +254,21 @@ char *get_type(Array *a, int i) {
   }
 }
 
-void _array_resize(Array *a) {
+void _array_grow(Array *a) {
   a->capacity *= 2;
-  a->data = realloc(a->data, a->capacity * sizeof(int));
-  a->types = realloc(a->types, a->capacity * sizeof(type));
+  a->data = _realloc(a->data, a->capacity * sizeof(int));
+  a->types = _realloc(a->types, a->capacity * sizeof(type));
+}
+
+void _array_shrink(Array *a) {
+  a->capacity /= 2;
+  a->data = _realloc(a->data, a->capacity * sizeof(int));
+  a->types = _realloc(a->types, a->capacity * sizeof(type));
 }
 
 void push(Array *a, int n, type t) {
   if (a->size == a->capacity) {
-    _array_resize(a);
+    _array_grow(a);
   }
   a->data[a->size] = n;
   a->types[a->size] = t;
@@ -261,8 +284,8 @@ int pop(Array *a) {
   a->size--;
   if (a->size < a->capacity / 4) {
     a->capacity /= 2;
-    a->data = realloc(a->data, a->capacity * sizeof(int));
-    a->types = realloc(a->types, a->capacity * sizeof(type));
+    a->data = _realloc(a->data, a->capacity * sizeof(int));
+    a->types = _realloc(a->types, a->capacity * sizeof(type));
   }
   return result;
 }
@@ -306,6 +329,34 @@ void print_array(Array *a) {
   printf("\n");
   fflush(stdout);
 }
+/*
+String stringify(Array *a) {
+  String r = String("[ ");
+  for (int i = 0; i < a->size; i++) {
+    if (i > 0) {
+      r2 = Concat(r, ", ");
+      free_str(r);
+    }
+    switch (a->types[i]) {
+      case INT:
+        r3 = Concat(r2, sprintf("%d", a->data[i]));
+        free_str(r2);
+        break;
+      case STRING:
+        strcat(result, "\"");
+        strcat(result, addr2str(a->data[i]));
+        strcat(result, "\"");
+        break;
+      case ARRAY:
+        stringify((Array *)a->data[i], result);
+        break;
+      default:
+        strcat(result, "undefined");
+    }
+  }
+  strcat(result, " ]");
+}
+*/
 
 int shift(Array *a) {
   if (a->size == 0) {
@@ -319,16 +370,14 @@ int shift(Array *a) {
   }
   a->size--;
   if (a->size < a->capacity / 4) {
-    a->capacity /= 2;
-    a->data = realloc(a->data, a->capacity * sizeof(int));
-    a->types = realloc(a->types, a->capacity * sizeof(type));
+    _array_shrink(a);
   }
   return result;
 }
 
 int unshift(Array *a, int n, type t) {
   if (a->size == a->capacity) {
-    _array_resize(a);
+    _array_grow(a);
   }
   for (int i = a->size; i > 0; i--) {
     a->data[i] = a->data[i - 1];
@@ -338,4 +387,118 @@ int unshift(Array *a, int n, type t) {
   a->types[0] = t;
   a->size++;
   return a->size;
+}
+
+void insert(Array *a, int i, int n, type t) {
+  if (i < 0 || i >= a->size) {
+    printf("index out of bounds\n");
+    exit(1);
+  }
+  if (a->size == a->capacity) {
+    _array_grow(a);
+  }
+  for (int j = a->size; j > i; j--) {
+    a->data[j] = a->data[j - 1];
+    a->types[j] = a->types[j - 1];
+  }
+  a->data[i] = n;
+  a->types[i] = t;
+  a->size++;
+}
+
+void remove_at(Array *a, int i) {
+  if (i < 0 || i >= a->size) {
+    printf("index out of bounds\n");
+    exit(1);
+  }
+  for (int j = i; j < a->size - 1; j++) {
+    a->data[j] = a->data[j + 1];
+    a->types[j] = a->types[j + 1];
+  }
+  a->size--;
+  if (a->size < a->capacity / 4) {
+    _array_shrink(a);
+  }
+}
+
+void reverse(Array *a) {
+  for (int i = 0; i < a->size / 2; i++) {
+    int tmp = a->data[i];
+    type tmp2 = a->types[i];
+    a->data[i] = a->data[a->size - i - 1];
+    a->types[i] = a->types[a->size - i - 1];
+    a->data[a->size - i - 1] = tmp;
+    a->types[a->size - i - 1] = tmp2;
+  }
+}
+
+void _sort_int(Array *a) {
+  for (int i = 0; i < a->size; i++) {
+    if (a->types[i] != INT) {
+      printf("sort does not work on arrays of mixed types\n");
+      exit(1);
+    }
+    for (int j = i + 1; j < a->size; j++) {
+      if (a->data[i] > a->data[j]) {
+        int tmp = a->data[i];
+        a->data[i] = a->data[j];
+        a->data[j] = tmp;
+      }
+    }
+  }
+}
+
+void _sort_string(Array *a) {
+  for (int i = 0; i < a->size; i++) {
+    if (a->types[i] != STRING) {
+      printf("sort does not work on arrays of mixed types\n");
+      exit(1);
+    }
+    for (int j = i + 1; j < a->size; j++) {
+      if (strcmp(addr2str(a->data[i]), addr2str(a->data[j])) > 0) {
+        int tmp = a->data[i];
+        a->data[i] = a->data[j];
+        a->data[j] = tmp;
+      }
+    }
+  }
+}
+
+void sort(Array *a) {
+  type t = a->types[0];
+  switch (t) {
+    case INT:
+      _sort_int(a);
+      break;
+    case STRING:
+      _sort_string(a);
+      break;
+    case ARRAY:
+      printf("sort does not work on arrays of arrays\n");
+      exit(1);
+    default:
+      printf("sort does not work on arrays of mixed types\n");
+      exit(1);
+  }
+}
+
+Array *Slice(Array *a, int begin, int end) {
+  int start = _get_start_index(begin, a->size);
+  int stop = _get_stop_index(end, a->size);
+
+  Array *result = Array_new(stop - start + 1);
+
+  for (int i = start; i <= stop; i++) {
+    put(result, i - start, a->data[i], a->types[i]);
+  }
+  return result;
+}
+
+Array *Copy(Array *a) {
+  Array *result = Array_new(a->size);
+
+  for (int i = 0; i < a->size; i++) {
+    put(result, i, a->data[i], a->types[i]);
+  }
+  return result;
 }
