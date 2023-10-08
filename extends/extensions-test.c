@@ -108,37 +108,38 @@ int main(void) {
   assert_equal_str(get_type(a, 3), "STRING", "Array get_type");
 
   Array *b = Array_new(2);
-  print_array(a);
+  assert_equal_str(stringify(b), "[ 0, 0 ]", "Array empty");
+  assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 0, 45 ]", "Array stringify");
   push(a, addr(b), ARRAY);
-  print_array(a);
+  assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 0, 45, [ 0, 0 ] ]", "Array push");
   put(b, 0, 42, INT);
-  print_array(a);
+  assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 0, 45, [ 42, 0 ] ]", "Array put");
 
-  assert_equal_int(shift(a), 42, "Array shift");
-  print_array(a);
+  assert_equal_int(shift(a), 42, "shift result");
+  assert_equal_str(stringify(a), "[ 43, 44, \"Hi\", 0, 45, [ 42, 0 ] ]", "Array shift");
 
   unshift(a, 42, INT);
-  print_array(a);
+  assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 0, 45, [ 42, 0 ] ]", "Array unshift");
 
   Array *c = Slice(a, 1, 3);
-  print_array(c);
+  assert_equal_str(stringify(c), "[ 43, 44, \"Hi\" ]", "Array slice");
 
   insert(a, 4, 43, INT);
-  print_array(a);
+  assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 43, 0, 45, [ 42, 0 ] ]", "Array insert");
 
   remove_at(a, 3);
-  print_array(a);
+  assert_equal_str(stringify(a), "[ 42, 43, 44, 43, 0, 45, [ 42, 0 ] ]", "Array remove_at");
 
   Array *d = Copy(a);
-  print_array(d);
+  assert_equal_str(stringify(d), "[ 42, 43, 44, 43, 0, 45, [ 42, 0 ] ]", "Array copy");
 
   reverse(d);
-  print_array(d);
+  assert_equal_str(stringify(d), "[ [ 42, 0 ], 45, 0, 43, 44, 43, 42 ]", "Array reverse");
 
   shift(d);
-  print_array(d);
+  assert_equal_str(stringify(d), "[ 45, 0, 43, 44, 43, 42 ]", "Array shift");
   sort(d);
-  print_array(d);
+  assert_equal_str(stringify(d), "[ 0, 42, 43, 43, 44, 45 ]", "Array sort");
 
   Array *e = Array_new(5);
   put(e, 0, addr("pe"), STRING);
@@ -146,12 +147,10 @@ int main(void) {
   put(e, 2, addr("al"), STRING);
   put(e, 3, addr("be"), STRING);
   put(e, 4, addr("Ar"), STRING);
-  print_array(e);
+  assert_equal_str(stringify(e), "[ \"pe\", \"De\", \"al\", \"be\", \"Ar\" ]", "Array strings");
   sort(e);
-  print_array(e);
+  assert_equal_str(stringify(e), "[ \"Ar\", \"De\", \"al\", \"be\", \"pe\" ]", "Array strings sort");
 
-  //stringify(e, " ");
-  //assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 45 ]", "Array to string");
 
   free_array(a);
 

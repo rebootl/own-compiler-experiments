@@ -295,6 +295,13 @@ int size(Array *a) {
 }
 
 void free_array(Array *a) {
+  for (int i = 0; i < a->size; i++) {
+    if (a->types[i] == STRING) {
+      free_str(addr2str(a->data[i]));
+    } else if (a->types[i] == ARRAY) {
+      free_array((Array *)a->data[i]);
+    }
+  }
   free(a->data);
   free(a->types);
   free(a);
@@ -329,34 +336,32 @@ void print_array(Array *a) {
   printf("\n");
   fflush(stdout);
 }
-/*
-String stringify(Array *a) {
-  String r = String("[ ");
+
+char *stringify(Array *a) {
+  char *r = String("[ ");
   for (int i = 0; i < a->size; i++) {
     if (i > 0) {
-      r2 = Concat(r, ", ");
-      free_str(r);
+      r = append(r, ", ");
     }
     switch (a->types[i]) {
       case INT:
-        r3 = Concat(r2, sprintf("%d", a->data[i]));
-        free_str(r2);
+        r = append(r, Int2str(a->data[i]));
         break;
       case STRING:
-        strcat(result, "\"");
-        strcat(result, addr2str(a->data[i]));
-        strcat(result, "\"");
+        r = append(r, "\"");
+        r = append(r, addr2str(a->data[i]));
+        r = append(r, "\"");
         break;
       case ARRAY:
-        stringify((Array *)a->data[i], result);
+        r = append(r, stringify((Array *)a->data[i]));
         break;
       default:
-        strcat(result, "undefined");
+        r = append(r, "undefined");
     }
   }
-  strcat(result, " ]");
+  r = append(r, " ]");
+  return r;
 }
-*/
 
 int shift(Array *a) {
   if (a->size == 0) {

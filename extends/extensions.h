@@ -28,6 +28,9 @@ char *Revstr(char *s);
 char *Upper(char *s, int begin, int end);
 char *Lower(char *s, int begin, int end);
 // todo:
+//char *Insert(char *s, char *s1, int i);
+//char *Remove(char *s, int begin, int end);
+//char *ReplaceAll(char *s, char *s1, char *s2);
 //char *Replace(char *s, char *s1, char *s2);
 //char *Trim(char *s, char *s1);
 //char *TrimLeft(char *s, char *s1);
@@ -92,7 +95,7 @@ void  print_array(Array *a);
 // -> todo:
 //int   index_of_int(Array *a, int n);
 //int   index_of_str(Array *a, char *s);
-//String stringify(Array *a, char *result);
+char *stringify(Array *a);
 
 
 #endif
