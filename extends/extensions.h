@@ -71,25 +71,27 @@ typedef struct {
 // Create
 Array *Array_new(int size);
 Array *Copy(Array *a); // shallow copy
-Array *Slice(Array *a, int begin, int end);
+Array *Slice(int begin, int end, Array *a);
 
 // Destroy
 void  free_array(Array *a);
 
 // Manipulate
-void  put(Array *a, int i, int n, type t);
-void  push(Array *a, int n, type t);
+// -> arguments reversed because we will push from right to left in compiler
+void  put(int i, type t, int n, Array *a);
+void  push(type t, int n, Array *a);
 int   pop(Array *a);
-int   shift(Array *a);
-int   unshift(Array *a, int n, type t);
-void  insert(Array *a, int i, int n, type t);
-void  remove_at(Array *a, int i);
+// -> not really nessesary
+//int   shift(Array *a);
+//int   unshift(Array *a, int n, type t);
+void  insert(int i, type t, int n, Array *a);
+void  remove_at(int i, Array *a);
 void  reverse(Array *a);
 void  sort(Array *a);
 
 // Query
-int   get(Array *a, int i);
-char  *get_type(Array *a, int i);
+int   get(int i, Array *a);
+char  *get_type(int i, Array *a);
 int   size(Array *a);
 void  print_array(Array *a);
 // -> todo:

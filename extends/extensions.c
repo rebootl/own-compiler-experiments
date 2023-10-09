@@ -220,7 +220,7 @@ Array *Array_new(int size) {
   return result;
 }
 
-void put(Array *a, int i, int n, type t) {
+void put(int i, type t, int n, Array *a) {
   if (i < 0 || i >= a->size) {
     printf("index out of bounds\n");
     exit(1);
@@ -229,7 +229,7 @@ void put(Array *a, int i, int n, type t) {
   a->types[i] = t;
 }
 
-int get(Array *a, int i) {
+int get(int i, Array *a) {
   if (i < 0 || i >= a->size) {
     printf("index out of bounds\n");
     exit(1);
@@ -237,7 +237,7 @@ int get(Array *a, int i) {
   return a->data[i];
 }
 
-char *get_type(Array *a, int i) {
+char *get_type(int i, Array *a) {
   if (i < 0 || i >= a->size) {
     printf("index out of bounds\n");
     exit(1);
@@ -266,7 +266,7 @@ void _array_shrink(Array *a) {
   a->types = _realloc(a->types, a->capacity * sizeof(type));
 }
 
-void push(Array *a, int n, type t) {
+void push(type t, int n, Array *a) {
   if (a->size == a->capacity) {
     _array_grow(a);
   }
@@ -362,7 +362,7 @@ char *stringify(Array *a) {
   r = append(r, " ]");
   return r;
 }
-
+/*
 int shift(Array *a) {
   if (a->size == 0) {
     printf("shift from empty array\n");
@@ -380,7 +380,7 @@ int shift(Array *a) {
   return result;
 }
 
-int unshift(Array *a, int n, type t) {
+int unshift(int n, type t, Array *a) {
   if (a->size == a->capacity) {
     _array_grow(a);
   }
@@ -393,8 +393,8 @@ int unshift(Array *a, int n, type t) {
   a->size++;
   return a->size;
 }
-
-void insert(Array *a, int i, int n, type t) {
+*/
+void insert(int i, type t, int n, Array *a) {
   if (i < 0 || i >= a->size) {
     printf("index out of bounds\n");
     exit(1);
@@ -411,7 +411,7 @@ void insert(Array *a, int i, int n, type t) {
   a->size++;
 }
 
-void remove_at(Array *a, int i) {
+void remove_at(int i, Array *a) {
   if (i < 0 || i >= a->size) {
     printf("index out of bounds\n");
     exit(1);
@@ -487,14 +487,14 @@ void sort(Array *a) {
   }
 }
 
-Array *Slice(Array *a, int begin, int end) {
+Array *Slice(int begin, int end, Array *a) {
   int start = _get_start_index(begin, a->size);
   int stop = _get_stop_index(end, a->size);
 
   Array *result = Array_new(stop - start + 1);
 
   for (int i = start; i <= stop; i++) {
-    put(result, i - start, a->data[i], a->types[i]);
+    put(i - start, a->types[i], a->data[i], result);
   }
   return result;
 }
@@ -503,7 +503,7 @@ Array *Copy(Array *a) {
   Array *result = Array_new(a->size);
 
   for (int i = 0; i < a->size; i++) {
-    put(result, i, a->data[i], a->types[i]);
+    put(i, a->types[i], a->data[i], result);
   }
   return result;
 }

@@ -88,46 +88,46 @@ int main(void) {
 
   Array *a = Array_new(5);
 
-  put(a, 0, 42, INT);
-  put(a, 1, 43, INT);
-  put(a, 2, 44, INT);
-  int a0 = get(a, 0); // 42
+  put(0, INT, 42, a);
+  put(1, INT, 43, a);
+  put(2, INT, 44, a);
+  int a0 = get(0, a); // 42
   assert_equal_int(a0, 42, "Array");
-  int aun = get(a, 3); // undefined
+  int aun = get(3, a); // undefined
   assert_equal_int(aun, 0, "Array");
   //int a10 = get(a, 10); // out of bounds
-  put(a, 3, addr(String("Hi")), STRING);
-  assert_equal_str(addr2str(get(a, 3)), "Hi", "Array");
+  put(3, STRING, addr(String("Hi")), a);
+  assert_equal_str(addr2str(get(3, a)), "Hi", "Array");
 
   printf("%d\n", addr(String("Hello"))); // prints 0x7f8e2b402a60
 
-  push(a, 45, INT);
-  assert_equal_int(get(a, 5), 45, "Array push");
+  push(INT, 45, a);
+  assert_equal_int(get(5, a), 45, "Array push");
 
-  assert_equal_str(get_type(a, 0), "INT", "Array get_type");
-  assert_equal_str(get_type(a, 3), "STRING", "Array get_type");
+  assert_equal_str(get_type(0, a), "INT", "Array get_type");
+  assert_equal_str(get_type(3, a), "STRING", "Array get_type");
 
   Array *b = Array_new(2);
   assert_equal_str(stringify(b), "[ 0, 0 ]", "Array empty");
   assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 0, 45 ]", "Array stringify");
-  push(a, addr(b), ARRAY);
+  push(ARRAY, addr(b), a);
   assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 0, 45, [ 0, 0 ] ]", "Array push");
-  put(b, 0, 42, INT);
+  put(0, INT, 42, b);
   assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 0, 45, [ 42, 0 ] ]", "Array put");
 
-  assert_equal_int(shift(a), 42, "shift result");
-  assert_equal_str(stringify(a), "[ 43, 44, \"Hi\", 0, 45, [ 42, 0 ] ]", "Array shift");
+  //assert_equal_int(shift(a), 42, "shift result");
+  //assert_equal_str(stringify(a), "[ 43, 44, \"Hi\", 0, 45, [ 42, 0 ] ]", "Array shift");
 
-  unshift(a, 42, INT);
-  assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 0, 45, [ 42, 0 ] ]", "Array unshift");
+  //unshift(a, 42, INT);
+  //assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 0, 45, [ 42, 0 ] ]", "Array unshift");
 
-  Array *c = Slice(a, 1, 3);
+  Array *c = Slice(1, 3, a);
   assert_equal_str(stringify(c), "[ 43, 44, \"Hi\" ]", "Array slice");
 
-  insert(a, 4, 43, INT);
+  insert(4, INT, 43, a);
   assert_equal_str(stringify(a), "[ 42, 43, 44, \"Hi\", 43, 0, 45, [ 42, 0 ] ]", "Array insert");
 
-  remove_at(a, 3);
+  remove_at(3, a);
   assert_equal_str(stringify(a), "[ 42, 43, 44, 43, 0, 45, [ 42, 0 ] ]", "Array remove_at");
 
   Array *d = Copy(a);
@@ -136,17 +136,17 @@ int main(void) {
   reverse(d);
   assert_equal_str(stringify(d), "[ [ 42, 0 ], 45, 0, 43, 44, 43, 42 ]", "Array reverse");
 
-  shift(d);
+  remove_at(0, d);
   assert_equal_str(stringify(d), "[ 45, 0, 43, 44, 43, 42 ]", "Array shift");
   sort(d);
   assert_equal_str(stringify(d), "[ 0, 42, 43, 43, 44, 45 ]", "Array sort");
 
   Array *e = Array_new(5);
-  put(e, 0, addr("pe"), STRING);
-  put(e, 1, addr("De"), STRING);
-  put(e, 2, addr("al"), STRING);
-  put(e, 3, addr("be"), STRING);
-  put(e, 4, addr("Ar"), STRING);
+  put(0, STRING, addr("pe"), e);
+  put(1, STRING, addr("De"), e);
+  put(2, STRING, addr("al"), e);
+  put(3, STRING, addr("be"), e);
+  put(4, STRING, addr("Ar"), e);
   assert_equal_str(stringify(e), "[ \"pe\", \"De\", \"al\", \"be\", \"Ar\" ]", "Array strings");
   sort(e);
   assert_equal_str(stringify(e), "[ \"Ar\", \"De\", \"al\", \"be\", \"pe\" ]", "Array strings sort");
