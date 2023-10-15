@@ -7,6 +7,9 @@ import sys
 
 import assembly
 
+
+### config
+
 OUTFILE = 'out.asm'
 
 COMMENT_CHAR = ';'
@@ -14,11 +17,137 @@ COMMENT_CHAR = ';'
 # for ld linker use '_start'
 START_LABEL = 'main'
 
+
+### global variables, state
+
+# a list of stack frames used during compilation to keep track of parameters
+# and local variables
+# e.g.: [ {
+#   'name': <function name>,
+#   'params': [ [ <param name>, <param type> ], ... ],
+#   'vars': [ [ [ <var name>, <var type> ], ... ], ... ],
+#   'return_type': <return type>
+# } ]
+# during compilation, every function will push a new stack frame, and pop it
+# at the end of the function
+# to keep track of functions after their evaluation, we will use the FUNCTIONS
+# dictionary below
+STACK_FRAMES = [ {
+    'name': 'main',
+    'params': [],
+    'vars': [ [] ],   # blocks
+    'return_type': 'UNDEF'
+} ]
+
+# a simple unique counter
+UNIQUE_COUNTER = 0
+
+# accessor for the unique counter
+def get_unique_count():
+  global UNIQUE_COUNTER
+  UNIQUE_COUNTER += 1
+  return UNIQUE_COUNTER
+
+# a list of loop ids, we need these for break/continue
+# form: [ [ <loop id>, <position of the loop in the block stack> ], ... ]
+# the position in the block stack is used to free the variables,
+# when using break or continue
+LOOP_IDS = []
+
+# functions of the form:
+#   'fn': {
+#     'param_types': [ 'INT', 'INT', ... ]
+#     'return_type': 'INT',
+#     'asm': 'asm code'
+#    }
+FUNCTIONS = {}
+
+# assembly code of the literals that will go to the data section
+LITERALS = []
+
+# type definitions
+TYPES = {
+  'UNDEF': {
+    'enum': None,
+    'has_memory': False,
+  },
+  'STRING_LIT': {
+    'enum': None,
+    'has_memory': False,
+  },
+  'INT': {
+    'enum': 0,
+    'has_memory': False,
+  },
+  'STRING': {
+    'enum': 1,
+    'has_memory': True,
+  },
+  'ARRAY': {
+    'enum': 2,
+    'has_memory': True,
+  },
+}
+
+# extensions, calling c code
+EXTENSIONS = {
+  'print': {
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
+  },
+  'print_i': {
+    'arg_types': [ 'INT' ],
+  },
+  'Int2str': {
+    'arg_types': [ 'INT' ],
+    'return_type': 'STRING',
+  },
+  'String': {
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
+    'return_type': 'STRING',
+  },
+  'Concat': {
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ], [ 'STRING_LIT', 'STRING' ] ],
+    'return_type': 'STRING',
+  },
+  'Substr': {
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
+    'return_type': 'STRING',
+  },
+  'Revstr': {
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
+    'return_type': 'STRING',
+  },
+  'Upper': {
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
+    'return_type': 'STRING',
+  },
+  'Lower': {
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
+    'return_type': 'STRING',
+  },
+  'len': {
+    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
+    'return_type': 'INT',
+  },
+  'get': {
+    'arg_types': [ 'INT', [ 'ARRAY', 'INT' ] ],
+    'return_type': 'INT',
+  },
+  'addr2str': {
+    'arg_types': [ 'INT' ],
+    'return_type': 'STRING',
+  },
+}
+
+
+### helper
+
 def flatten(l):
 
   """flatten a list of lists"""
 
   return [item for sublist in l for item in sublist]
+
 
 def split_expressions(program):
 
@@ -122,6 +251,154 @@ def get_split_argstr(argstr):
   return split_argstr
 
 
+def check_arguments(args, num, fn_name=None):
+
+  """check that the number of arguments is correct"""
+
+  if len(args) != num:
+    if fn_name is None:
+      sys.exit("Error: expected " + str(num) + " arguments, got " + str(len(args)))
+    else:
+      sys.exit("Error: expected " + str(num) + " arguments for " + fn_name + ", got " + str(len(args)))
+
+
+def check_arg_types(kw, arg_types, expected_types):
+
+  """this just compares two lists of types, and exits with an error if they don't match,
+
+  e.g. check_arg_types('add', ['INT', 'INT'], ['INT', 'INT'])
+
+  kw is used for the error message only
+
+  """
+
+  if len(arg_types) != len(expected_types):
+    sys.exit("Error: expected %d arguments for %s, got %d" % (len(expected_types), kw, len(arg_types)))
+
+  for i, _type in enumerate(reversed(arg_types)):
+    if type(expected_types[i]) == list:
+      if _type not in expected_types[i]:
+        sys.exit("Error: expected type %s for argument %d of %s, got %s" % (expected_types[i], i + 1, kw, _type))
+    elif _type != expected_types[i]:
+      sys.exit("Error: expected type %s for argument %d of %s, got %s" % (expected_types[i], i + 1, kw, _type))
+
+
+def find_variable(name, stack_frame):
+
+  """find the stack position of a variable, also return its type"""
+
+  # we need to find the first occurrence, from the end (top) of the stack
+  # but we want to return the index from the start (bottom)
+
+  # [ <stack_position>, <type> ]
+  r = [ None, None ]
+  for i, var in enumerate(flatten(stack_frame)):
+    if var[0] == name:
+      r = [ i, var[1] ]
+  return r
+
+
+def find_parameter(name, stack_frame):
+
+  """find the stack position of a parameter, also return its type"""
+
+  # we need to find the first occurrence, from the end (top) of the stack
+  for i, param in enumerate(stack_frame):
+    if param[0] == name:
+      return [ i, param[1] ]
+  return [ None, None ]
+
+
+def free_at_loop_break():
+  # -> this code is kind of terrible... we keep track of the position
+  #    of the loop block in the stack of blocks in the LOOP_IDS list,
+  #    when breaking we need to free all the variables in the block
+  #    and subsequent blocks
+  asm = ''
+  stack_position_start = len((flatten(STACK_FRAMES[-1]['vars'][:LOOP_IDS[-1][1]])))
+  stack_position_end = len((flatten(STACK_FRAMES[-1]['vars'])))
+  # free first
+  for i in range(stack_position_start, stack_position_end):
+    if flatten(STACK_FRAMES[-1]['vars'])[i][1] == 'STRING':
+      asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
+      asm += assembly.PUSH_RESULT
+      asm += assembly.EXT_FREE_STR
+  # then pop
+  for i in range(stack_position_start, stack_position_end):
+    asm += assembly.POP_LOCAL_VARIABLE
+
+  return asm
+
+
+def free_arguments(args, arg_types):
+  # if the argument is a function call, that returns a string
+  # we need to free the string after the function call
+  # because it has no other owner
+  asm = ''
+  for i, arg in enumerate(args):
+    if arg_types[i] == 'STRING' and type(arg) == list:
+      asm += assembly.EXT_FREE_STR
+      # (this adds 4 to esp already, clearing the stack)
+    else:
+      # -> improve
+      asm += assembly.CLEAR_STACK.format(4)
+  return asm
+
+
+### parser
+
+def parse_param_str(param_str):
+
+  """parse a parameter string of the form:
+
+  '[ <name>:<type> [, <name>:<type>]* ]'
+
+  into a list of parameters, e.g.:
+
+  [ [ "a", "INT" ], [ "b", "INT" ] ]
+
+  """
+
+  param_str = param_str.strip()[1:-1]
+
+  if param_str == '':
+    return []
+
+  params = []
+  for param in param_str.split(','):
+    [ name, _type ] = param.split(':')
+    params.append([ name.strip(), _type.strip() ])
+
+  return params
+
+
+def parse_array_str(array_str):
+
+  """parse an array string of the form:
+
+  '[ <expr> [, <expr>]* ]'
+
+  into a list of expressions, e.g.:
+
+  [ "1", "2", "3" ]
+  """
+  array_str = array_str.strip()[1:-1]
+
+  if array_str == '':
+    return []
+
+  split_argstr = get_split_argstr(array_str)
+
+  array = []
+  for arg in split_argstr:
+    if arg.lstrip().startswith('{'):
+      sys.exit("Error: block in array not supported: %s" % arg)
+    else:
+      array.append(arg)
+
+  return array
+
+
 def parse(expr):
 
   """parse an expression of the form:
@@ -155,169 +432,7 @@ def parse(expr):
   return [ kw, args ]
 
 
-def parse_array_str(array_str):
-
-  """parse an array string of the form:
-
-  '[ <expr> [, <expr>]* ]'
-
-  into a list of expressions, e.g.:
-
-  [ "1", "2", "3" ]
-  """
-  array_str = array_str.strip()[1:-1]
-
-  if array_str == '':
-    return []
-
-  split_argstr = get_split_argstr(array_str)
-
-  array = []
-  for arg in split_argstr:
-    if arg.lstrip().startswith('{'):
-      sys.exit("Error: block in array not supported: %s" % arg)
-    else:
-      array.append(arg)
-
-  return array
-
-
-# a list of stack frames used during compilation to keep track of parameters
-# and local variables
-# e.g.: [ {
-#   'name': <function name>,
-#   'params': [ [ <param name>, <param type> ], ... ],
-#   'vars': [ [ [ <var name>, <var type> ], ... ], ... ],
-#   'return_type': <return type>
-# } ]
-# during compilation, every function will push a new stack frame, and pop it
-# at the end of the function
-# to keep track of functions after their evaluation, we will use the FUNCTIONS
-# dictionary below
-STACK_FRAMES = [ {
-    'name': 'main',
-    'params': [],
-    'vars': [ [] ],   # blocks
-    'return_type': 'UNDEF'
-} ]
-
-# a simple unique counter
-UNIQUE_COUNTER = 0
-
-# a list of loop ids, we need these for break/continue
-# form: [ [ <loop id>, <position of the loop in the block stack> ], ... ]
-# the position in the block stack is used to free the variables,
-# when using break or continue
-LOOP_IDS = []
-
-# functions of the form:
-#   'fn': {
-#     'param_types': [ 'INT', 'INT', ... ]
-#     'return_type': 'INT',
-#     'asm': 'asm code'
-#    }
-FUNCTIONS = {}
-
-# assembly code of the literals that will go to the data section
-LITERALS = []
-
-TYPES = [ 'UNDEF', 'INT', 'STRING_LIT', 'STRING', 'ARRAY' ]
-
-TYPE_ENUM = {
-  'INT': 0,
-  'STRING': 1,
-  'ARRAY': 2,
-}
-
-def get_unique_count():
-  global UNIQUE_COUNTER
-  UNIQUE_COUNTER += 1
-  return UNIQUE_COUNTER
-
-EXTENSIONS = {
-  'print': {
-    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
-  },
-  'print_i': {
-    'arg_types': [ 'INT' ],
-  },
-  'Int2str': {
-    'arg_types': [ 'INT' ],
-    'return_type': 'STRING',
-  },
-  'String': {
-    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
-    'return_type': 'STRING',
-  },
-  'Concat': {
-    'arg_types': [ [ 'STRING_LIT', 'STRING' ], [ 'STRING_LIT', 'STRING' ] ],
-    'return_type': 'STRING',
-  },
-  'Substr': {
-    'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
-    'return_type': 'STRING',
-  },
-  'Revstr': {
-    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
-    'return_type': 'STRING',
-  },
-  'Upper': {
-    'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
-    'return_type': 'STRING',
-  },
-  'Lower': {
-    'arg_types': [ [ 'STRING_LIT', 'STRING' ], 'INT', 'INT' ],
-    'return_type': 'STRING',
-  },
-  'len': {
-    'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
-    'return_type': 'INT',
-  },
-  'get': {
-    'arg_types': [ 'INT', [ 'ARRAY', 'INT' ] ],
-    'return_type': 'INT',
-  },
-  'addr2str': {
-    'arg_types': [ 'INT' ],
-    'return_type': 'STRING',
-  },
-}
-
-
-def check_arguments(args, num, fn_name=None):
-
-  """check that the number of arguments is correct"""
-
-  if len(args) != num:
-    if fn_name is None:
-      sys.exit("Error: expected " + str(num) + " arguments, got " + str(len(args)))
-    else:
-      sys.exit("Error: expected " + str(num) + " arguments for " + fn_name + ", got " + str(len(args)))
-
-
-def find_variable(name, stack_frame):
-
-  """find the stack position of a variable, also return its type"""
-
-  # we need to find the first occurrence, from the end (top) of the stack
-  # but we want to return the index from the start (bottom)
-
-  # [ <stack_position>, <type> ]
-  r = [ None, None ]
-  for i, var in enumerate(flatten(stack_frame)):
-    if var[0] == name:
-      r = [ i, var[1] ]
-  return r
-
-def find_parameter(name, stack_frame):
-
-  """find the stack position of a parameter, also return its type"""
-
-  # we need to find the first occurrence, from the end (top) of the stack
-  for i, param in enumerate(stack_frame):
-    if param[0] == name:
-      return [ i, param[1] ]
-  return [ None, None ]
+### eval
 
 def eval_block(block, asm, depth):
 
@@ -354,86 +469,6 @@ def eval_block(block, asm, depth):
 
   STACK_FRAMES[-1]['vars'].pop()
 
-  return asm
-
-def parse_param_str(param_str):
-
-  """parse a parameter string of the form:
-
-  '[ <name>:<type> [, <name>:<type>]* ]'
-
-  into a list of parameters, e.g.:
-
-  [ [ "a", "INT" ], [ "b", "INT" ] ]
-
-  """
-
-  param_str = param_str.strip()[1:-1]
-
-  if param_str == '':
-    return []
-
-  params = []
-  for param in param_str.split(','):
-    [ name, _type ] = param.split(':')
-    params.append([ name.strip(), _type.strip() ])
-
-  return params
-
-
-def check_arg_types(kw, arg_types, expected_types):
-
-  """this just compares two lists of types, and exits with an error if they don't match,
-
-  e.g. check_arg_types('add', ['INT', 'INT'], ['INT', 'INT'])
-
-  kw is used for the error message only
-
-  """
-
-  if len(arg_types) != len(expected_types):
-    sys.exit("Error: expected %d arguments for %s, got %d" % (len(expected_types), kw, len(arg_types)))
-
-  for i, _type in enumerate(reversed(arg_types)):
-    if type(expected_types[i]) == list:
-      if _type not in expected_types[i]:
-        sys.exit("Error: expected type %s for argument %d of %s, got %s" % (expected_types[i], i + 1, kw, _type))
-    elif _type != expected_types[i]:
-      sys.exit("Error: expected type %s for argument %d of %s, got %s" % (expected_types[i], i + 1, kw, _type))
-
-
-def free_at_loop_break():
-  # -> this code is kind of terrible... we keep track of the position
-  #    of the loop block in the stack of blocks in the LOOP_IDS list,
-  #    when breaking we need to free all the variables in the block
-  #    and subsequent blocks
-  asm = ''
-  stack_position_start = len((flatten(STACK_FRAMES[-1]['vars'][:LOOP_IDS[-1][1]])))
-  stack_position_end = len((flatten(STACK_FRAMES[-1]['vars'])))
-  # free first
-  for i in range(stack_position_start, stack_position_end):
-    if flatten(STACK_FRAMES[-1]['vars'])[i][1] == 'STRING':
-      asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
-      asm += assembly.PUSH_RESULT
-      asm += assembly.EXT_FREE_STR
-  # then pop
-  for i in range(stack_position_start, stack_position_end):
-    asm += assembly.POP_LOCAL_VARIABLE
-
-  return asm
-
-def free_arguments(args, arg_types):
-  # if the argument is a function call, that returns a string
-  # we need to free the string after the function call
-  # because it has no other owner
-  asm = ''
-  for i, arg in enumerate(args):
-    if arg_types[i] == 'STRING' and type(arg) == list:
-      asm += assembly.EXT_FREE_STR
-      # (this adds 4 to esp already, clearing the stack)
-    else:
-      # -> improve
-      asm += assembly.CLEAR_STACK.format(4)
   return asm
 
 
@@ -473,8 +508,9 @@ def eval_str(expr, asm, depth = 0):
     return [ asm, 'STRING_LIT' ]
 
   if expr.startswith('[') and expr.endswith(']'):
-
+    # print(expr)
     array_values = parse_array_str(expr)
+    # print(array_values)
     asm += assembly.LITERAL.format(len(array_values))
     asm += assembly.PUSH_RESULT
     asm += assembly.CALL_EXTENSION.format('Array_new')
@@ -486,7 +522,7 @@ def eval_str(expr, asm, depth = 0):
       #    we need to set the type to UNDEF to avoid freeing it twice
       [ asm, _type ] = eval(parse(value), asm, depth + 1)
       asm += assembly.PUSH_RESULT
-      asm += assembly.LITERAL.format(TYPE_ENUM[_type])
+      asm += assembly.LITERAL.format(TYPES[_type]['enum'])
       asm += assembly.PUSH_RESULT
       asm += assembly.LITERAL.format(i)
       asm += assembly.PUSH_RESULT
@@ -842,6 +878,8 @@ def eval(expr, asm, depth = 0):
 
   return [ asm, rtype ]
 
+
+### main
 
 def main():
 
