@@ -2,7 +2,7 @@
 #
 #
 
-from compiler import parse, split_expressions
+from compiler import parse, split_expressions, parse_array_str
 
 EXPRESSIONS = [
   [ "", "" ],
@@ -40,6 +40,8 @@ EXPRESSIONS = [
     add(2, 3)
     fn(4, 5)
   }""" ] ] ],
+  [ "var(a, [ 1, 2, 3 ])", [ "var", [ "a", "[ 1, 2, 3 ]" ] ] ],
+  [ "var(a, [ 1, 'hiho', 3 ])", [ "var", [ "a", "[ 1, 'hiho', 3 ]" ] ] ],
 ]
 
 
@@ -86,11 +88,23 @@ add(
 """, [ "fn( 1, add(2, 3) )", "add(\n  1,\n  2\n)" ] ],
 ]
 
+ARRAYS = [
+  [ "[]", [] ],
+  [ "[ 1 ]", [ "1" ] ],
+  [ "[1, 2]", [ "1", "2" ] ],
+  [ "[ 1, 2, 3]", [ "1", "2", "3" ] ],
+  [ "[ 1, 2, [] ]", [ "1", "2", [] ] ],
+  [ "[ 1, 2, [ 3 ] ]", [ "1", "2", [ "3" ] ] ],
+  [ "[ 1, 'Hi', 3 ]", [ "1", "'Hi'", "3" ] ],
+  [ "[ 1, 'Hi', 3, [ 4, 5 ] ]", [ "1", "'Hi'", "3", [ "4", "5" ] ] ],
+  [ "[ add(1, 2), 3 ]", [ "add(1, 2)", "3" ] ],
+  [ "[ add(1, 2), 3, a ]", [ "add(1, 2)", "3", "a" ] ],
+]
 
 def test_parse():
 
   for expr in EXPRESSIONS:
-    print("Testing: %s" % expr[0])
+    #print("Testing: %s" % expr[0])
     try:
       assert parse(expr[0]) == expr[1], \
         "parse(%s) should be %s but got %s" % (expr[0], expr[1], parse(expr[0]))
@@ -114,6 +128,20 @@ def test_split_expressions():
 
   print("split_expressions() tests passed!")
 
+def test_parse_array_str():
+
+  for array in ARRAYS:
+    #print("Testing: %s" % array[0])
+    try:
+      assert parse_array_str(array[0]) == array[1], \
+        "parse_array_str(%s) should be %s but got %s" % (array[0], array[1], parse_array_str(array[0]))
+    except AssertionError as e:
+      print(e)
+      return
+
+  print("parse_array() tests passed!")
+
 if __name__ == "__main__":
   test_parse()
   test_split_expressions()
+  test_parse_array_str()

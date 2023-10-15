@@ -15,6 +15,9 @@ COMMENT_CHAR = ';'
 START_LABEL = 'main'
 
 def flatten(l):
+
+  """flatten a list of lists"""
+
   return [item for sublist in l for item in sublist]
 
 def split_expressions(program):
@@ -63,6 +66,8 @@ def get_kwargstr(s):
   """split a keyword and argument string from an expression"""
 
   [ kw, argstr ] = s.split('(', 1)
+  #print('kw: ' + kw)
+  #print('argstr: ' + argstr)
 
   return [ kw.strip(), argstr.strip()[:-1] ]
 
@@ -117,17 +122,6 @@ def get_split_argstr(argstr):
   return split_argstr
 
 
-def check_arguments(args, num, fn_name=None):
-
-  """check that the number of arguments is correct"""
-
-  if len(args) != num:
-    if fn_name is None:
-      sys.exit("Error: expected " + str(num) + " arguments, got " + str(len(args)))
-    else:
-      sys.exit("Error: expected " + str(num) + " arguments for " + fn_name + ", got " + str(len(args)))
-
-
 def parse(expr):
 
   """parse an expression of the form:
@@ -144,6 +138,9 @@ def parse(expr):
   if '(' not in expr and ')' not in expr:
     return expr.strip()
 
+  if expr.startswith('[') and expr.endswith(']'):
+    return expr
+
   [ kw, argstr ] = get_kwargstr(expr)
 
   split_argstr = get_split_argstr(argstr)
@@ -156,6 +153,36 @@ def parse(expr):
       args.append(parse(arg))
 
   return [ kw, args ]
+
+
+def parse_array_str(array_str):
+
+  """parse an array string of the form:
+
+  '[ <expr> [, <expr>]* ]'
+
+  into a list of expressions, e.g.:
+
+  [ "1", "2", "3" ]
+  """
+  array_str = array_str.strip()[1:-1]
+
+  if array_str == '':
+    return []
+
+  split_argstr = get_split_argstr(array_str)
+
+  array = []
+  for arg in split_argstr:
+    if arg.lstrip().startswith('{'):
+      sys.exit("Error: block in array not supported: %s" % arg)
+    elif arg.lstrip().startswith('['):
+      array.append(parse_array_str(arg))
+    else:
+      array.append(arg)
+
+  return array
+
 
 # a list of stack frames used during compilation to keep track of parameters
 # and local variables
@@ -196,7 +223,13 @@ FUNCTIONS = {}
 # assembly code of the literals that will go to the data section
 LITERALS = []
 
-TYPES = [ 'UNDEF', 'INT', 'STRING_LIT', 'STRING' ]
+TYPES = [ 'UNDEF', 'INT', 'STRING_LIT', 'STRING', 'ARRAY' ]
+
+TYPE_ENUM = {
+  'INT': 0,
+  'STRING': 1,
+  'ARRAY': 2,
+}
 
 def get_unique_count():
   global UNIQUE_COUNTER
@@ -242,7 +275,27 @@ EXTENSIONS = {
     'arg_types': [ [ 'STRING_LIT', 'STRING' ] ],
     'return_type': 'INT',
   },
+  'get': {
+    'arg_types': [ 'INT', 'ARRAY' ],
+    'return_type': 'INT',
+  },
+  'addr2str': {
+    'arg_types': [ 'INT' ],
+    'return_type': 'STRING',
+  },
 }
+
+
+def check_arguments(args, num, fn_name=None):
+
+  """check that the number of arguments is correct"""
+
+  if len(args) != num:
+    if fn_name is None:
+      sys.exit("Error: expected " + str(num) + " arguments, got " + str(len(args)))
+    else:
+      sys.exit("Error: expected " + str(num) + " arguments for " + fn_name + ", got " + str(len(args)))
+
 
 def find_variable(name, stack_frame):
 
@@ -385,6 +438,73 @@ def free_arguments(args, arg_types):
       asm += assembly.CLEAR_STACK.format(4)
   return asm
 
+
+def eval_str(expr, asm, depth = 0):
+
+  if expr == '': return [ asm, 'UNDEF' ]
+
+  # check for variable
+  [ stack_pos, _type ] = find_variable(expr, STACK_FRAMES[-1]['vars'])
+
+  if stack_pos is not None:
+    asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+    return [ asm, _type ]
+
+  # check for parameter
+  [ stack_pos, _type ] = find_parameter(expr, STACK_FRAMES[-1]['params'])
+
+  if stack_pos is not None:
+    asm += assembly.GET_PARAMETER.format(8 + stack_pos * 4)
+    return [ asm, _type ]
+
+  if expr.isdigit():
+    asm += assembly.LITERAL.format(expr)
+    return [ asm, 'INT' ]
+
+  # negative numbers
+  if expr.startswith('-') and expr[1:].isdigit():
+    asm += assembly.LITERAL.format(expr)
+    return [ asm, 'INT' ]
+
+  if expr.startswith("'") and expr.endswith("'"):
+    # add literal to text section/literals
+    str_id = 'string_' + str(get_unique_count())
+    LITERALS.append(assembly.DATA_STRING.format(str_id, expr[1:-1]))
+
+    asm += assembly.LITERAL.format(str_id)
+    return [ asm, 'STRING_LIT' ]
+
+  if expr.startswith('[') and expr.endswith(']'):
+    #print(value)
+
+    array_values = parse_array_str(expr)
+    asm += assembly.LITERAL.format(len(array_values))
+    asm += assembly.PUSH_RESULT
+    asm += assembly.CALL_EXTENSION.format('Array_new')
+    asm += assembly.CLEAR_STACK.format(4)
+    asm += assembly.PUSH_RESULT
+
+    for i, value in enumerate(array_values):
+      # -> if it's a variable pointing to a string or array,
+      #    we need to set the type to UNDEF to avoid freeing it twice
+      #print(value)
+      [ asm, _type ] = eval(parse(value), asm, depth + 1)
+      asm += assembly.PUSH_RESULT
+      asm += assembly.LITERAL.format(TYPE_ENUM[_type])
+      asm += assembly.PUSH_RESULT
+      asm += assembly.LITERAL.format(i)
+      asm += assembly.PUSH_RESULT
+      asm += assembly.CALL_EXTENSION.format('put')
+      asm += assembly.CLEAR_STACK.format(4 * 3)
+
+    asm += assembly.POP_LOCAL_VARIABLE
+    #asm += assembly.CLEAR_STACK.format(4)
+
+    return [ asm, 'ARRAY' ]
+
+  sys.exit("Error: unknown variable or literal: " + expr)
+
+
 def eval(expr, asm, depth = 0):
 
   """evaluate an expression of the form:
@@ -406,41 +526,7 @@ def eval(expr, asm, depth = 0):
   #             and put the address into the return register
 
   if type(expr) == str:
-
-    if expr == '': return [ asm, 'UNDEF' ]
-
-    # check for variable
-    [ stack_pos, _type ] = find_variable(expr, STACK_FRAMES[-1]['vars'])
-
-    if stack_pos is not None:
-      asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
-      return [ asm, _type ]
-
-    # check for parameter
-    [ stack_pos, _type ] = find_parameter(expr, STACK_FRAMES[-1]['params'])
-
-    if stack_pos is not None:
-      asm += assembly.GET_PARAMETER.format(8 + stack_pos * 4)
-      return [ asm, _type ]
-
-    if expr.isdigit():
-      asm += assembly.LITERAL.format(expr)
-      return [ asm, 'INT' ]
-
-    # negative numbers
-    if expr.startswith('-') and expr[1:].isdigit():
-      asm += assembly.LITERAL.format(expr)
-      return [ asm, 'INT' ]
-
-    if expr.startswith("'") and expr.endswith("'"):
-      # add literal to text section/literals
-      str_id = 'string_' + str(get_unique_count())
-      LITERALS.append(assembly.DATA_STRING.format(str_id, expr[1:-1]))
-
-      asm += assembly.LITERAL.format(str_id)
-      return [ asm, 'STRING_LIT' ]
-
-    sys.exit("Error: unknown variable or literal: " + expr)
+    return eval_str(expr, asm, depth)
 
   # at this point we know we have an expression
 
@@ -474,7 +560,7 @@ def eval(expr, asm, depth = 0):
     [ asm, _type ] = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
-    if _type not in [ 'INT', 'STRING', 'STRING_LIT' ]:
+    if _type not in [ 'INT', 'STRING', 'STRING_LIT', 'ARRAY' ]:
       sys.exit("Error: invalid type: '" + _type + "'" + " for variable: '" + args[0] + "'")
 
     # if the 2nd argument is a variable and it is a string, we want to

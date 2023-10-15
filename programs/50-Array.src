@@ -1,0 +1,17 @@
+
+
+
+var(a, [ 4, 2, 3, 5 ])
+
+var(s, String('hi'))
+
+var(a2, [ String('hi'), String('there') ])
+var(b, 5)
+
+print_i(b)
+print(addr2str(get(0, a2)))
+print(addr2str(get(1, a2)))
+
+print_i(get(2, a))
+
+;var(a3, [ 1, 2, [3, 4], 5 ])

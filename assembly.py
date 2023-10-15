@@ -63,6 +63,12 @@ EXT_FREE_STR = '''
   mov eax, ebx
 '''
 
+GET_STACK_POS = '''
+  ; get stack position
+  mov eax, esp
+  mov eax, [eax + {0}]
+'''
+
 CALL_EXTENSION = '''
   ; call extension
   call {0}
@@ -397,6 +403,7 @@ FUNCTION_CALL = '''
 
 HEAD = '''extern print_i, println, print, allocate_str, String, Int2str, Concat
 extern Substr, Revstr, Upper, Lower, len, free_str
+extern Array_new, get, put, push, addr2str
 global {}
 '''
 
