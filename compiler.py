@@ -176,8 +176,6 @@ def parse_array_str(array_str):
   for arg in split_argstr:
     if arg.lstrip().startswith('{'):
       sys.exit("Error: block in array not supported: %s" % arg)
-    elif arg.lstrip().startswith('['):
-      array.append(parse_array_str(arg))
     else:
       array.append(arg)
 
@@ -276,7 +274,7 @@ EXTENSIONS = {
     'return_type': 'INT',
   },
   'get': {
-    'arg_types': [ 'INT', 'ARRAY' ],
+    'arg_types': [ 'INT', [ 'ARRAY', 'INT' ] ],
     'return_type': 'INT',
   },
   'addr2str': {
@@ -475,7 +473,6 @@ def eval_str(expr, asm, depth = 0):
     return [ asm, 'STRING_LIT' ]
 
   if expr.startswith('[') and expr.endswith(']'):
-    #print(value)
 
     array_values = parse_array_str(expr)
     asm += assembly.LITERAL.format(len(array_values))
@@ -487,7 +484,6 @@ def eval_str(expr, asm, depth = 0):
     for i, value in enumerate(array_values):
       # -> if it's a variable pointing to a string or array,
       #    we need to set the type to UNDEF to avoid freeing it twice
-      #print(value)
       [ asm, _type ] = eval(parse(value), asm, depth + 1)
       asm += assembly.PUSH_RESULT
       asm += assembly.LITERAL.format(TYPE_ENUM[_type])

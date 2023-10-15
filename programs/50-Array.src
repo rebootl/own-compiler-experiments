@@ -14,4 +14,6 @@ print(addr2str(get(1, a2)))
 
 print_i(get(2, a))
 
-;var(a3, [ 1, 2, [3, 4], 5 ])
+var(a3, [ 1, 2, [String('hi'), 4], 5 ])
+print_i(get(1, get(2, a3)))
+print(addr2str(get(0, get(2, a3))))
