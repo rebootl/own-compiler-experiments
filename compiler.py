@@ -60,10 +60,26 @@ LOOP_IDS = []
 #     'return_type': 'INT',
 #     'asm': 'asm code'
 #    }
+#
+# this has to be kept separately from the stack frames, because
+# the stack frame is adapting dynamically
 FUNCTIONS = {}
 
 # assembly code of the literals that will go to the data section
 LITERALS = []
+
+
+def free_string(asm, stack_pos):
+  asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+  asm += assembly.PUSH_RESULT
+  asm += assembly.EXT_FREE_STR
+
+
+def free_array(asm, stack_pos):
+  asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+  asm += assembly.PUSH_RESULT
+  asm += assembly.EXT_FREE_ARRAY
+
 
 # type definitions
 TYPES = {
@@ -82,12 +98,16 @@ TYPES = {
   'STRING': {
     'enum': 1,
     'has_memory': True,
+    'free_function': free_string,
   },
   'ARRAY': {
     'enum': 2,
     'has_memory': True,
+    'free_function': free_array,
   },
 }
+
+
 
 # extensions, calling c code
 EXTENSIONS = {
@@ -307,6 +327,34 @@ def find_parameter(name, stack_frame):
     if param[0] == name:
       return [ i, param[1] ]
   return [ None, None ]
+
+
+def check_redeclaration_parameter(args):
+  for param in STACK_FRAMES[-1]['params']:
+    if param[0] == args[0]:
+      sys.exit("Redeclaration Error(parameter): '" + args[0] + "'")
+    # disallow parameters move into local variable for now
+    if param[0] == args[1]:
+      sys.exit("Error: cannot move parameter: '" + args[1] + "'")
+
+
+def move_ownership(var_name, type):
+  # if the 2nd argument is a variable and it has memory allocated,
+  # we want to set it's type to 'UNDEF', in order to avoid freeing
+  # it twice
+  # this is equivalent to a move of ownership
+  #
+  # alternatively we could allocate a string on the heap and copy
+  # the value of the variable
+  [ arg1_stack_pos, arg1_type ] = find_variable(var_name, STACK_FRAMES[-1]['vars'])
+
+  if TYPES[type]['has_memory'] and arg1_stack_pos is not None:
+    for var in reversed(flatten(STACK_FRAMES[-1]['vars'])):
+      if var[0] == var_name:
+        var[1] = 'UNDEF'
+        break
+
+    # TYPES[arg1_type]['free_function'](asm, arg1_stack_pos)
 
 
 def free_at_loop_break():
@@ -583,28 +631,16 @@ def eval(expr, asm, depth = 0):
       if var[0] == args[0]:
         sys.exit("Redeclaration Error: '" + args[0] + "'")
 
-    # -> check that it's not a parameter already
-    for param in STACK_FRAMES[-1]['params']:
-      if param[0] == args[0]:
-        sys.exit("Redeclaration Error(parameter): '" + args[0] + "'")
+    check_redeclaration_parameter(args)
 
     # evaluate the 2nd argument
     [ asm, _type ] = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
-    if _type not in [ 'INT', 'STRING', 'STRING_LIT', 'ARRAY' ]:
+    if _type == 'UNDEF':
       sys.exit("Error: invalid type: '" + _type + "'" + " for variable: '" + args[0] + "'")
 
-    # if the 2nd argument is a variable and it is a string, we want to
-    # set it's type to 'UNDEF' (in order to avoid freeing it twice)
-    # this is equivalent to a move of ownership
-    #
-    # alternatively we could allocate a string on the heap and copy
-    # the value of the variable
-    if _type == 'STRING':
-      for var in STACK_FRAMES[-1]['vars'][-1]:
-        if var[0] == args[1]:
-          var[1] = 'UNDEF'
+    move_ownership(args[1], _type)
 
     # store variable in compiler stack
     STACK_FRAMES[-1]['vars'][-1].append([ args[0], _type ])
@@ -618,7 +654,9 @@ def eval(expr, asm, depth = 0):
     if stack_pos is None:
       sys.exit("Error setting undeclared variable: '" + args[0] + "'")
 
-    # this pushes the value onto the stack in asm
+    check_redeclaration_parameter(args)
+
+    # evaluate the 2nd argument
     [ asm, _type ] = eval(args[1], asm, depth + 1)
     asm += assembly.PUSH_RESULT
 
@@ -627,15 +665,7 @@ def eval(expr, asm, depth = 0):
         + vtype + "'" + " got: '" + _type + "'")
 
     # same as for var above
-    if _type == 'STRING':
-      for var in STACK_FRAMES[-1]['vars'][-1]:
-        if var[0] == args[1]:
-          var[1] = 'UNDEF'
-
-      # -> if it's string we need to free the old value!!
-      asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
-      asm += assembly.PUSH_RESULT
-      asm += assembly.EXT_FREE_STR
+    move_ownership(args[1], _type)
 
     # this will consume the value on the stack top
     # and update the variable in the correct stack location
@@ -705,13 +735,20 @@ def eval(expr, asm, depth = 0):
     if not args[0][0].isalpha():
       sys.exit("Error: function name must start with a letter")
 
-    if args[2] not in TYPES:
-      sys.exit("Error: unknown type: '" + args[2] + "'" + " for function: '" + args[0] + "'")
-
     params = parse_param_str(args[1])
+
     for param in params:
+      # check that parameter names start with a letter
+      if not param[0][0].isalpha():
+        sys.exit("Error: parameter name must start with a letter")
+
+      # check type declaration
       if param[1] not in TYPES:
         sys.exit("Error: unknown type: '" + param[1] + "'" + " for parameter: '" + param[0] + "'")
+
+    # check return type
+    if args[2] not in TYPES:
+      sys.exit("Error: unknown type: '" + args[2] + "'" + " for function: '" + args[0] + "'")
 
     FUNCTIONS[args[0]] = {
       'param_types': [ x[1] for x in params ],
@@ -722,17 +759,10 @@ def eval(expr, asm, depth = 0):
     # push a new frame onto the stack_frames
     STACK_FRAMES.append({
       'name': args[0],
-      'params': [],
+      'params': [ x for x in params ],
       'vars': [],
       'return_type': args[2]
     })
-
-    # check that parameter names start with a letter
-    for param in params:
-      if not param[0][0].isalpha():
-        sys.exit("Error: parameter name must start with a letter")
-
-      STACK_FRAMES[-1]['params'].append(param)
 
     fn_asm = ""
     fn_asm += assembly.FUNCTION_START.format(args[0])
@@ -760,10 +790,8 @@ def eval(expr, asm, depth = 0):
     # except for the return value
     # (this has to be done before the argument evaluation)
     for i, var in enumerate(flatten(STACK_FRAMES[-1]['vars'])):
-      if var[1] == 'STRING' and var[0] != args[0]:
-        asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
-        asm += assembly.PUSH_RESULT
-        asm += assembly.EXT_FREE_STR
+      if TYPES[var[1]]['has_memory'] and var[0] != args[0]:
+        TYPES[var[1]]['free_function'](asm, i)
 
     if len(args) > 0:
       [ asm, _type ] = eval(args[0], asm, depth + 1)
