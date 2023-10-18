@@ -504,14 +504,18 @@ def eval_block(block, asm, depth):
   # if the block was a function scope, we wouldn't actually have to pop
   # the variables here, because the stack frame takes care of that
   # but we want to free the memory of the variables in the block
-  for i, var in enumerate(flatten(STACK_FRAMES[-1]['vars'])):
-    if var[1] == 'STRING':
-      asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
-      asm += assembly.PUSH_RESULT
-      asm += assembly.EXT_FREE_STR
 
-    # -> this could be improved to use something like:
-    #    add esp, 4 * len(STACK_FRAMES[-1]['vars'][-1])
+  # free variables in the current block
+  offset = len(flatten(STACK_FRAMES[-1]['vars'][0:-1])) * 4
+  for i, var in enumerate(STACK_FRAMES[-1]['vars'][-1]):
+    if TYPES[var[1]]['has_memory']:
+      TYPES[var[1]]['free_function'](asm, i)
+      # asm += assembly.GET_LOCAL_VARIABLE.format(4 + offset + i * 4)
+      # asm += assembly.PUSH_RESULT
+      # asm += assembly.EXT_FREE_STR
+
+  # -> this could be improved to use something like:
+  #    add esp, 4 * len(STACK_FRAMES[-1]['vars'][-1])
   for var in STACK_FRAMES[-1]['vars'][-1]:
     asm += assembly.POP_LOCAL_VARIABLE
 
