@@ -63,6 +63,14 @@ EXT_FREE_STR = '''
   mov eax, ebx
 '''
 
+EXT_FREE_ARRAY = '''
+  ; free array
+  mov ebx, eax
+  call free_array
+  add esp, 4      ; clear stack
+  mov eax, ebx
+'''
+
 GET_STACK_POS = '''
   ; get stack position
   mov eax, esp

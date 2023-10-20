@@ -69,16 +69,22 @@ FUNCTIONS = {}
 LITERALS = []
 
 
-def free_string(asm, stack_pos):
-  asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
-  asm += assembly.PUSH_RESULT
-  asm += assembly.EXT_FREE_STR
+# def free_string(asm, stack_pos):
+#   asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+#   asm += assembly.PUSH_RESULT
+#   asm += assembly.EXT_FREE_STR
 
 
-def free_array(asm, stack_pos):
+# def free_array(asm, stack_pos):
+#   asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
+#   asm += assembly.PUSH_RESULT
+#   asm += assembly.EXT_FREE_ARRAY
+
+
+def free_fn(fn, asm, stack_pos):
   asm += assembly.GET_LOCAL_VARIABLE.format(4 + stack_pos * 4)
   asm += assembly.PUSH_RESULT
-  asm += assembly.EXT_FREE_ARRAY
+  asm += fn
 
 
 # type definitions
@@ -98,12 +104,12 @@ TYPES = {
   'STRING': {
     'enum': 1,
     'has_memory': True,
-    'free_function': free_string,
+    'free_function': assembly.EXT_FREE_STR,
   },
   'ARRAY': {
     'enum': 2,
     'has_memory': True,
-    'free_function': free_array,
+    'free_function': assembly.EXT_FREE_ARRAY,
   },
 }
 
@@ -367,10 +373,9 @@ def free_at_loop_break():
   stack_position_end = len((flatten(STACK_FRAMES[-1]['vars'])))
   # free first
   for i in range(stack_position_start, stack_position_end):
-    if flatten(STACK_FRAMES[-1]['vars'])[i][1] == 'STRING':
-      asm += assembly.GET_LOCAL_VARIABLE.format(4 + i * 4)
-      asm += assembly.PUSH_RESULT
-      asm += assembly.EXT_FREE_STR
+    type = flatten(STACK_FRAMES[-1]['vars'])[i][1]
+    if TYPES[type]['has_memory']:
+      free_fn(TYPES[type]['free_function'], asm, i)
   # then pop
   for i in range(stack_position_start, stack_position_end):
     asm += assembly.POP_LOCAL_VARIABLE
@@ -379,13 +384,13 @@ def free_at_loop_break():
 
 
 def free_arguments(args, arg_types):
-  # if the argument is a function call, that returns a string
-  # we need to free the string after the function call
-  # because it has no other owner
+  # if the argument is a function call, that returns a allocated
+  # pointer, we need to free the allocated memory, after the
+  # function call because it has no other owner
   asm = ''
   for i, arg in enumerate(args):
-    if arg_types[i] == 'STRING' and type(arg) == list:
-      asm += assembly.EXT_FREE_STR
+    if TYPES[arg_types[i]]['has_memory'] and type(arg) == list:
+      asm += TYPES[arg_types[i]]['free_function']
       # (this adds 4 to esp already, clearing the stack)
     else:
       # -> improve
@@ -509,10 +514,7 @@ def eval_block(block, asm, depth):
   offset = len(flatten(STACK_FRAMES[-1]['vars'][0:-1])) * 4
   for i, var in enumerate(STACK_FRAMES[-1]['vars'][-1]):
     if TYPES[var[1]]['has_memory']:
-      TYPES[var[1]]['free_function'](asm, i)
-      # asm += assembly.GET_LOCAL_VARIABLE.format(4 + offset + i * 4)
-      # asm += assembly.PUSH_RESULT
-      # asm += assembly.EXT_FREE_STR
+      free_fn(TYPES[var[1]]['free_function'], asm, i)
 
   # -> this could be improved to use something like:
   #    add esp, 4 * len(STACK_FRAMES[-1]['vars'][-1])
@@ -795,7 +797,7 @@ def eval(expr, asm, depth = 0):
     # (this has to be done before the argument evaluation)
     for i, var in enumerate(flatten(STACK_FRAMES[-1]['vars'])):
       if TYPES[var[1]]['has_memory'] and var[0] != args[0]:
-        TYPES[var[1]]['free_function'](asm, i)
+        free_fn(TYPES[var[1]]['free_function'], asm, i)
 
     if len(args) > 0:
       [ asm, _type ] = eval(args[0], asm, depth + 1)
