@@ -572,9 +572,10 @@ def eval_str(expr, asm, depth = 0):
     asm += assembly.PUSH_RESULT
 
     for i, value in enumerate(array_values):
+      [ asm, _type ] = eval(parse(value), asm, depth + 1)
       # -> if it's a variable pointing to a string or array,
       #    we need to set the type to UNDEF to avoid freeing it twice
-      [ asm, _type ] = eval(parse(value), asm, depth + 1)
+      move_ownership(value, _type)
       asm += assembly.PUSH_RESULT
       asm += assembly.LITERAL.format(TYPES[_type]['enum'])
       asm += assembly.PUSH_RESULT
