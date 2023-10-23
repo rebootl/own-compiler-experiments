@@ -1,5 +1,4 @@
-/* c extension to concat two strings
-*/
+/* c extensions lib */
 
 #include <stdio.h>  // for printf
 #include <string.h> // for strlen, strcpy, strcat
@@ -7,32 +6,138 @@
 
 #include "extensions.h"
 
-/* print functions */
 
-// fflush is needed, otherwise the output is not printed
+// Helper forw. decl. (impl. below)
 
-void print_i(int n) {
-  printf("%d", n);
+void *_alloc(int size);
+void *_realloc(void *p, int size);
+
+ 
+// Elements
+
+Element *new_Nil() {
+  Element *result = _alloc(sizeof(Element));
+  result->type = NIL;
+  result->el.value = 0;
+  return result;
+}
+
+Element *new_Bool(Bool b) {
+  Element *result = _alloc(sizeof(Element));
+  result->type = BOOL;
+  result->el.value = b;
+  return result;
+}
+
+Element *new_Int(int n) {
+  Element *result = _alloc(sizeof(Element));
+  result->type = INT;
+  result->el.value = n;
+  return result;
+}
+
+Element *new_String(char* s) {
+  char *r = _alloc(strlen(s) + 1); //+1 for the zero-terminator
+  strcpy(r, s);
+
+  Element *result = _alloc(sizeof(Element));
+  result->type = STRING;
+  result->el.string = r;
+  return result;
+}
+
+Element *new_Array(int size) {
+  Array *r = _alloc(sizeof(Array));
+  r->size = size;
+  r->capacity = size;
+  r->elements = _alloc(size * sizeof(Element));
+
+  Element *result = _alloc(sizeof(Element));
+  result->type = ARRAY;
+  result->el.array = r;
+  return result;
+}
+
+
+// string representations
+
+char *str_Nil(UType u) {
+  return "Nil";
+}
+
+char *str_Bool(UType u) {
+  if (u.value) {
+    return "True";
+  } else {
+    return "False";
+  }
+}
+
+char *str_Int(UType u) {
+  char *result = _alloc(12); // 12 is the max length of an int
+
+  sprintf(result, "%d", u.value);
+  return result;
+}
+
+char *str_String(UType u) {
+  return u.string;
+}
+
+// (forw. decl.)
+void append(Element *e1, Element *e2);
+char *str(Element *e);
+
+char *str_Array(UType u) {
+  Element *r = new_String("[ ");
+  for (int i = 0; i < u.array->size; i++) {
+    if (i > 0) {
+      append(r, new_String(", "));
+    }
+    append(r, new_String(str(&u.array->elements[i])));
+  }
+  append(r, new_String(" ]"));
+  return r->el.string;
+}
+
+char *str(Element *e) {
+  switch (e->type) {
+    case NIL:
+      return str_Nil(e->el);
+    case BOOL:
+      return str_Bool(e->el);
+    case INT:
+      return str_Int(e->el);
+    case STRING:
+      return str_String(e->el);
+    case ARRAY:
+      return str_Array(e->el);
+    default:
+      return "oops todo";
+  }
+}
+
+// print
+
+void print(Element *e) {
+  printf("%s", str(e));
+  // fflush may be needed, otherwise the output is not printed
   fflush(stdout);
 }
 
-// (not used atm)
-/*
-void println_i(int n) {
-  printf("%d\n", n);
-  fflush(stdout);
+void append(Element *e1, Element *e2) {
+  if (e1->type != STRING || e2->type != STRING) {
+    printf("append only works on strings\n");
+    exit(1);
+  }
+  // printf("e1.el.string: %lu\n", strlen(e1.el.string));
+  // printf("e2.el.string: %lu\n", strlen(e2.el.string));
+  char *r = _realloc(e1->el.string, strlen(e1->el.string) + strlen(e2->el.string) + 1);
+  strcat(r, e2->el.string);
+  e1->el.string = r;
 }
-*/
-void print(char *s) {
-  printf("%s", s);
-  fflush(stdout);
-}
-/*
-void println() {
-  printf("\n");
-  fflush(stdout);
-}
-*/
+
+// Helper impl.
 
 void *_alloc(int size) {
   void *result = malloc(size);
@@ -54,13 +159,14 @@ void *_realloc(void *p, int size) {
 
 // allocate memory for a string, copy the string to the allocated memory
 // return the memory address of the allocated memory
+/*
 char *String(char *s) {
   char *result = _alloc(strlen(s) + 1); //+1 for the zero-terminator
 
   strcpy(result, s);
   return result;
 }
-
+*/
 void free_str(char *s) {
   free(s);
 }
@@ -189,7 +295,7 @@ char *Trim(char *s) {
   return result;
 }
 */
-
+/*
 char *append(char *s, char *s2) {
   char *r = (char *)_realloc(s, strlen(s) + strlen(s2) + 1);
 
@@ -197,7 +303,7 @@ char *append(char *s, char *s2) {
   strcat(r, s2);
   return r;
 }
-
+*/
 int len(char *s) {
   return strlen(s);
 }
@@ -210,7 +316,7 @@ char *addr2str(int n) {
   return (char *)n;
 }
 
-Array *Array_new(int size) {
+/*Array *Array_new(int size) {
   Array *result = _alloc(sizeof(Array));
 
   result->size = size;
@@ -394,7 +500,7 @@ int unshift(int n, type t, Array *a) {
   return a->size;
 }
 */
-void insert(int i, type t, int n, Array *a) {
+/*void insert(int i, type t, int n, Array *a) {
   if (i < 0 || i >= a->size) {
     printf("index out of bounds\n");
     exit(1);
@@ -507,3 +613,4 @@ Array *Copy(Array *a) {
   }
   return result;
 }
+*/
