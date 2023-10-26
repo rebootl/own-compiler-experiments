@@ -6,13 +6,17 @@
 
 #include "extensions.h"
 
-
 // Helper forw. decl. (impl. below)
 
 void *_alloc(int size);
 void *_realloc(void *p, int size);
 
- 
+void append(Element *e1, Element *e2);
+char *str(Element *e);
+
+int _len(Element *e);
+int _get_abs_index(int index, Element *e);
+
 // Elements
 
 Element *new_Nil() {
@@ -36,6 +40,13 @@ Element *new_Int(int n) {
   return result;
 }
 
+Element *new_Float(float f) {
+  Element *result = _alloc(sizeof(Element));
+  result->type = FLOAT;
+  result->el.fvalue = f;
+  return result;
+}
+
 Element *new_String(char* s) {
   char *r = _alloc(strlen(s) + 1); //+1 for the zero-terminator
   strcpy(r, s);
@@ -49,8 +60,12 @@ Element *new_String(char* s) {
 Element *new_Array(int size) {
   Array *r = _alloc(sizeof(Array));
   r->size = size;
-  r->capacity = size;
+  r->capacity = size == 0 ? 2 : size;
   r->elements = _alloc(size * sizeof(Element));
+
+  for (int i = 0; i < size; i++) {
+    r->elements[i] = *new_Nil();
+  }
 
   Element *result = _alloc(sizeof(Element));
   result->type = ARRAY;
@@ -58,14 +73,13 @@ Element *new_Array(int size) {
   return result;
 }
 
+// Stringify
 
-// string representations
-
-char *str_Nil(UType u) {
+char *_str_Nil(UType u) {
   return "Nil";
 }
 
-char *str_Bool(UType u) {
+char *_str_Bool(UType u) {
   if (u.value) {
     return "True";
   } else {
@@ -73,51 +87,72 @@ char *str_Bool(UType u) {
   }
 }
 
-char *str_Int(UType u) {
+char *_str_Int(UType u) {
   char *result = _alloc(12); // 12 is the max length of an int
 
   sprintf(result, "%d", u.value);
   return result;
 }
 
-char *str_String(UType u) {
+char *_str_float(UType u) {
+  // assuming 32 bit float
+  // -> improve this ?
+  char *result = _alloc(12);
+
+  sprintf(result, "%f", u.fvalue);
+  return result;
+}
+
+char *_str_String(UType u) {
   return u.string;
 }
 
-// (forw. decl.)
-void append(Element *e1, Element *e2);
-char *str(Element *e);
-
-char *str_Array(UType u) {
+char *_str_Array(UType u) {
   Element *r = new_String("[ ");
+  Element *sep = new_String(", ");
+  Element *end = new_String(" ]");
+  Element *quote = new_String("\"");
   for (int i = 0; i < u.array->size; i++) {
     if (i > 0) {
-      append(r, new_String(", "));
+      append(r, sep);
     }
-    append(r, new_String(str(&u.array->elements[i])));
+    if (u.array->elements[i].type == STRING) {
+      append(r, quote);
+      append(r, new_String(u.array->elements[i].el.string));
+      append(r, quote);
+    } else {
+      Element *arr = new_String(str(&u.array->elements[i]));
+      append(r, arr);
+      destroy(arr);
+    }
   }
   append(r, new_String(" ]"));
+  destroy(quote);
+  destroy(sep);
+  destroy(end);
   return r->el.string;
 }
 
 char *str(Element *e) {
   switch (e->type) {
     case NIL:
-      return str_Nil(e->el);
+      return _str_Nil(e->el);
     case BOOL:
-      return str_Bool(e->el);
+      return _str_Bool(e->el);
     case INT:
-      return str_Int(e->el);
+      return _str_Int(e->el);
+    case FLOAT:
+      return _str_float(e->el);
     case STRING:
-      return str_String(e->el);
+      return _str_String(e->el);
     case ARRAY:
-      return str_Array(e->el);
+      return _str_Array(e->el);
     default:
       return "oops todo";
   }
 }
 
-// print
+// Print
 
 void print(Element *e) {
   printf("%s", str(e));
@@ -125,17 +160,501 @@ void print(Element *e) {
   fflush(stdout);
 }
 
+// Destroy
+
+void destroy(Element *e) {
+  if (e->type == STRING) {
+    free(e->el.string);
+  } else if (e->type == ARRAY) {
+    free(e->el.array->elements);
+    free(e->el.array);
+  }
+  free(e);
+}
+
+// Manipulate
+void _grow_array(Element *e) {
+  e->el.array->capacity *= 2;
+  e->el.array->elements = _realloc(e->el.array->elements, e->el.array->capacity * sizeof(Element));
+}
+
+void _shrink_array(Element *e) {
+  e->el.array->capacity /= 2;
+  e->el.array->elements = _realloc(e->el.array->elements, e->el.array->capacity * sizeof(Element));
+}
+
 void append(Element *e1, Element *e2) {
-  if (e1->type != STRING || e2->type != STRING) {
-    printf("append only works on strings\n");
+  if (e1->type == STRING && e2->type == STRING) {
+    char *r = _realloc(e1->el.string, _len(e1) + _len(e2) + 1);
+    strcat(r, e2->el.string);
+    e1->el.string = r;
+  } else if (e1->type == ARRAY) {
+    if (e1->el.array->size == e1->el.array->capacity) {
+      _grow_array(e1);
+    }
+    e1->el.array->elements[e1->el.array->size] = *e2;
+    e1->el.array->size++;
+  } else {
+    printf("append not implemented for type %d\n", e1->type);
     exit(1);
   }
-  // printf("e1.el.string: %lu\n", strlen(e1.el.string));
-  // printf("e2.el.string: %lu\n", strlen(e2.el.string));
-  char *r = _realloc(e1->el.string, strlen(e1->el.string) + strlen(e2->el.string) + 1);
-  strcat(r, e2->el.string);
-  e1->el.string = r;
 }
+
+void set(int index, Element *e1, Element *e2) {
+  int i = _get_abs_index(index, e1);
+  if (i >= _len(e1)) {
+    printf("index out of bounds\n");
+    exit(1);
+  }
+  if (e1->type == ARRAY) {
+    e1->el.array->elements[i] = *e2;
+  } else if (e1->type == STRING && e2->type == STRING) {
+    if (_len(e2) != 1) {
+      printf("string to set must be of length 1\n");
+      exit(1);
+    }
+    e1->el.string[i] = e2->el.string[0];
+  } else {
+    printf("set not implemented for type %d\n", e1->type);
+    exit(1);
+  }
+}
+
+Element *pop(Element *e) {
+  if (e->type == ARRAY) {
+    if (_len(e) == 0) {
+      printf("pop from empty array\n");
+      exit(1);
+    }
+    e->el.array->size--;
+    Element *result = &e->el.array->elements[e->el.array->size];
+    
+    // shrink array if size < capacity / 2
+    if (e->el.array->size < e->el.array->capacity / 2) {
+      _shrink_array(e);
+    }
+    
+    return result;
+  } else {
+    printf("pop not implemented for type %d\n", e->type);
+    exit(1);
+  }
+}
+
+Element *remove_at(int index, Element *e) {
+  int i = _get_abs_index(index, e);
+  if (i >= _len(e)) {
+    printf("index out of bounds\n");
+    exit(1);
+  }
+  if (e->type == ARRAY) {
+    Element *result = &e->el.array->elements[i];
+    for (int j = i; j < _len(e) - 1; j++) {
+      e->el.array->elements[j] = e->el.array->elements[j + 1];
+    }
+    e->el.array->size--;
+
+    // shrink array if size < capacity / 2
+    if (e->el.array->size < e->el.array->capacity / 2) {
+      _shrink_array(e);
+    }
+    return result;
+  } else {
+    printf("remove not implemented for type %d\n", e->type);
+    exit(1);
+  }
+}
+
+void insert_at(int index, Element *e1, Element *e2) {
+  int i = _get_abs_index(index, e1);
+  if (i > _len(e1)) {
+    printf("index out of bounds\n");
+    exit(1);
+  }
+  if (e1->type == ARRAY) {
+    if (e1->el.array->size == e1->el.array->capacity) {
+      _grow_array(e1);
+    }
+    for (int j = _len(e1) - 1; j >= i; j--) {
+      e1->el.array->elements[j + 1] = e1->el.array->elements[j];
+    }
+    e1->el.array->elements[i] = *e2;
+    e1->el.array->size++;
+  } else {
+    printf("insert not implemented for type %d\n", e1->type);
+    exit(1);
+  }
+}
+
+// Convert
+
+Element *to_bool(Element *e) {
+  switch (e->type) {
+    case NIL:
+      return new_Bool(FALSE);
+    case BOOL:
+      return e;
+    case INT:
+      return new_Bool(e->el.value != 0);
+    case FLOAT:
+      return new_Bool(e->el.fvalue != 0.0);
+    default:
+      printf("to_bool not implemented for type %d\n", e->type);
+      exit(1);
+  }
+}
+
+Element *to_int(Element *e) {
+  switch (e->type) {
+    case NIL:
+      return new_Int(0);
+    case BOOL:
+      return new_Int(e->el.value);
+    case INT:
+      return e;
+    case FLOAT:
+      return new_Int((int)e->el.fvalue);
+    default:
+      printf("to_int not implemented for type %d\n", e->type);
+      exit(1);
+  }
+}
+
+Element *to_float(Element *e) {
+  switch (e->type) {
+    case NIL:
+      return new_Float(0.0);
+    case BOOL:
+      return new_Float(e->el.value);
+    case INT:
+      return new_Float(e->el.value);
+    case FLOAT:
+      return e;
+    default:
+      printf("to_float not implemented for type %d\n", e->type);
+      exit(1);
+  }
+}
+
+Element *to_string(Element *e) {
+  switch (e->type) {
+    case NIL:
+      return new_String("Nil");
+    case BOOL:
+      if (e->el.value) {
+        return new_String("True");
+      } else {
+        return new_String("False");
+      }
+    case INT:
+      return new_String(_str_Int(e->el));
+    case FLOAT:
+      return new_String(_str_float(e->el));
+    case STRING:
+      return e;
+    default:
+      printf("to_string not implemented for type %d\n", e->type);
+      exit(1);
+  }
+}
+
+// Query
+
+Element *is_nil(Element *e) {
+  if (e->type == NIL) {
+    return new_Bool(TRUE);
+  } else {
+    return new_Bool(FALSE);
+  }
+}
+
+Element *is_bool(Element *e) {
+  if (e->type == BOOL) {
+    return new_Bool(TRUE);
+  } else {
+    return new_Bool(FALSE);
+  }
+}
+
+Element *is_int(Element *e) {
+  if (e->type == INT) {
+    return new_Bool(TRUE);
+  } else {
+    return new_Bool(FALSE);
+  }
+}
+
+Element *is_float(Element *e) {
+  if (e->type == FLOAT) {
+    return new_Bool(TRUE);
+  } else {
+    return new_Bool(FALSE);
+  }
+}
+
+Element *is_string(Element *e) {
+  if (e->type == STRING) {
+    return new_Bool(TRUE);
+  } else {
+    return new_Bool(FALSE);
+  }
+}
+
+Element *is_array(Element *e) {
+  if (e->type == ARRAY) {
+    return new_Bool(TRUE);
+  } else {
+    return new_Bool(FALSE);
+  }
+}
+
+Element *is_function(Element *e) {
+  if (e->type == FUNCTION) {
+    return new_Bool(TRUE);
+  } else {
+    return new_Bool(FALSE);
+  }
+}
+
+Element *get_type(Element *e) {
+  switch (e->type) {
+    case NIL:
+      return new_String("Nil");
+    case BOOL:
+      return new_String("Bool");
+    case INT:
+      return new_String("Int");
+    case FLOAT:
+      return new_String("Float");
+    case STRING:
+      return new_String("String");
+    case ARRAY:
+      return new_String("Array");
+    case FUNCTION:
+      return new_String("Function");
+    default:
+      printf("get_type not implemented for type %d\n", e->type);
+      exit(1);
+  }
+}
+
+Element *len(Element *e) {
+  if (e->type == STRING) {
+    return new_Int(strlen(e->el.string));
+  } else if (e->type == ARRAY) {
+    return new_Int(e->el.array->size);
+  } else {
+    printf("len only works on String and Array\n");
+    exit(1);
+  }
+}
+
+Element *get(int index, Element *e) {
+  int i = _get_abs_index(index, e);
+  if (i >= _len(e)) {
+    printf("index out of bounds\n");
+    exit(1);
+  }
+  if (e->type == STRING) {
+    return new_String(Substr(e->el.string, i, i));
+  } else if (e->type == ARRAY) {
+    return &e->el.array->elements[i];
+  } else {
+    printf("get not implemented for type %d\n", e->type);
+    exit(1);
+  }
+}
+
+// Math
+
+Element *add(Element *e1, Element *e2) {
+  if (e1->type == INT && e2->type == INT) {
+    return new_Int(e1->el.value + e2->el.value);
+  } else if (e1->type == FLOAT && e2->type == FLOAT) {
+    return new_Float(e1->el.fvalue + e2->el.fvalue);
+  } else {
+    printf("add only works on Int + Int and Float + Float\n");
+    exit(1);
+  }
+}
+
+Element *sub(Element *e1, Element *e2) {
+  if (e1->type == INT && e2->type == INT) {
+    return new_Int(e1->el.value - e2->el.value);
+  } else if (e1->type == FLOAT && e2->type == FLOAT) {
+    return new_Float(e1->el.fvalue - e2->el.fvalue);
+  } else {
+    printf("sub only works on Int - Int and Float - Float\n");
+    exit(1);
+  }
+}
+
+Element *mul(Element *e1, Element *e2) {
+  if (e1->type == INT && e2->type == INT) {
+    return new_Int(e1->el.value * e2->el.value);
+  } else if (e1->type == FLOAT && e2->type == FLOAT) {
+    return new_Float(e1->el.fvalue * e2->el.fvalue);
+  } else {
+    printf("mul only works on Int * Int and Float * Float\n");
+    exit(1);
+  }
+}
+
+Element *_div(Element *e1, Element *e2) {
+  if (e1->type == INT && e2->type == INT) {
+    if (e2->el.value == 0) {
+      printf("division by zero\n");
+      exit(1);
+    }
+    return new_Int(e1->el.value / e2->el.value);
+  } else if (e1->type == FLOAT && e2->type == FLOAT) {
+    if (e2->el.fvalue == 0) {
+      printf("division by zero\n");
+      exit(1);
+    }
+    return new_Float(e1->el.fvalue / e2->el.fvalue);
+  } else {
+    printf("div only works on Int / Int and Float / Float\n");
+    exit(1);
+  }
+}
+
+Element *mod(Element *e1, Element *e2) {
+  if (e1->type != INT || e2->type != INT) {
+    printf("mod only works on ints\n");
+    exit(1);
+  }
+  // todo: -> float mod ? => use fmod from math.h
+  return new_Int(e1->el.value % e2->el.value);
+}
+
+Element *_pow(Element *e1, Element *e2) {
+  if (e1->type != INT || e2->type != INT) {
+    printf("pow only works on ints\n");
+    exit(1);
+  }
+  // todo: -> float pow ? => use pow from math.h
+  return new_Int(e1->el.value ^ e2->el.value);
+}
+
+Element *neg(Element *e) {
+  if (e->type == INT) {
+    return new_Int(-e->el.value);
+  } else if (e->type == FLOAT) {
+    return new_Float(-e->el.fvalue);
+  } else {
+    printf("neg only works on Int and Float\n");
+    exit(1);
+  }
+}
+
+// Compare
+
+Element *eq(Element *e1, Element *e2) {
+  if (e1->type == INT && e2->type == INT) {
+    return new_Bool(e1->el.value == e2->el.value);
+  } else if (e1->type == FLOAT && e2->type == FLOAT) {
+    return new_Bool(e1->el.fvalue == e2->el.fvalue);
+  } else if (e1->type == STRING && e2->type == STRING) {
+    return new_Bool(strcmp(e1->el.string, e2->el.string) == 0);
+  } else {
+    printf("eq only works on Int == Int, Float == Float and String == String\n");
+    exit(1);
+  }
+}
+
+Element *ne(Element *e1, Element *e2) {
+  if (e1->type == INT && e2->type == INT) {
+    return new_Bool(e1->el.value != e2->el.value);
+  } else if (e1->type == FLOAT && e2->type == FLOAT) {
+    return new_Bool(e1->el.fvalue != e2->el.fvalue);
+  } else if (e1->type == STRING && e2->type == STRING) {
+    return new_Bool(strcmp(e1->el.string, e2->el.string) != 0);
+  } else {
+    printf("ne only works on Int != Int, Float != Float and String != String\n");
+    exit(1);
+  }
+}
+
+Element *lt(Element *e1, Element *e2) {
+  if (e1->type == INT && e2->type == INT) {
+    return new_Bool(e1->el.value < e2->el.value);
+  } else if (e1->type == FLOAT && e2->type == FLOAT) {
+    return new_Bool(e1->el.fvalue < e2->el.fvalue);
+  } else if (e1->type == STRING && e2->type == STRING) {
+    return new_Bool(strcmp(e1->el.string, e2->el.string) < 0);
+  } else {
+    printf("lt only works on Int < Int, Float < Float and String < String\n");
+    exit(1);
+  }
+}
+
+Element *le(Element *e1, Element *e2) {
+  if (e1->type == INT && e2->type == INT) {
+    return new_Bool(e1->el.value <= e2->el.value);
+  } else if (e1->type == FLOAT && e2->type == FLOAT) {
+    return new_Bool(e1->el.fvalue <= e2->el.fvalue);
+  } else if (e1->type == STRING && e2->type == STRING) {
+    return new_Bool(strcmp(e1->el.string, e2->el.string) <= 0);
+  } else {
+    printf("le only works on Int <= Int, Float <= Float and String <= String\n");
+    exit(1);
+  }
+}
+
+Element *gt(Element *e1, Element *e2) {
+  if (e1->type == INT && e2->type == INT) {
+    return new_Bool(e1->el.value > e2->el.value);
+  } else if (e1->type == FLOAT && e2->type == FLOAT) {
+    return new_Bool(e1->el.fvalue > e2->el.fvalue);
+  } else if (e1->type == STRING && e2->type == STRING) {
+    return new_Bool(strcmp(e1->el.string, e2->el.string) > 0);
+  } else {
+    printf("gt only works on Int > Int, Float > Float and String > String\n");
+    exit(1);
+  }
+}
+
+Element *ge(Element *e1, Element *e2) {
+  if (e1->type == INT && e2->type == INT) {
+    return new_Bool(e1->el.value >= e2->el.value);
+  } else if (e1->type == FLOAT && e2->type == FLOAT) {
+    return new_Bool(e1->el.fvalue >= e2->el.fvalue);
+  } else if (e1->type == STRING && e2->type == STRING) {
+    return new_Bool(strcmp(e1->el.string, e2->el.string) >= 0);
+  } else {
+    printf("ge only works on Int >= Int, Float >= Float and String >= String\n");
+    exit(1);
+  }
+}
+
+// Logic
+
+Element *_and(Element *e1, Element *e2) {
+  if (e1->type != BOOL || e2->type != BOOL) {
+    printf("and only works on Bool and Bool\n");
+    exit(1);
+  }
+  return new_Bool(e1->el.value && e2->el.value);
+}
+
+Element *_or(Element *e1, Element *e2) {
+  if (e1->type != BOOL || e2->type != BOOL) {
+    printf("or only works on Bool and Bool\n");
+    exit(1);
+  }
+  return new_Bool(e1->el.value || e2->el.value);
+}
+
+Element *_not(Element *e) {
+  if (e->type != BOOL) {
+    printf("not only works on Bool\n");
+    exit(1);
+  }
+  return new_Bool(!e->el.value);
+}
+
+
 
 // Helper impl.
 
@@ -157,26 +676,18 @@ void *_realloc(void *p, int size) {
   return result;
 }
 
-// allocate memory for a string, copy the string to the allocated memory
-// return the memory address of the allocated memory
-/*
-char *String(char *s) {
-  char *result = _alloc(strlen(s) + 1); //+1 for the zero-terminator
-
-  strcpy(result, s);
-  return result;
-}
-*/
-void free_str(char *s) {
-  free(s);
+int _len(Element *e) {
+  return len(e)->el.value;
 }
 
-char *Int2str(int n) {
-  char *result = _alloc(12); // 12 is the max length of an int
-
-  sprintf(result, "%d", n);
-  return result;
+int _get_abs_index(int index, Element *e) {
+  int l = _len(e);
+  if (index < 0) {
+    return l + index;
+  }
+  return index;
 }
+
 
 /* concat, string concatenation
 
@@ -304,9 +815,9 @@ char *append(char *s, char *s2) {
   return r;
 }
 */
-int len(char *s) {
+/*int len(char *s) {
   return strlen(s);
-}
+}*/
 
 int addr(void *p) {
   return (int)p;

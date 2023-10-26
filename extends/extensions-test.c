@@ -33,7 +33,21 @@ int assert_equal_int(int result, int expected, char *msg) {
   }
 }
 
+int assert_equal_float(float result, float expected, char *msg) {
+  if (result == expected) {
+    printf("OK: %s\n", msg);
+    return 1;
+  } else {
+    printf("FAIL: %s\n", msg);
+    printf("  expected: %f\n", expected);
+    printf("  got:      %f\n", result);
+    return 0;
+  }
+}
+
 int main(void) {
+
+  // Create
 
   Element *n = new_Nil();
   // print(n);
@@ -48,10 +62,22 @@ int main(void) {
   assert_equal_int(i->el.value, 42, "Int el.");
   assert_equal_str(str(i), "42", "Int");
 
+  Element *f = new_Float(42.42);
+  // print(f);
+  assert_equal_float(f->el.fvalue, 42.42, "Float el.");
+  assert_equal_str(str(f), "42.419998", "Float");
+
   Element *s = new_String("Hello");
   // print(s);
   assert_equal_str(s->el.string, "Hello", "String el.");
   assert_equal_str(str(s), "Hello", "String");
+
+  Element *a = new_Array(5);
+  assert_equal_int(a->el.array->size, 5, "Array el.");
+  assert_equal_int(a->el.array->capacity, 5, "Array el.");
+  assert_equal_str(str(a), "[ Nil, Nil, Nil, Nil, Nil ]", "Array");
+
+  // Manipulate
 
   append(s, new_String(" World"));
   assert_equal_str(str(s), "Hello World", "String append");
@@ -60,10 +86,155 @@ int main(void) {
   append(s, new_String("!"));
   assert_equal_str(str(s), "Hello World!!", "String append");
 
-  Element *a = new_Array(5);
-  assert_equal_int(a->el.array->size, 5, "Array el.");
-  assert_equal_int(a->el.array->capacity, 5, "Array el.");
-  assert_equal_str(str(a), "[ Nil, Nil, Nil, Nil, Nil ]", "Array");
+  set(0, s, new_String("F"));
+  assert_equal_str(str(s), "Fello World!!", "String set");
+
+  set(0, a, new_Int(42));
+  assert_equal_str(str(a), "[ 42, Nil, Nil, Nil, Nil ]", "Array set");
+  set(3, a, new_Int(43));
+  assert_equal_str(str(a), "[ 42, Nil, Nil, 43, Nil ]", "Array set");
+  set(4, a, new_String("Hi"));
+  assert_equal_str(str(a), "[ 42, Nil, Nil, 43, \"Hi\" ]", "Array set");
+
+  append(a, new_Int(44));
+  assert_equal_str(str(a), "[ 42, Nil, Nil, 43, \"Hi\", 44 ]", "Array append");
+
+  set(-3, a, new_Int(45));
+  assert_equal_str(str(a), "[ 42, Nil, Nil, 45, \"Hi\", 44 ]", "Array set");
+
+  Element *a2 = new_Array(0);
+  assert_equal_str(str(a2), "[  ]", "Array empty");
+
+  append(a2, new_Int(42));
+  append(a2, new_Array(3));
+  assert_equal_str(str(a2), "[ 42, [ Nil, Nil, Nil ] ]", "Array append");
+
+  Element *e = pop(a);
+  assert_equal_str(str(e), "44", "Array pop");
+  assert_equal_str(str(a), "[ 42, Nil, Nil, 45, \"Hi\" ]", "Array pop");
+  
+  Element *re = remove_at(1, a);
+  assert_equal_str(str(re), "Nil", "Array remove_el");
+  assert_equal_str(str(a), "[ 42, Nil, 45, \"Hi\" ]", "Array remove_el");
+
+  insert_at(1, a, new_Int(43));
+  assert_equal_str(str(a), "[ 42, 43, Nil, 45, \"Hi\" ]", "Array insert_el");
+
+  // Destroy
+
+  // destroy(a);
+  // destroy(s);
+  // destroy(f);
+  // destroy(i);
+  // destroy(b);
+  // destroy(n);
+
+  // Convert
+
+  Element *b1 = to_bool(new_Int(42));
+  assert_equal_str(str(b1), "True", "int to_bool");
+
+  Element *b2 = to_bool(new_Int(0));
+  assert_equal_str(str(b2), "False", "int 0 to_bool");
+
+  Element *b3 = to_bool(new_Float(42.42));
+  assert_equal_str(str(b3), "True", "float to_bool");
+
+  Element *b4 = to_bool(new_Float(0.0));
+  assert_equal_str(str(b4), "False", "float 0.0 to_bool");
+
+  Element *i1 = to_int(new_Float(42.42));
+  assert_equal_int(i1->el.value, 42, "float to_int");
+
+  Element *i2 = to_int(new_Float(0.0));
+  assert_equal_int(i2->el.value, 0, "float 0.0 to_int");
+
+  Element *f1 = to_float(new_Int(42));
+  assert_equal_float(f1->el.fvalue, 42.0, "int to_float");
+
+  Element *f2 = to_float(new_Int(0));
+  assert_equal_float(f2->el.fvalue, 0.0, "int 0 to_float");
+
+  Element *sb1 = to_string(new_Int(42));
+  assert_equal_str(sb1->el.string, "42", "int to_string");
+
+  Element *sb2 = to_string(new_Float(42.42));
+  assert_equal_str(sb2->el.string, "42.419998", "float to_string");
+
+  // Query
+
+  Element *b7 = is_nil(new_Nil());
+  assert_equal_str(str(b7), "True", "is_nil");
+
+  Element *b8 = is_nil(new_Int(42));
+  assert_equal_str(str(b8), "False", "is_nil");
+
+  Element *l1 = len(new_String("Hello"));
+  assert_equal_int(l1->el.value, 5, "len string");
+
+  Element *l2 = len(new_Array(5));
+  assert_equal_int(l2->el.value, 5, "len array");
+
+  Element *e1 = get(1, new_String("Hello"));
+  assert_equal_str(str(e1), "e", "get string");
+
+  Element *e2 = get(3, a);
+  assert_equal_str(str(e2), "45", "get array");
+
+  // Math
+  
+  Element *r = add(new_Int(42), new_Int(43));
+  assert_equal_int(r->el.value, 85, "add ints");
+
+  Element *r2 = add(new_Float(42.42), new_Float(43.43));
+  assert_equal_float(r2->el.fvalue, 85.85, "add floats");
+
+  Element *r3 = sub(new_Int(42), new_Int(43));
+  assert_equal_int(r3->el.value, -1, "sub ints");
+
+  // Compare
+  
+  Element *s1 = new_String("Hello");
+  Element *s2 = new_String("Hello");
+  Element *b5 = eq(s1, s2);
+  assert_equal_str(str(b5), "True", "eq strings");
+
+  Element *s3 = new_String("Hello");
+  Element *s4 = new_String("World");
+  Element *b6 = eq(s3, s4);
+  assert_equal_str(str(b6), "False", "eq strings");
+
+  Element *r4 = eq(new_Int(42), new_Int(42));
+  assert_equal_str(str(r4), "True", "eq ints");
+
+  Element *r5 = eq(new_Float(42.42), new_Float(42.42));
+  assert_equal_str(str(r5), "True", "eq floats");
+
+  Element *r6 = lt(new_String("A"), new_String("B"));
+  assert_equal_str(str(r6), "True", "lt strings");
+
+  Element *r7 = lt(new_Float(42.42), new_Float(43.43));
+  assert_equal_str(str(r7), "True", "lt floats");
+
+  // Logic
+
+  Element *r8 = _and(new_Bool(TRUE), new_Bool(TRUE));
+  assert_equal_str(str(r8), "True", "and bools");
+
+  Element *r9 = _and(new_Bool(TRUE), new_Bool(FALSE));
+  assert_equal_str(str(r9), "False", "and bools");
+
+  Element *r10 = _or(new_Bool(TRUE), new_Bool(FALSE));
+  assert_equal_str(str(r10), "True", "or bools");
+
+  Element *r11 = _or(new_Bool(FALSE), new_Bool(FALSE));
+  assert_equal_str(str(r11), "False", "or bools");
+
+  Element *r12 = _not(new_Bool(TRUE));
+  assert_equal_str(str(r12), "False", "not bool");
+
+  Element *r13 = _not(new_Bool(FALSE));
+  assert_equal_str(str(r13), "True", "not bool");
 
   // print_i(42); // prints 42
   // print("\n");
