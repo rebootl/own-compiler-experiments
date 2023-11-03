@@ -1,15 +1,13 @@
 /*
 
-scan a string and turn it into tokens
-
-code partially (mostly:) based on https://github.com/munificent/craftinginterpreters/
-
-Copyright (c) 2015 Robert Nystrom
+scan source code string and turn it into tokens
 
 */
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h> // exit
+
+#include "scanner.h"
 
 char test_str[100] = "10 + 2 - 3";
 
@@ -20,21 +18,11 @@ typedef struct {
 
 Scanner scanner;
 
-typedef enum {
-  TOKEN_INT,
-  TOKEN_PLUS,
-	TOKEN_MINUS,
-	TOKEN_STAR,
-	TOKEN_SLASH,
-	TOKEN_EOF,
-} TokenType;
 
-typedef struct {
-  TokenType type;
-  const char* start;
-  int length;
-} Token;
-
+void initScanner(const char* source) {
+  scanner.start = source;
+  scanner.current = source;
+}
 
 static Token makeToken(TokenType type) {
   Token token;
@@ -42,12 +30,6 @@ static Token makeToken(TokenType type) {
   token.start = scanner.start;
   token.length = (int)(scanner.current - scanner.start);
   return token;
-}
-
-
-void initScanner(const char* source) {
-  scanner.start = source;
-  scanner.current = source;
 }
 
 static char advance() {
@@ -96,10 +78,13 @@ Token scanToken() {
   }
 	
   printf("error: unexpected character.\n");
-	exit(1);
+	return makeToken(TOKEN_EOF);
+  
+	// exit(1);
 }
 
-
+// testing here
+/*
 int main(int argc, char** argv) {
 
   initScanner(test_str);
@@ -115,4 +100,5 @@ int main(int argc, char** argv) {
 
   return 0;
 }
+*/
 
