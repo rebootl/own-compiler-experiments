@@ -19,12 +19,12 @@ typedef struct {
 Scanner scanner;
 
 
-void initScanner(const char* source) {
+void init_scanner(const char* source) {
   scanner.start = source;
   scanner.current = source;
 }
 
-static Token makeToken(TokenType type) {
+static Token make_token(TokenType type) {
   Token token;
   token.type = type;
   token.start = scanner.start;
@@ -41,7 +41,7 @@ static char peek() {
   return *scanner.current;
 }
 
-static void skipWhitespace() {
+static void skip_whitespace() {
   for (;;) {
     char c = peek();
     switch (c) {
@@ -57,28 +57,27 @@ static void skipWhitespace() {
   }
 }
 
-Token scanToken() {
-  skipWhitespace();
+Token scan_token() {
+  skip_whitespace();
 	scanner.start = scanner.current;
 
-  if (*scanner.current == '\0') return makeToken(TOKEN_EOF);
+  if (*scanner.current == '\0') return make_token(TOKEN_EOF);
 
   char c = advance();
  
 	if (c >= '0' && c <= '9') {
     while (peek() >= '0' && peek() <= '9') advance();
-    return makeToken(TOKEN_INT);
+    return make_token(TOKEN_INT);
   }
 
   switch (c) {
-    case '+': return makeToken(TOKEN_PLUS);
-		case '-': return makeToken(TOKEN_MINUS);
-		case '*': return makeToken(TOKEN_STAR);
-		case '/': return makeToken(TOKEN_SLASH);
+    case '+': return make_token(TOKEN_PLUS);
+		case '-': return make_token(TOKEN_MINUS);
+		case '*': return make_token(TOKEN_STAR);
+		case '/': return make_token(TOKEN_SLASH);
   }
 	
-  printf("error: unexpected character.\n");
-	return makeToken(TOKEN_EOF);
+	return make_token(TOKEN_ERROR);
   
 	// exit(1);
 }
@@ -87,10 +86,10 @@ Token scanToken() {
 /*
 int main(int argc, char** argv) {
 
-  initScanner(test_str);
+  init_scanner(test_str);
 
 	while (1) {
-	  Token token = scanToken();
+	  Token token = scan_token();
 
 	  printf("token type: %d\n", token.type);
 		printf("token: \"%.*s\"\n", token.length, token.start);

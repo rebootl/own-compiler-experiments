@@ -8,6 +8,7 @@ typedef enum {
 	TOKEN_STAR,
 	TOKEN_SLASH,
 	TOKEN_EOF,
+  TOKEN_ERROR
 } TokenType;
 
 typedef struct {
@@ -16,9 +17,9 @@ typedef struct {
   int length;
 } Token;
 
-void initScanner(const char* source);
+void init_scanner(const char* source);
 
-Token scanToken();
+Token scan_token();
 
 #endif /* scanner_h */
 

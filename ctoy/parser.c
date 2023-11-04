@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include <stdlib.h> // exit
-#include <stdbool.h>
 
 #include "scanner.h"
 #include "parser.h"
@@ -9,30 +8,39 @@
 typedef struct {
   Token current;
   Token previous;
-	bool hadError;
+	int had_error;
+  char* error_message;
 } Parser;
 
 Parser parser;
 
-// Token currentToken;
+void error(char* message) {
+  if (parser.had_error) {
+    return;
+  }
+
+  parser.error_message = message;
+  parser.had_error = 1;
+}
 
 static void advance() {
   parser.previous = parser.current;
-  parser.current = scanToken();
+  parser.current = scan_token();
+  if (parser.current.type == TOKEN_ERROR) {
+    error("Error: unexpected character\n");
+  }
 }
 
-static void consume(TokenType type, const char* message) {
+static void consume(TokenType type, char* message) {
   if (parser.current.type == type) {
     advance();
     return;
   }
 
-	// -> improve error handling
-  printf("Error: %s\n", message);
-  parser.hadError = true;
+  error(message);
 }
 
-static int getPrecedence(TokenType type) {
+static int get_precedence(TokenType type) {
   switch (type) {
     case TOKEN_PLUS:
     case TOKEN_MINUS:
@@ -46,84 +54,83 @@ static int getPrecedence(TokenType type) {
 }
 
 // forward declaration
-void parse(int precedence);
+static void parse_expression(int precedence);
 
-static int prefix_handler() {
-
-	// TokenType type = parser.previous.type;
+static void prefix_handler() {
 
 	switch (parser.previous.type) {
     case TOKEN_INT:
       printf("INT: %.*s\n", parser.previous.length, parser.previous.start);
-      return 1;
+      break;
     case TOKEN_MINUS:
-			parse(70);
+			parse_expression(70);
       printf("SIGN MINUS\n");
-      return 1;
+      break;
     default:
-      printf("Error: expected expression\n");
-      return 0;
+      error("Error: expected prefix token\n");
   }
 }
 
-static int infix_handler() {
+static void infix_handler() {
 	// save the token here for later
 	TokenType type = parser.previous.type;
 
 	// recurse
-  parse(getPrecedence(type));
+  parse_expression(get_precedence(type));
 
   switch (type) {
     case TOKEN_PLUS:
       printf("PLUS\n");
-      return 1;
+      break;
     case TOKEN_MINUS:
       printf("MINUS\n");
-      return 1;
+      break;
     case TOKEN_STAR:
       printf("STAR\n");
-      return 1;
+      break;
     case TOKEN_SLASH:
       printf("SLASH\n");
-      return 1;
+      break;
     default:
-      printf("Error: expected expression infix\n");
-      return 0;
+      error("Error: expected infix token\n");
   }
 }
 
-// -> static
-void parse(int precedence) {
+static void parse_expression(int precedence) {
 
 	advance();
-	int success = prefix_handler();
-	if (!success) {
-    printf("error: prefix_handler\n");
-    return;
-  }
+	prefix_handler();
+	// if (parser.had_error) {
+ //    return;
+ //  }
 
-	while (precedence <= getPrecedence(parser.current.type)) {
-		// printf("precedence: %d\n", precedence);
-    
+	while (precedence <= get_precedence(parser.current.type)) {
 		advance();
-		success = infix_handler();
-		if (!success) {
-      printf("error: infix_handler\n");
-      return;
-    }
+		infix_handler();
+		// if (parser.had_error) {
+  //     return;
+  //   }
   }
 
-	// printf("done\n");
 }
 
 void interpret(char *source) {
-  initScanner(source);
+  init_scanner(source);
 
-	parser.hadError = false;
+	parser.had_error = 0;
+
 
 	advance();
-	parse(0);
-	consume(TOKEN_EOF, "Expected end of expression");
+  if (parser.current.type == TOKEN_EOF) {
+    return;
+  }
+
+	parse_expression(0);
+	consume(TOKEN_EOF, "Error: expected end of expression\n");
+
+  if (parser.had_error) {
+    printf("%s", parser.error_message);
+  }
 
 	/*
 	while (1) {
