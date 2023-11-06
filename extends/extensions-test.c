@@ -132,42 +132,42 @@ int main(void) {
 
   // Convert
 
-  Element *b1 = to_bool(new_Int(42));
+  Element *b1 = to_Bool(new_Int(42));
   assert_equal_str(str(b1), "True", "int to_bool");
 
-  Element *b2 = to_bool(new_Int(0));
+  Element *b2 = to_Bool(new_Int(0));
   assert_equal_str(str(b2), "False", "int 0 to_bool");
 
-  Element *b3 = to_bool(new_Float(42.42));
+  Element *b3 = to_Bool(new_Float(42.42));
   assert_equal_str(str(b3), "True", "float to_bool");
 
-  Element *b4 = to_bool(new_Float(0.0));
+  Element *b4 = to_Bool(new_Float(0.0));
   assert_equal_str(str(b4), "False", "float 0.0 to_bool");
 
-  Element *i1 = to_int(new_Float(42.42));
+  Element *i1 = to_Int(new_Float(42.42));
   assert_equal_int(i1->el.value, 42, "float to_int");
 
-  Element *i2 = to_int(new_Float(0.0));
+  Element *i2 = to_Int(new_Float(0.0));
   assert_equal_int(i2->el.value, 0, "float 0.0 to_int");
 
-  Element *f1 = to_float(new_Int(42));
+  Element *f1 = to_Float(new_Int(42));
   assert_equal_float(f1->el.fvalue, 42.0, "int to_float");
 
-  Element *f2 = to_float(new_Int(0));
+  Element *f2 = to_Float(new_Int(0));
   assert_equal_float(f2->el.fvalue, 0.0, "int 0 to_float");
 
-  Element *sb1 = to_string(new_Int(42));
+  Element *sb1 = to_String(new_Int(42));
   assert_equal_str(sb1->el.string, "42", "int to_string");
 
-  Element *sb2 = to_string(new_Float(42.42));
+  Element *sb2 = to_String(new_Float(42.42));
   assert_equal_str(sb2->el.string, "42.419998", "float to_string");
 
   // Query
 
-  Element *b7 = is_nil(new_Nil());
+  Element *b7 = is_Nil(new_Nil());
   assert_equal_str(str(b7), "True", "is_nil");
 
-  Element *b8 = is_nil(new_Int(42));
+  Element *b8 = is_Nil(new_Int(42));
   assert_equal_str(str(b8), "False", "is_nil");
 
   Element *l1 = len(new_String("Hello"));

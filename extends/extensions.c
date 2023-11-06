@@ -93,7 +93,7 @@ char *_str_Int(UType u) {
   return result;
 }
 
-char *_str_float(UType u) {
+char *_str_Float(UType u) {
   // assuming 32 bit float
   // -> improve this ?
   char *result = _alloc(12);
@@ -141,7 +141,7 @@ char *str(Element *e) {
     case INT:
       return _str_Int(e->el);
     case FLOAT:
-      return _str_float(e->el);
+      return _str_Float(e->el);
     case STRING:
       return _str_String(e->el);
     case ARRAY:
@@ -288,7 +288,7 @@ void insert_at(int index, Element *e1, Element *e2) {
 
 // Convert
 
-Element *to_bool(Element *e) {
+Element *to_Bool(Element *e) {
   switch (e->type) {
     case NIL:
       return new_Bool(FALSE);
@@ -304,7 +304,7 @@ Element *to_bool(Element *e) {
   }
 }
 
-Element *to_int(Element *e) {
+Element *to_Int(Element *e) {
   switch (e->type) {
     case NIL:
       return new_Int(0);
@@ -320,7 +320,7 @@ Element *to_int(Element *e) {
   }
 }
 
-Element *to_float(Element *e) {
+Element *to_Float(Element *e) {
   switch (e->type) {
     case NIL:
       return new_Float(0.0);
@@ -336,7 +336,7 @@ Element *to_float(Element *e) {
   }
 }
 
-Element *to_string(Element *e) {
+Element *to_String(Element *e) {
   switch (e->type) {
     case NIL:
       return new_String("Nil");
@@ -349,7 +349,7 @@ Element *to_string(Element *e) {
     case INT:
       return new_String(_str_Int(e->el));
     case FLOAT:
-      return new_String(_str_float(e->el));
+      return new_String(_str_Float(e->el));
     case STRING:
       return e;
     default:
@@ -360,49 +360,49 @@ Element *to_string(Element *e) {
 
 // Query
 
-Element *is_nil(Element *e) {
+Element *is_Nil(Element *e) {
   if (e->type == NIL) {
     return new_Bool(TRUE);
   }
   return new_Bool(FALSE);
 }
 
-Element *is_bool(Element *e) {
+Element *is_Bool(Element *e) {
   if (e->type == BOOL) {
     return new_Bool(TRUE);
   }
   return new_Bool(FALSE);
 }
 
-Element *is_int(Element *e) {
+Element *is_Int(Element *e) {
   if (e->type == INT) {
     return new_Bool(TRUE);
   }
   return new_Bool(FALSE);
 }
 
-Element *is_float(Element *e) {
+Element *is_Float(Element *e) {
   if (e->type == FLOAT) {
     return new_Bool(TRUE);
   }
   return new_Bool(FALSE);
 }
 
-Element *is_string(Element *e) {
+Element *is_String(Element *e) {
   if (e->type == STRING) {
     return new_Bool(TRUE);
   }
   return new_Bool(FALSE);
 }
 
-Element *is_array(Element *e) {
+Element *is_Array(Element *e) {
   if (e->type == ARRAY) {
     return new_Bool(TRUE);
   }
   return new_Bool(FALSE);
 }
 
-Element *is_function(Element *e) {
+Element *is_Function(Element *e) {
   if (e->type == FUNCTION) {
     return new_Bool(TRUE);
   }

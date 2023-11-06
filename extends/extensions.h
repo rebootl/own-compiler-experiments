@@ -87,19 +87,19 @@ Element *remove_at(int i, Element *e);
 void insert_at(int i, Element *e1, Element *e2);
 
 // Convert
-Element *to_bool(Element *e);
-Element *to_int(Element *e);
-Element *to_float(Element *e);
-Element *to_string(Element *e);
+Element *to_Bool(Element *e);
+Element *to_Int(Element *e);
+Element *to_Float(Element *e);
+Element *to_String(Element *e);
 
 // Query
-Element *is_nil(Element *e);
-Element *is_bool(Element *e);
-Element *is_int(Element *e);
-Element *is_float(Element *e);
-Element *is_string(Element *e);
-Element *is_array(Element *e);
-Element *is_function(Element *e);
+Element *is_Nil(Element *e);
+Element *is_Bool(Element *e);
+Element *is_Int(Element *e);
+Element *is_Float(Element *e);
+Element *is_String(Element *e);
+Element *is_Array(Element *e);
+Element *is_Function(Element *e);
 
 Element *get_type(Element *e);
 Element *len(Element *e);
