@@ -1,6 +1,9 @@
 #ifndef EXTENSIONS_H
 #define EXTENSIONS_H
 
+void *_alloc(int size);
+void *_realloc(void *p, int size);
+
 // Types
 
 typedef enum {
@@ -75,7 +78,7 @@ void print(Element *e);
 void destroy(Element *e);
 
 // Manipulate
-void append(Element *e1, Element *e2);
+int append(Element *e1, Element *e2);
 void set(int i, Element *e1, Element *e2);
 
 Element *pop(Element *e);

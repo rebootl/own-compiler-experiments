@@ -1,9 +1,12 @@
 
 #include <stdio.h>
 #include <stdlib.h> // exit
+#include <string.h> // strncpy
 
 #include "scanner.h"
 #include "parser.h"
+
+#include "../extends/extensions.h"
 
 typedef struct {
   Token current;
@@ -13,8 +16,65 @@ typedef struct {
 } Parser;
 
 Parser parser;
+ParserResult parser_result;
 
-void error(char* message) {
+ByteCode* new_ByteCode(int capacity) {
+  ByteCode* bytecode = _alloc(sizeof(ByteCode));
+  bytecode->count = 0;
+  bytecode->capacity = capacity == 0 ? 8 : capacity;
+  bytecode->op = _alloc(sizeof(OpCode) * capacity);
+  return bytecode;
+}
+
+void emit(OpCode op) {
+  ByteCode* bc = parser_result.bytecode;
+  if (bc->count == bc->capacity) {
+    bc->capacity *= 2;
+    bc->op = _realloc(bc->op, sizeof(OpCode) * bc->capacity);
+  }
+  bc->op[bc->count++] = op;
+}
+
+void print_bytecode() {
+  ByteCode* bc = parser_result.bytecode;
+  for (int i = 0; i < bc->count; i++) {
+    // printf("%d\n", bc->op[i]);
+    switch (bc->op[i]) {
+      case OP_LITERAL:
+        printf("OP_LITERAL %d\n", bc->op[++i]);
+        break;
+      case OP_ADD:
+        printf("OP_ADD\n");
+        break;
+      case OP_SUBTRACT:
+        printf("OP_SUBTRACT\n");
+        break;
+      case OP_MULTIPLY:
+        printf("OP_MULTIPLY\n");
+        break;
+      case OP_DIVIDE:
+        printf("OP_DIVIDE\n");
+        break;
+      case OP_NEGATE:
+        printf("OP_NEGATE\n");
+        break;
+      default:
+        printf("OP_UNKNOWN\n");
+        break;
+    }
+  }
+}
+
+static int parse_int(const char* start, int length) {
+  char* int_str = malloc(length + 1);
+  strncpy(int_str, start, length);
+  int_str[length] = '\0';
+  int int_val = atoi(int_str);
+  free(int_str);
+  return int_val;
+}
+
+static void error(char* message) {
   if (parser.had_error) {
     return;
   }
@@ -57,14 +117,28 @@ static int get_precedence(TokenType type) {
 static void parse_expression(int precedence);
 
 static void prefix_handler() {
+  int int_val;
+  int int_idx;
 
 	switch (parser.previous.type) {
     case TOKEN_INT:
+      int_val = parse_int(parser.previous.start, parser.previous.length);
+      int_idx = append(parser_result.literals, new_Int(int_val));
+      // -> emit byte code
+      // INT idx
+      emit(OP_LITERAL);
+      emit(int_idx);
+      
       printf("INT: %.*s\n", parser.previous.length, parser.previous.start);
       break;
     case TOKEN_MINUS:
 			parse_expression(70);
+      emit(OP_NEGATE);
       printf("SIGN MINUS\n");
+      break;
+    case TOKEN_LEFT_PAREN:
+      parse_expression(0);
+      consume(TOKEN_RIGHT_PAREN, "Error: expected right paren\n");
       break;
     default:
       error("Error: expected prefix token\n");
@@ -81,15 +155,19 @@ static void infix_handler() {
   switch (type) {
     case TOKEN_PLUS:
       printf("PLUS\n");
+      emit(OP_ADD);
       break;
     case TOKEN_MINUS:
       printf("MINUS\n");
+      emit(OP_SUBTRACT);
       break;
     case TOKEN_STAR:
       printf("STAR\n");
+      emit(OP_MULTIPLY);
       break;
     case TOKEN_SLASH:
       printf("SLASH\n");
+      emit(OP_DIVIDE);
       break;
     default:
       error("Error: expected infix token\n");
@@ -118,7 +196,8 @@ void interpret(char *source) {
   init_scanner(source);
 
 	parser.had_error = 0;
-
+  parser_result.literals = new_Array(0);
+  parser_result.bytecode = new_ByteCode(0);
 
 	advance();
   if (parser.current.type == TOKEN_EOF) {
@@ -131,7 +210,14 @@ void interpret(char *source) {
   if (parser.had_error) {
     printf("%s", parser.error_message);
   }
-
+  // print size
+  printf("sizeof: %lu\n", sizeof(long long int));
+  
+  printf("ByteCode:\n");
+  print_bytecode();
+  printf("Literals: ");
+  print(parser_result.literals);
+  printf("\n");
 	/*
 	while (1) {
     Token token = scanToken();

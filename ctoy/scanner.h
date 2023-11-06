@@ -8,7 +8,10 @@ typedef enum {
 	TOKEN_STAR,
 	TOKEN_SLASH,
 	TOKEN_EOF,
-  TOKEN_ERROR
+  TOKEN_ERROR,
+  TOKEN_LEFT_PAREN,
+  TOKEN_RIGHT_PAREN,
+  TOKEN_SEMICOLON,
 } TokenType;
 
 typedef struct {

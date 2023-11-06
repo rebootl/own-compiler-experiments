@@ -106,8 +106,9 @@ int main(void) {
   assert_equal_str(str(a2), "[  ]", "Array empty");
 
   append(a2, new_Int(42));
-  append(a2, new_Array(3));
+  int i3 = append(a2, new_Array(3));
   assert_equal_str(str(a2), "[ 42, [ Nil, Nil, Nil ] ]", "Array append");
+  assert_equal_int(i3, 1, "Array append return");
 
   Element *e = pop(a);
   assert_equal_str(str(e), "44", "Array pop");

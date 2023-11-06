@@ -11,7 +11,7 @@
 void *_alloc(int size);
 void *_realloc(void *p, int size);
 
-void append(Element *e1, Element *e2);
+int append(Element *e1, Element *e2);
 char *str(Element *e);
 
 int _len(Element *e);
@@ -183,21 +183,23 @@ void _shrink_array(Element *e) {
   e->el.array->elements = _realloc(e->el.array->elements, e->el.array->capacity * sizeof(Element));
 }
 
-void append(Element *e1, Element *e2) {
+int append(Element *e1, Element *e2) {
   if (e1->type == STRING && e2->type == STRING) {
     char *r = _realloc(e1->el.string, _len(e1) + _len(e2) + 1);
     strcat(r, e2->el.string);
     e1->el.string = r;
-  } else if (e1->type == ARRAY) {
+    return _len(e1) - 1;
+  }
+  if (e1->type == ARRAY) {
     if (e1->el.array->size == e1->el.array->capacity) {
       _grow_array(e1);
     }
     e1->el.array->elements[e1->el.array->size] = *e2;
     e1->el.array->size++;
-  } else {
-    printf("append not implemented for type %d\n", e1->type);
-    exit(1);
+    return _len(e1) - 1;
   }
+  printf("append not implemented for type %d\n", e1->type);
+  exit(1);
 }
 
 void set(int index, Element *e1, Element *e2) {
@@ -818,7 +820,7 @@ char *append(char *s, char *s2) {
 /*int len(char *s) {
   return strlen(s);
 }*/
-
+/*
 int addr(void *p) {
   return (int)p;
 }
@@ -826,7 +828,7 @@ int addr(void *p) {
 char *addr2str(int n) {
   return (char *)n;
 }
-
+*/
 /*Array *Array_new(int size) {
   Array *result = _alloc(sizeof(Array));
 

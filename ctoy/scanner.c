@@ -75,6 +75,9 @@ Token scan_token() {
 		case '-': return make_token(TOKEN_MINUS);
 		case '*': return make_token(TOKEN_STAR);
 		case '/': return make_token(TOKEN_SLASH);
+		case '(': return make_token(TOKEN_LEFT_PAREN);
+		case ')': return make_token(TOKEN_RIGHT_PAREN);
+		case ';': return make_token(TOKEN_SEMICOLON);
   }
 	
 	return make_token(TOKEN_ERROR);
