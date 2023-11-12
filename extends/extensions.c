@@ -61,7 +61,9 @@ Element *new_Array(int size) {
   Array *r = _alloc(sizeof(Array));
   r->size = size;
   r->capacity = size == 0 ? 2 : size;
-  r->elements = _alloc(size * sizeof(Element));
+  // printf("new array capacity: %d\n", r->capacity);
+  
+  r->elements = _alloc(r->capacity * sizeof(Element));
 
   for (int i = 0; i < size; i++) {
     r->elements[i] = *new_Nil();
@@ -74,7 +76,7 @@ Element *new_Array(int size) {
 }
 
 // Stringify
-
+/*
 char *_str_Nil(UType u) {
   return "Nil";
 }
@@ -85,28 +87,35 @@ char *_str_Bool(UType u) {
   }
   return "False";
 }
-
-char *_str_Int(UType u) {
+*/
+Element *_str_Int(UType u) {
   char *result = _alloc(12); // 12 is the max length of an int
 
   sprintf(result, "%d", u.value);
-  return result;
+  Element *s = new_String(result);
+  free(result);
+  
+  return s;
 }
 
-char *_str_Float(UType u) {
+Element *_str_Float(UType u) {
   // assuming 32 bit float
   // -> improve this ?
   char *result = _alloc(12);
 
   sprintf(result, "%f", u.fvalue);
-  return result;
+  Element *s = new_String(result);
+  free(result);
+  
+  return s;
 }
-
+/*
 char *_str_String(UType u) {
   return u.string;
 }
+*/
 
-char *_str_Array(UType u) {
+Element *_str_Array(UType u) {
   Element *r = new_String("[ ");
   Element *sep = new_String(", ");
   Element *end = new_String(" ]");
@@ -115,23 +124,35 @@ char *_str_Array(UType u) {
     if (i > 0) {
       append(r, sep);
     }
+    Element *s = to_String(&u.array->elements[i]);
     if (u.array->elements[i].type == STRING) {
       append(r, quote);
-      append(r, new_String(u.array->elements[i].el.string));
+      append(r, s);
+      append(r, quote);
+    } else {
+      append(r, s);
+    }
+    destroy(s);
+    /*
+    if (u.array->elements[i].type == STRING) {
+      append(r, quote);
+      Element *s = new_String(u.array->elements[i].el.string);
+      append(r, s);
+      destroy(s);
       append(r, quote);
     } else {
       Element *arr = new_String(str(&u.array->elements[i]));
       append(r, arr);
       destroy(arr);
-    }
+    }*/
   }
-  append(r, new_String(" ]"));
+  append(r, end);
   destroy(quote);
   destroy(sep);
   destroy(end);
-  return r->el.string;
+  return r;
 }
-
+/*
 char *str(Element *e) {
   switch (e->type) {
     case NIL:
@@ -150,11 +171,14 @@ char *str(Element *e) {
       return "oops todo";
   }
 }
-
+*/
 // Print
 
 void print(Element *e) {
-  printf("%s", str(e));
+  Element *r = to_String(e);
+  printf("%s", r->el.string);
+  destroy(r);
+  
   // fflush may be needed, otherwise the output is not printed
   fflush(stdout);
 }
@@ -165,6 +189,10 @@ void destroy(Element *e) {
   if (e->type == STRING) {
     free(e->el.string);
   } else if (e->type == ARRAY) {
+    // for (int i = 0; i < e->el.array->size; i++) {
+    //   destroy(&e->el.array->elements[i]);
+    // }
+    
     free(e->el.array->elements);
     free(e->el.array);
   }
@@ -173,6 +201,8 @@ void destroy(Element *e) {
 
 // Manipulate
 void _grow_array(Element *e) {
+  // printf("grow array\n");
+  
   e->el.array->capacity *= 2;
   e->el.array->elements = _realloc(e->el.array->elements, e->el.array->capacity * sizeof(Element));
 }
@@ -347,9 +377,9 @@ Element *to_String(Element *e) {
         return new_String("False");
       }
     case INT:
-      return new_String(_str_Int(e->el));
+      return _str_Int(e->el);
     case FLOAT:
-      return new_String(_str_Float(e->el));
+      return _str_Float(e->el);
     case STRING:
       return e;
     default:
@@ -658,6 +688,8 @@ Element *_not(Element *e) {
 // Helper impl.
 
 void *_alloc(int size) {
+  printf("allocate %d\n", size);
+  
   void *result = malloc(size);
   if (result == NULL) {
       printf("malloc failed\n");
@@ -667,6 +699,8 @@ void *_alloc(int size) {
 }
 
 void *_realloc(void *p, int size) {
+  printf("reallocate %d\n", size);
+  
   void *result = realloc(p, size);
   if (result == NULL) {
       printf("realloc failed\n");

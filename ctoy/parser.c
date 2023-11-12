@@ -18,30 +18,51 @@ typedef struct {
 Parser parser;
 ParserResult parser_result;
 
-ByteCode* new_ByteCode(int capacity) {
+ByteCode* new_ByteCode() {
+  // printf("new_ByteCode\n");
+  // printf("alloc: %lu\n", sizeof(ByteCode));
+  
   ByteCode* bytecode = _alloc(sizeof(ByteCode));
   bytecode->count = 0;
-  bytecode->capacity = capacity == 0 ? 8 : capacity;
-  bytecode->op = _alloc(sizeof(OpCode) * capacity);
+  bytecode->capacity = 4;
+
+  // printf("sizeof opcode: %lu\n", sizeof(OpCode));
+  // printf("bytecode->capacity: %d\n", bytecode->capacity);
+  int s = sizeof(OpCode) * bytecode->capacity;
+  // printf("alloc: %d\n", s);
+  // printf("alloc: %lu\n", sizeof(OpCode) * bytecode->capacity);
+  bytecode->ops = _alloc(s);
+
   return bytecode;
 }
 
 void emit(OpCode op) {
   ByteCode* bc = parser_result.bytecode;
   if (bc->count == bc->capacity) {
+    // printf("grow bytecode\n");
+    // printf("old capacity: %d\n", bc->capacity);
     bc->capacity *= 2;
-    bc->op = _realloc(bc->op, sizeof(OpCode) * bc->capacity);
+    // printf("new capacity: %d\n", bc->capacity);
+    // printf("sizeof: %d\n", sizeof(OpCode *));
+    
+    int s = sizeof(OpCode) * bc->capacity;
+    // printf("new size: %d\n", s);
+    // printf("old size: %d\n", sizeof(bc->op));
+    
+    bc->ops = _realloc(bc->ops, s);
   }
-  bc->op[bc->count++] = op;
+  bc->ops[bc->count] = op;
+  bc->count++;
 }
 
 void print_bytecode() {
   ByteCode* bc = parser_result.bytecode;
   for (int i = 0; i < bc->count; i++) {
     // printf("%d\n", bc->op[i]);
-    switch (bc->op[i]) {
+    switch (bc->ops[i]) {
       case OP_LITERAL:
-        printf("OP_LITERAL %d\n", bc->op[++i]);
+        // printf("OP_LITERAL %d\n", bc->ops[++i]);
+        printf("LITERAL: ");
         break;
       case OP_ADD:
         printf("OP_ADD\n");
@@ -127,7 +148,7 @@ static void prefix_handler() {
       // -> emit byte code
       // INT idx
       emit(OP_LITERAL);
-      emit(int_idx);
+      // emit(int_idx);
       
       printf("INT: %.*s\n", parser.previous.length, parser.previous.start);
       break;
@@ -197,7 +218,7 @@ void interpret(char *source) {
 
 	parser.had_error = 0;
   parser_result.literals = new_Array(0);
-  parser_result.bytecode = new_ByteCode(0);
+  parser_result.bytecode = new_ByteCode();
 
 	advance();
   if (parser.current.type == TOKEN_EOF) {
@@ -210,8 +231,6 @@ void interpret(char *source) {
   if (parser.had_error) {
     printf("%s", parser.error_message);
   }
-  // print size
-  printf("sizeof: %lu\n", sizeof(long long int));
   
   printf("ByteCode:\n");
   print_bytecode();
@@ -229,6 +248,9 @@ void interpret(char *source) {
 
   }
 	*/
+  destroy(parser_result.literals);
+  free(parser_result.bytecode->ops);
+  free(parser_result.bytecode);
 
 }
 

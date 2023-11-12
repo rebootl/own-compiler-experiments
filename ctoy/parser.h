@@ -16,7 +16,7 @@ typedef enum {
 typedef struct {
   int count;
   int capacity;
-	OpCode *op;
+	int *ops;
 } ByteCode;
 
 typedef struct {

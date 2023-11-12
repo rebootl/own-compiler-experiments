@@ -74,6 +74,9 @@ Element *new_Function(Element (*f)(Element n, ...));
 char *str(Element *e);
 void print(Element *e);
 
+// Parse
+// int parse_int(const char* start, int length);
+
 // Destroy
 void destroy(Element *e);
 
