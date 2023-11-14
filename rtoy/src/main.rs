@@ -4,6 +4,9 @@ use std::io::Write;
 mod scanner;
 use scanner::Scanner;
 
+mod parser;
+use parser::Parser;
+
 fn main() {
     print!("> ");
     io::stdout().flush().unwrap(); // needed to print without newline

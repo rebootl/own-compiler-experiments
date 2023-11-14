@@ -104,4 +104,13 @@ impl<'a> Scanner<'a> {
     pub fn get_token_value(&self, token: &Token) -> &str {
         &self.source[token.start..token.end]
     }
+    /*
+        pub fn get_dummy_token(&self) -> Token {
+            Token {
+                token_type: TokenType::ERROR,
+                start: 0,
+                end: 0,
+            }
+        }
+    */
 }
