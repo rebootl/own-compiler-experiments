@@ -1,5 +1,5 @@
-#[derive(Debug)]
-enum TokenType {
+#[derive(Debug, PartialEq)]
+pub enum TokenType {
     PLUS,
     MINUS,
     SLASH,
@@ -11,9 +11,9 @@ enum TokenType {
 
 #[derive(Debug)]
 pub struct Token {
-    token_type: TokenType,
-    start: usize,
-    end: usize,
+    pub token_type: TokenType,
+    pub start: usize,
+    pub end: usize,
 }
 
 pub struct Scanner<'a> {
@@ -23,7 +23,20 @@ pub struct Scanner<'a> {
 }
 
 impl<'a> Scanner<'a> {
-    pub fn init(source: &'a str) -> Scanner {
+    pub fn scan(source: &str) -> Vec<Token> {
+        let mut scanner = Scanner::init(source);
+        let mut tokens: Vec<Token> = Vec::new();
+        loop {
+            let token = scanner.scan_token();
+            if token.token_type == TokenType::EOF {
+                break;
+            }
+            tokens.push(token);
+        }
+        tokens
+    }
+
+    fn init(source: &'a str) -> Scanner {
         Scanner {
             source,
             current_start: 0,
@@ -71,7 +84,7 @@ impl<'a> Scanner<'a> {
         c >= '0' && c <= '9'
     }
 
-    pub fn scan_token(&mut self) -> Token {
+    fn scan_token(&mut self) -> Token {
         self.skip_whitespace();
         // self.start = self.end;
 
@@ -97,6 +110,7 @@ impl<'a> Scanner<'a> {
         }
     }
 
+    /*
     pub fn get_current_value(&self) -> &str {
         &self.source[self.current_start..self.current_end]
     }
@@ -104,6 +118,7 @@ impl<'a> Scanner<'a> {
     pub fn get_token_value(&self, token: &Token) -> &str {
         &self.source[token.start..token.end]
     }
+    */
     /*
         pub fn get_dummy_token(&self) -> Token {
             Token {

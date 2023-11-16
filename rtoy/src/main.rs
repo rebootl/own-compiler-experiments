@@ -6,6 +6,7 @@ use scanner::Scanner;
 
 mod parser;
 use parser::Parser;
+use parser::ParserResult;
 
 fn main() {
     print!("> ");
@@ -19,13 +20,21 @@ fn main() {
 
     println!("You entered: {source}");
 
-    let mut scanner = Scanner::init(&source);
+    // let mut scanner = Scanner::init(&source);
 
-    let token = scanner.scan_token();
-    println!("{:?}", token);
-    let token2 = scanner.scan_token();
-    println!("{:?}", token2);
+    let tokens: Vec<scanner::Token> = Scanner::scan(&source);
+    println!("{:?}", tokens);
 
-    println!("{}", scanner.get_current_value());
-    println!("{}", scanner.get_token_value(&token));
+    let parser_result: ParserResult = Parser::parse(tokens, &source);
+
+    println!("{:?}", parser_result.instructions);
+    println!("{:?}", parser_result.literals);
+
+    // let token = scanner.scan_token();
+    // println!("{:?}", token);
+    // let token2 = scanner.scan_token();
+    // println!("{:?}", token2);
+
+    // println!("{}", scanner.get_current_value());
+    // println!("{}", scanner.get_token_value(&token));
 }
