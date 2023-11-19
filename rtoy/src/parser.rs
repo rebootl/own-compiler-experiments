@@ -5,8 +5,8 @@ use crate::scanner::TokenType;
 #[derive(Debug)]
 pub enum Element {
     INT(usize),
-    FLOAT(f64),
-    STRING(String),
+    // FLOAT(f64),
+    // STRING(String),
 }
 
 #[derive(Debug)]
@@ -49,6 +49,7 @@ impl<'a> Parser<'a> {
         parser.parse_expression(0);
         parser.result
     }
+
     fn error(&mut self, message: &str) {
         if self.result.had_error {
             return;
@@ -56,23 +57,23 @@ impl<'a> Parser<'a> {
         self.result.had_error = true;
         self.result.error_message = message.to_string();
     }
+
     fn consume(&mut self, token_type: TokenType) {
-        /*if self.tokens.len() <= self.current_token_idx {
-            self.error("Error: Expected token not found (No more tokens)");
-            return;
-        }*/
         if self.get_current_token().token_type == token_type {
             self.current_token_idx += 1;
             return;
         }
         self.error("Error: Expected token not found");
     }
+
     fn get_current_token(&self) -> &Token {
         &self.tokens[self.current_token_idx]
     }
+
     fn get_previous_token(&self) -> &Token {
         &self.tokens[self.current_token_idx - 1]
     }
+
     fn get_precedence(&self, token: &Token) -> i8 {
         match token.token_type {
             TokenType::PLUS | TokenType::MINUS => 50,
@@ -80,11 +81,13 @@ impl<'a> Parser<'a> {
             _ => -1,
         }
     }
+
     fn get_token_value(&self, token: &Token) -> usize {
         self.source[token.start..token.end]
             .parse::<usize>()
             .expect("Failed to parse token value")
     }
+
     fn prefix_handler(&mut self) {
         let token = self.get_previous_token();
         match token.token_type {
@@ -133,14 +136,12 @@ impl<'a> Parser<'a> {
             }
         }
     }
+
     fn parse_expression(&mut self, rbp: i8) {
         self.current_token_idx += 1;
         self.prefix_handler();
 
         loop {
-            /*if self.current_token_idx >= self.tokens.len() {
-                return;
-            }*/
             if rbp > self.get_precedence(&self.get_current_token()) {
                 return;
             }

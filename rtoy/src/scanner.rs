@@ -57,10 +57,6 @@ impl<'a> Scanner<'a> {
     }
 
     fn peek(&self) -> char {
-        // checked below already
-        // if self.is_at_end() {
-        //     return '\0';
-        // }
         self.source.chars().nth(self.current_end).unwrap_or('\0')
     }
 
@@ -89,7 +85,6 @@ impl<'a> Scanner<'a> {
 
     fn scan_token(&mut self) -> Token {
         self.skip_whitespace();
-        // self.start = self.end;
 
         if self.is_at_end() {
             return self.make_token(TokenType::EOF);
@@ -114,23 +109,4 @@ impl<'a> Scanner<'a> {
             _ => return self.make_token(TokenType::ERROR),
         }
     }
-
-    /*
-    pub fn get_current_value(&self) -> &str {
-        &self.source[self.current_start..self.current_end]
-    }
-
-    pub fn get_token_value(&self, token: &Token) -> &str {
-        &self.source[token.start..token.end]
-    }
-    */
-    /*
-        pub fn get_dummy_token(&self) -> Token {
-            Token {
-                token_type: TokenType::ERROR,
-                start: 0,
-                end: 0,
-            }
-        }
-    */
 }

@@ -19,12 +19,14 @@ fn main() {
             .read_line(&mut source)
             .expect("Failed to read line");
 
-        println!("You entered: {source}");
-
-        // let mut scanner = Scanner::init(&source);
+        // println!("You entered: {source}");
 
         let tokens: Vec<scanner::Token> = Scanner::scan(&source);
-        println!("{:?}", tokens);
+        // println!("{:?}", tokens);
+        /*println!("Tokens:");
+        for token in &tokens {
+            println!("{:?}", token.token_type);
+        }*/
 
         if tokens.len() == 1 {
             continue;
@@ -36,15 +38,9 @@ fn main() {
             continue;
         }
 
-        println!("{:?}", parser_result.instructions);
-        println!("{:?}", parser_result.literals);
-
-        // let token = scanner.scan_token();
-        // println!("{:?}", token);
-        // let token2 = scanner.scan_token();
-        // println!("{:?}", token2);
-
-        // println!("{}", scanner.get_current_value());
-        // println!("{}", scanner.get_token_value(&token));
+        println!("Instructions:");
+        println!("  {:?}", parser_result.instructions);
+        println!("Literals:");
+        println!("  {:?}", parser_result.literals);
     }
 }
