@@ -31,10 +31,10 @@ impl<'a> Scanner<'a> {
         let mut tokens: Vec<Token> = Vec::new();
         loop {
             let token = scanner.scan_token();
-            if token.token_type == TokenType::EOF {
+            tokens.push(token);
+            if tokens.last().unwrap().token_type == TokenType::EOF {
                 break;
             }
-            tokens.push(token);
         }
         tokens
     }

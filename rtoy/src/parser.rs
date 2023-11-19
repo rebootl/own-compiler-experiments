@@ -5,6 +5,8 @@ use crate::scanner::TokenType;
 #[derive(Debug)]
 pub enum Element {
     INT(usize),
+    FLOAT(f64),
+    STRING(String),
 }
 
 #[derive(Debug)]
@@ -55,10 +57,10 @@ impl<'a> Parser<'a> {
         self.result.error_message = message.to_string();
     }
     fn consume(&mut self, token_type: TokenType) {
-        if self.tokens.len() <= self.current_token_idx {
+        /*if self.tokens.len() <= self.current_token_idx {
             self.error("Error: Expected token not found (No more tokens)");
             return;
-        }
+        }*/
         if self.get_current_token().token_type == token_type {
             self.current_token_idx += 1;
             return;
@@ -84,10 +86,6 @@ impl<'a> Parser<'a> {
             .expect("Failed to parse token value")
     }
     fn prefix_handler(&mut self) {
-        if self.tokens.len() <= self.current_token_idx - 1 {
-            self.error("Error: No previous token");
-            return;
-        }
         let token = self.get_previous_token();
         match token.token_type {
             TokenType::LITERAL => {
@@ -138,14 +136,11 @@ impl<'a> Parser<'a> {
     fn parse_expression(&mut self, rbp: i8) {
         self.current_token_idx += 1;
         self.prefix_handler();
-        if self.current_token_idx >= self.tokens.len() {
-            return;
-        }
 
         loop {
-            if self.current_token_idx >= self.tokens.len() {
+            /*if self.current_token_idx >= self.tokens.len() {
                 return;
-            }
+            }*/
             if rbp > self.get_precedence(&self.get_current_token()) {
                 return;
             }

@@ -26,7 +26,7 @@ fn main() {
         let tokens: Vec<scanner::Token> = Scanner::scan(&source);
         println!("{:?}", tokens);
 
-        if tokens.len() == 0 {
+        if tokens.len() == 1 {
             continue;
         }
         let parser_result: ParserResult = Parser::parse(tokens, &source);
