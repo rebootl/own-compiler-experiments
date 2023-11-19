@@ -13,7 +13,7 @@ pub enum Instruction {
     SUB,
     MUL,
     DIV,
-    // NEG,
+    NEG,
     LIT(usize),
 }
 
@@ -47,6 +47,24 @@ impl<'a> Parser<'a> {
         parser.parse_expression(0);
         parser.result
     }
+    fn error(&mut self, message: &str) {
+        if self.result.had_error {
+            return;
+        }
+        self.result.had_error = true;
+        self.result.error_message = message.to_string();
+    }
+    fn consume(&mut self, token_type: TokenType) {
+        if self.tokens.len() <= self.current_token_idx {
+            self.error("Error: Expected token not found (No more tokens)");
+            return;
+        }
+        if self.get_current_token().token_type == token_type {
+            self.current_token_idx += 1;
+            return;
+        }
+        self.error("Error: Expected token not found");
+    }
     fn get_current_token(&self) -> &Token {
         &self.tokens[self.current_token_idx]
     }
@@ -66,6 +84,10 @@ impl<'a> Parser<'a> {
             .expect("Failed to parse token value")
     }
     fn prefix_handler(&mut self) {
+        if self.tokens.len() <= self.current_token_idx - 1 {
+            self.error("Error: No previous token");
+            return;
+        }
         let token = self.get_previous_token();
         match token.token_type {
             TokenType::LITERAL => {
@@ -76,19 +98,17 @@ impl<'a> Parser<'a> {
                     .instructions
                     .push(Instruction::LIT(self.result.literals.len() - 1));
             }
-            TokenType::PLUS => {
-                self.result.instructions.push(Instruction::ADD);
-            }
             TokenType::MINUS => {
-                self.result.instructions.push(Instruction::SUB);
+                self.parse_expression(70);
+                self.result.instructions.push(Instruction::NEG);
             }
-            TokenType::STAR => {
-                self.result.instructions.push(Instruction::MUL);
+            TokenType::LEFT_PAREN => {
+                self.parse_expression(0);
+                self.consume(TokenType::RIGHT_PAREN);
             }
-            TokenType::SLASH => {
-                self.result.instructions.push(Instruction::DIV);
+            _ => {
+                self.error("Error: Unexpected token");
             }
-            _ => {}
         }
     }
 
@@ -110,7 +130,9 @@ impl<'a> Parser<'a> {
             TokenType::SLASH => {
                 self.result.instructions.push(Instruction::DIV);
             }
-            _ => {}
+            _ => {
+                self.error("Error: Unexpected token");
+            }
         }
     }
     fn parse_expression(&mut self, rbp: i8) {
@@ -120,7 +142,6 @@ impl<'a> Parser<'a> {
             return;
         }
 
-        // while rbp <= self.get_precedence(&self.get_current_token()) {
         loop {
             if self.current_token_idx >= self.tokens.len() {
                 return;

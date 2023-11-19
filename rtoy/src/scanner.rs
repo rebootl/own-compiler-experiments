@@ -1,10 +1,13 @@
 #[derive(Debug, PartialEq, Clone)]
+#[allow(non_camel_case_types)]
 pub enum TokenType {
     PLUS,
     MINUS,
     SLASH,
     STAR,
     LITERAL,
+    RIGHT_PAREN,
+    LEFT_PAREN,
     EOF,
     ERROR,
 }
@@ -106,6 +109,8 @@ impl<'a> Scanner<'a> {
             '-' => return self.make_token(TokenType::MINUS),
             '*' => return self.make_token(TokenType::STAR),
             '/' => return self.make_token(TokenType::SLASH),
+            '(' => return self.make_token(TokenType::LEFT_PAREN),
+            ')' => return self.make_token(TokenType::RIGHT_PAREN),
             _ => return self.make_token(TokenType::ERROR),
         }
     }

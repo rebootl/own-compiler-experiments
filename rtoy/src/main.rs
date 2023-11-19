@@ -31,6 +31,11 @@ fn main() {
         }
         let parser_result: ParserResult = Parser::parse(tokens, &source);
 
+        if parser_result.had_error {
+            println!("{}", parser_result.error_message);
+            continue;
+        }
+
         println!("{:?}", parser_result.instructions);
         println!("{:?}", parser_result.literals);
 
