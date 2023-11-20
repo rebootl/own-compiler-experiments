@@ -1,12 +1,18 @@
 use std::io;
 use std::io::Write;
 
+mod element;
+
 mod scanner;
 use scanner::Scanner;
 
 mod parser;
 use parser::Parser;
 use parser::ParserResult;
+
+mod interpreter;
+use interpreter::Interpreter;
+use interpreter::InterpreterResult;
 
 fn main() {
     loop {
@@ -42,5 +48,16 @@ fn main() {
         println!("  {:?}", parser_result.instructions);
         println!("Literals:");
         println!("  {:?}", parser_result.literals);
+
+        let interpreter_result: InterpreterResult =
+            Interpreter::interpret(parser_result.instructions, parser_result.literals);
+
+        if interpreter_result.had_error {
+            println!("{}", interpreter_result.error_message);
+            continue;
+        }
+
+        println!("Result:");
+        println!("  {:?}", interpreter_result.value);
     }
 }

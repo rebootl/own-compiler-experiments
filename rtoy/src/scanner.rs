@@ -1,15 +1,15 @@
 #[derive(Debug, PartialEq, Clone)]
 #[allow(non_camel_case_types)]
 pub enum TokenType {
-    PLUS,
-    MINUS,
-    SLASH,
-    STAR,
-    LITERAL,
-    RIGHT_PAREN,
-    LEFT_PAREN,
+    Plus,
+    Minus,
+    Slash,
+    Star,
+    Literal,
+    Right_Paren,
+    Left_Paren,
     EOF,
-    ERROR,
+    Error,
 }
 
 #[derive(Debug, Clone)]
@@ -96,17 +96,17 @@ impl<'a> Scanner<'a> {
             while Scanner::is_digit(self.peek()) {
                 self.current_end += 1;
             }
-            return self.make_token(TokenType::LITERAL);
+            return self.make_token(TokenType::Literal);
         }
 
         match c {
-            '+' => return self.make_token(TokenType::PLUS),
-            '-' => return self.make_token(TokenType::MINUS),
-            '*' => return self.make_token(TokenType::STAR),
-            '/' => return self.make_token(TokenType::SLASH),
-            '(' => return self.make_token(TokenType::LEFT_PAREN),
-            ')' => return self.make_token(TokenType::RIGHT_PAREN),
-            _ => return self.make_token(TokenType::ERROR),
+            '+' => return self.make_token(TokenType::Plus),
+            '-' => return self.make_token(TokenType::Minus),
+            '*' => return self.make_token(TokenType::Star),
+            '/' => return self.make_token(TokenType::Slash),
+            '(' => return self.make_token(TokenType::Left_Paren),
+            ')' => return self.make_token(TokenType::Right_Paren),
+            _ => return self.make_token(TokenType::Error),
         }
     }
 }

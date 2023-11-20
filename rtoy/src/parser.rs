@@ -2,21 +2,16 @@
 use crate::scanner::Token;
 use crate::scanner::TokenType;
 
-#[derive(Debug)]
-pub enum Element {
-    INT(usize),
-    // FLOAT(f64),
-    // STRING(String),
-}
+use crate::element::Element;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Instruction {
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    NEG,
-    LIT(usize),
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Neg,
+    Lit(usize),
 }
 
 pub struct ParserResult {
@@ -76,8 +71,8 @@ impl<'a> Parser<'a> {
 
     fn get_precedence(&self, token: &Token) -> i8 {
         match token.token_type {
-            TokenType::PLUS | TokenType::MINUS => 50,
-            TokenType::STAR | TokenType::SLASH => 60,
+            TokenType::Plus | TokenType::Minus => 50,
+            TokenType::Star | TokenType::Slash => 60,
             _ => -1,
         }
     }
@@ -91,21 +86,22 @@ impl<'a> Parser<'a> {
     fn prefix_handler(&mut self) {
         let token = self.get_previous_token();
         match token.token_type {
-            TokenType::LITERAL => {
+            TokenType::Literal => {
                 let literal = self.get_token_value(token);
 
-                self.result.literals.push(Element::INT(literal));
+                self.result.literals.push(Element::Int(literal as isize));
+
                 self.result
                     .instructions
-                    .push(Instruction::LIT(self.result.literals.len() - 1));
+                    .push(Instruction::Lit(self.result.literals.len() - 1));
             }
-            TokenType::MINUS => {
+            TokenType::Minus => {
                 self.parse_expression(70);
-                self.result.instructions.push(Instruction::NEG);
+                self.result.instructions.push(Instruction::Neg);
             }
-            TokenType::LEFT_PAREN => {
+            TokenType::Left_Paren => {
                 self.parse_expression(0);
-                self.consume(TokenType::RIGHT_PAREN);
+                self.consume(TokenType::Right_Paren);
             }
             _ => {
                 self.error("Error: Unexpected token");
@@ -119,17 +115,17 @@ impl<'a> Parser<'a> {
         self.parse_expression(self.get_precedence(&token));
 
         match token.token_type {
-            TokenType::PLUS => {
-                self.result.instructions.push(Instruction::ADD);
+            TokenType::Plus => {
+                self.result.instructions.push(Instruction::Add);
             }
-            TokenType::MINUS => {
-                self.result.instructions.push(Instruction::SUB);
+            TokenType::Minus => {
+                self.result.instructions.push(Instruction::Sub);
             }
-            TokenType::STAR => {
-                self.result.instructions.push(Instruction::MUL);
+            TokenType::Star => {
+                self.result.instructions.push(Instruction::Mul);
             }
-            TokenType::SLASH => {
-                self.result.instructions.push(Instruction::DIV);
+            TokenType::Slash => {
+                self.result.instructions.push(Instruction::Div);
             }
             _ => {
                 self.error("Error: Unexpected token");
